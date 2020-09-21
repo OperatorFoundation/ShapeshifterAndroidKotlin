@@ -1,0 +1,3 @@
+include ':Shadow'
+include ':app'
+rootProject.name = "ShapeshifterJava"
