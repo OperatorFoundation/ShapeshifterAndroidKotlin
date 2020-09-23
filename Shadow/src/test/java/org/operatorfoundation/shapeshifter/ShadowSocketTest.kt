@@ -8,6 +8,8 @@ import org.operatorfoundation.shapeshifter.shadow.kotlin.readNBytes
 import java.net.InetAddress
 import java.net.Proxy
 import java.net.ServerSocket
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import kotlin.concurrent.thread
 
 internal class ShadowSocketTest {
@@ -21,6 +23,22 @@ internal class ShadowSocketTest {
     }
 
     //IPv4 Tests
+
+    @Test
+    fun nonceTest() {
+        val counter = 1234
+        // nonce must be 12 bytes
+        val bufferSize = Long.SIZE_BYTES
+        val buffer = ByteBuffer.allocate(bufferSize)
+        // nonce is little Endian
+        buffer.order(ByteOrder.LITTLE_ENDIAN)
+        // create a byte array from counter
+        buffer.putLong(counter.toLong())
+        val counterBytes = ByteArray(12)
+        buffer.get(counterBytes, 0, 8)
+
+        println(counterBytes)
+    }
 
     @ExperimentalUnsignedTypes
     @Test
