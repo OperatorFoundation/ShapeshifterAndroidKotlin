@@ -26,18 +26,19 @@ internal class ShadowSocketTest {
 
     @Test
     fun nonceTest() {
-        val counter = 1234
+        val counter = 1
         // nonce must be 12 bytes
-        val bufferSize = Long.SIZE_BYTES
-        val buffer = ByteBuffer.allocate(bufferSize)
+        val buffer = ByteBuffer.allocate(12)
         // nonce is little Endian
         buffer.order(ByteOrder.LITTLE_ENDIAN)
         // create a byte array from counter
         buffer.putLong(counter.toLong())
-        val counterBytes = ByteArray(12)
-        buffer.get(counterBytes, 0, 8)
+        buffer.put(0)
+        buffer.put(0)
+        buffer.put(0)
+        buffer.put(0)
 
-        println(counterBytes)
+        println(buffer)
     }
 
     @ExperimentalUnsignedTypes
