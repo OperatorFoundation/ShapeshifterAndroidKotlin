@@ -5,9 +5,7 @@ import org.junit.Test
 import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowConfig
 import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowSocket
 import org.operatorfoundation.shapeshifter.shadow.kotlin.readNBytes
-import java.net.InetAddress
-import java.net.Proxy
-import java.net.ServerSocket
+import java.net.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.concurrent.thread
@@ -47,7 +45,7 @@ internal class ShadowSocketTest {
         val password = "1234"
         val config = ShadowConfig(password, "AES-128-GCM")
         val shadowSocket = ShadowSocket(config, "127.0.0.1", 2222)
-        assertNotEquals(shadowSocket, null)
+        assertNotNull(shadowSocket)
     }
 
     @ExperimentalUnsignedTypes
@@ -85,10 +83,13 @@ internal class ShadowSocketTest {
     @Test
     fun shadowSocketConstructorTest4() {
         val password = "1234"
-        //TODO(make something of type proxy that actually works)
-        val fakeProxy = Proxy.NO_PROXY
+        val socksAddress: SocketAddress = InetSocketAddress("127.0.0.1", 1443)
+        val proxyType = Proxy.Type.SOCKS
+        val socksProxy = Proxy(proxyType, socksAddress)
         val config = ShadowConfig(password, "AES-128-GCM")
-        val shadowSocket = ShadowSocket(config, fakeProxy)
+        val shadowSocket = ShadowSocket(config, socksProxy)
+        val transportServerAddress = InetSocketAddress("127.0.0.1", 2222)
+        shadowSocket.connect(transportServerAddress)
         assertNotEquals(shadowSocket, null)
     }
 
@@ -165,6 +166,26 @@ internal class ShadowSocketTest {
         val textBytes = plaintext.toByteArray()
         shadowSocket.outputStream.write(textBytes)
         shadowSocket.outputStream.flush()
+    }
+
+    @ExperimentalUnsignedTypes
+    @Test
+    fun shadowSocketIPv6ReadTest() {
+        thread {
+            runTestServer()
+        }
+
+        val password = "1234"
+        val config = ShadowConfig(password, "AES-128-GCM")
+        val shadowSocket = ShadowSocket(config, "::1", 2222)
+        assertNotNull(shadowSocket)
+        val plaintext = "Hi"
+        val textBytes = plaintext.toByteArray()
+        shadowSocket.outputStream.write(textBytes)
+        shadowSocket.outputStream.flush()
+        val buffer = ByteArray(2)
+        shadowSocket.inputStream.read(buffer)
+        assertEquals(String(buffer), "Yo")
     }
 
     //Bad Arguments Tests

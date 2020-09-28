@@ -85,8 +85,6 @@ class ShadowSocket(private val config: ShadowConfig) : Socket() {
     @ExperimentalUnsignedTypes
     constructor(config: ShadowConfig, proxy: Proxy) : this(config) {
         socket = Socket(proxy)
-        connectionStatus = true
-        handshake()
     }
 
     // Public functions
@@ -107,6 +105,7 @@ class ShadowSocket(private val config: ShadowConfig) : Socket() {
         if (connectionStatus) {
             throw IOException()
         }
+        connectionStatus = true
         handshake()
     }
 
