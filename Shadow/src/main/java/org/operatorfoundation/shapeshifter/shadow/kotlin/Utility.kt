@@ -1,6 +1,8 @@
 package org.operatorfoundation.shapeshifter.shadow.kotlin
 
 import java.io.InputStream
+import java.nio.ByteBuffer
+import java.nio.channels.SocketChannel
 
 //@kotlin.ExperimentalUnsignedTypes
 //fun ByteArray.toHexString() = asUByteArray().joinToString("") {
@@ -13,6 +15,17 @@ fun readNBytes(input: InputStream, numBytes: Int): ByteArray {
     var offset = input.read(buffer)
     while (offset != numBytes) {
         val bytesRead = input.read(buffer, offset, numBytes - offset)
+        offset += bytesRead
+    }
+    return buffer
+}
+
+fun readNBytes(input: SocketChannel, numBytes: Int): ByteBuffer {
+    val buffer = ByteBuffer.allocate(numBytes)
+    val bufferArray = arrayOf((buffer))
+    var offset = input.read(buffer)
+    while (offset != numBytes) {
+        val bytesRead = input.read(bufferArray, offset, numBytes - offset).toInt()
         offset += bytesRead
     }
     return buffer
