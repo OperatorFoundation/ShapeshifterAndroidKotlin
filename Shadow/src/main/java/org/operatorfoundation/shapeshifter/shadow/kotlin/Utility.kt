@@ -30,3 +30,7 @@ fun readNBytes(input: SocketChannel, numBytes: Int): ByteBuffer {
     }
     return buffer
 }
+
+//fun byteBufferToArray (byteBuffer: ByteBuffer): ByteArray {
+//    return ByteArray(byteBuffer.capacity())
+//}

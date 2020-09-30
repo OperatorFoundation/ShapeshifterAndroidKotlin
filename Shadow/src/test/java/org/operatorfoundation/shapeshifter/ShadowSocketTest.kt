@@ -88,8 +88,8 @@ internal class ShadowSocketTest {
         val socksProxy = Proxy(proxyType, socksAddress)
         val config = ShadowConfig(password, "AES-128-GCM")
         val shadowSocket = ShadowSocket(config, socksProxy)
-        val transportServerAddress = InetSocketAddress("127.0.0.1", 2222)
-        shadowSocket.connect(transportServerAddress)
+        val socketAddress = InetSocketAddress("127.0.0.1", 2222)
+        shadowSocket.connect(socketAddress)
         assertNotEquals(shadowSocket, null)
     }
 
