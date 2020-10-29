@@ -33,20 +33,20 @@ import java.nio.channels.SocketChannel
 // This class implements client sockets (also called just "sockets").
 // A socket is an endpoint for communication between two machines.
 class ShadowSocket(private val config: ShadowConfig) : Socket() {
-    // Fields
+    // Fields:
     private var socket: Socket = Socket()
     private var encryptionCipher: ShadowCipher
     private var decryptionCipher: ShadowCipher? = null
     private var connectionStatus: Boolean = false
 
     init {
-        // Create salt for encryptionCipher
+        // Create salt for encryptionCipher.
         val salt = ShadowCipher.createSalt(config)
-        // Create an encryptionCipher
+        // Create an encryptionCipher.
         encryptionCipher = ShadowCipher(config, salt)
     }
 
-    // Constructors
+    // Constructors:
     // Creates a stream socket and connects it to the specified port number on the named host.
     @ExperimentalUnsignedTypes
     constructor(config: ShadowConfig, host: String, port: Int) : this(config) {
@@ -57,7 +57,13 @@ class ShadowSocket(private val config: ShadowConfig) : Socket() {
 
     // Creates a socket and connects it to the specified remote host on the specified remote port.
     @ExperimentalUnsignedTypes
-    constructor(config: ShadowConfig, host: String, port: Int, localAddr: InetAddress, localPort: Int) : this(config) {
+    constructor(
+        config: ShadowConfig,
+        host: String,
+        port: Int,
+        localAddr: InetAddress,
+        localPort: Int
+    ) : this(config) {
         socket = Socket(host, port, localAddr, localPort)
         connectionStatus = true
         handshake()
@@ -73,7 +79,13 @@ class ShadowSocket(private val config: ShadowConfig) : Socket() {
 
     // Creates a socket and connects it to the specified remote address on the specified remote port.
     @ExperimentalUnsignedTypes
-    constructor(config: ShadowConfig, address: InetAddress, port: Int, localAddr: InetAddress, localPort: Int) : this(
+    constructor(
+        config: ShadowConfig,
+        address: InetAddress,
+        port: Int,
+        localAddr: InetAddress,
+        localPort: Int
+    ) : this(
         config
     ) {
         socket = Socket(address, port, localAddr, localPort)
@@ -87,7 +99,7 @@ class ShadowSocket(private val config: ShadowConfig) : Socket() {
         socket = Socket(proxy)
     }
 
-    // Public functions
+    // Public functions:
     // Binds the socket to a local address.
     override fun bind(bindpoint: SocketAddress?) {
         socket.bind(bindpoint)
@@ -163,7 +175,7 @@ class ShadowSocket(private val config: ShadowConfig) : Socket() {
         return false
     }
 
-    // Returns an output stream and the encryption cipher for this socket
+    // Returns an output stream and the encryption cipher for this socket.
     override fun getOutputStream(): OutputStream {
         return ShadowOutputStream(socket.outputStream, encryptionCipher)
     }
@@ -193,7 +205,7 @@ class ShadowSocket(private val config: ShadowConfig) : Socket() {
         return socket.sendBufferSize
     }
 
-    // Returns setting for SO_LINGER. -1 implies that the option is disabled
+    // Returns setting for SO_LINGER. -1 implies that the option is disabled.
     override fun getSoLinger(): Int {
         return -1
     }
@@ -233,7 +245,7 @@ class ShadowSocket(private val config: ShadowConfig) : Socket() {
         return socket.isInputShutdown
     }
 
-    // Returns whether the write-half of the socket connection is closed
+    // Returns whether the write-half of the socket connection is closed.
     override fun isOutputShutdown(): Boolean {
         return socket.isOutputShutdown
     }
@@ -300,24 +312,24 @@ class ShadowSocket(private val config: ShadowConfig) : Socket() {
         return "ShadowSocket[" + "password = " + config.password + ", cipherName = " + config.cipherName + "]"
     }
 
-    // private functions
-    // Exchanges the salt
+    // Private functions:
+    // Exchanges the salt.
     @ExperimentalUnsignedTypes
     private fun handshake() {
         sendSalt()
         receiveSalt()
     }
 
-    // Sends the salt through the output stream
+    // Sends the salt through the output stream.
     private fun sendSalt() {
         socket.outputStream.write(encryptionCipher.salt)
     }
 
-    // Receives the salt through the input stream
+    // Receives the salt through the input stream.
     @ExperimentalUnsignedTypes
     private fun receiveSalt() {
         val result = readNBytes(socket.inputStream, ShadowCipher.saltSize)
-        if (result.size  == encryptionCipher.salt.size) {
+        if (result.size == encryptionCipher.salt.size) {
             decryptionCipher = ShadowCipher(config, result)
         } else {
             throw IOException()

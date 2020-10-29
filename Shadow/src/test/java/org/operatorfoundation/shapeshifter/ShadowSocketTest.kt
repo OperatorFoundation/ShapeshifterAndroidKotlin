@@ -13,7 +13,7 @@ import kotlin.concurrent.thread
 internal class ShadowSocketTest {
 
     @ExperimentalUnsignedTypes
-    private fun runTestServer() {
+    fun runTestServer() {
         val testServer = ServerSocket(3333)
         val socket = testServer.accept()
         readNBytes(socket.inputStream, 2)

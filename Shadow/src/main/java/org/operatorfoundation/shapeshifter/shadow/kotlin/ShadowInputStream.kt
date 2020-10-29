@@ -72,7 +72,6 @@ class ShadowInputStream(private val networkInputStream: InputStream, private val
 
         // read and decrypt payload with the resulting length
         val encryptedPayload = readNBytes(networkInputStream, payloadLength + ShadowCipher.tagSize)
-//        val encryptedPayload = b.sliceArray(0 until payloadLength + ShadowCipher.tagSize + 1)
         val payload = decryptionCipher.decrypt(encryptedPayload)
 
         // put payload into buffer

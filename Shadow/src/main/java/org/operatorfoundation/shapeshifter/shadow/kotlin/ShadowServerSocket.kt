@@ -33,7 +33,7 @@ open class ShadowServerSocket(private val config: ShadowConfig) : ServerSocket()
     // fields
     private var serverSocket: ServerSocket = ServerSocket()
 
-    // constructors
+    // Constructors:
     // Creates a server socket, bound to the specified port.
     constructor(config: ShadowConfig, port: Int) : this(config) {
         serverSocket = ServerSocket(port)
@@ -49,7 +49,7 @@ open class ShadowServerSocket(private val config: ShadowConfig) : ServerSocket()
         serverSocket = ServerSocket(port, backlog, bindAddr)
     }
 
-    // public methods
+    // Public methods:
     // Listens for a connection to be made to this socket and accepts it.
     override fun accept(): Socket {
         return serverSocket.accept()

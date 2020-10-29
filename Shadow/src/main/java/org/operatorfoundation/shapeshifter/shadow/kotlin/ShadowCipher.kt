@@ -51,6 +51,8 @@ class ShadowCipher(private val config: ShadowConfig, var salt: ByteArray) {
         const val tagSizeBits = 16 * 8
         const val tagSize = 16
         const val maxPayloadSize = 16417
+
+        //TODO(Could i set the saltSize constant in a when loop)
         const val saltSize = 16
         // this is in bytes
 //         val maxRead = maxPayloadSize + overhead
@@ -62,8 +64,8 @@ class ShadowCipher(private val config: ShadowConfig, var salt: ByteArray) {
             return hkdfSha1(config, salt, presharedKey)
         }
 
-        // key derivation functions
-        // derives the secret key from the preshared key and adds the salt.
+        // Key derivation functions:
+        // Derives the secret key from the preshared key and adds the salt.
         private fun hkdfSha1(config: ShadowConfig, salt: ByteArray, psk: ByteArray): SecretKey {
             val infoString = "ss-subkey"
             val info = infoString.toByteArray()
@@ -81,11 +83,12 @@ class ShadowCipher(private val config: ShadowConfig, var salt: ByteArray) {
             return SecretKeySpec(okm, keyAlgorithm)
         }
 
-        // derives the preshared key from the config
+        // Derives the pre-shared key from the config.
         private fun kdf(config: ShadowConfig): ByteArray {
+            val hash = MessageDigest.getInstance("MD5")
             var buffer: ByteArray = byteArrayOf()
             var prev: ByteArray = byteArrayOf()
-            val hash = MessageDigest.getInstance("MD5")
+
             val keyLen = when (config.cipherMode) {
                 CipherMode.AES_128_GCM -> 16
                 CipherMode.AES_256_GCM -> 32
@@ -104,7 +107,7 @@ class ShadowCipher(private val config: ShadowConfig, var salt: ByteArray) {
             return buffer.sliceArray(0 until keyLen)
         }
 
-        // creates a byteArray of a specified length containing random bytes
+        // Creates a byteArray of a specified length containing random bytes.
         fun createSalt(config: ShadowConfig): ByteArray {
             val saltSize = when (config.cipherMode) {
                 CipherMode.AES_128_GCM -> 16
@@ -116,7 +119,7 @@ class ShadowCipher(private val config: ShadowConfig, var salt: ByteArray) {
         }
     }
 
-    // inits
+    // Init block:
     init {
         key = createSecretKey(config, salt)
         cipher = when (config.cipherMode) {
@@ -127,7 +130,7 @@ class ShadowCipher(private val config: ShadowConfig, var salt: ByteArray) {
     }
 
     // [encrypted payload length][length tag] + [encrypted payload][payload tag]
-    // pack takes the data above and packs them into a singular byte array.
+    // Pack takes the data above and packs them into a singular byte array.
     @ExperimentalUnsignedTypes
     fun pack(plaintext: ByteArray): ByteArray {
 
@@ -149,7 +152,7 @@ class ShadowCipher(private val config: ShadowConfig, var salt: ByteArray) {
         return encryptedLengthBytes + encryptedPayload
     }
 
-    // encrypts the data and increments the nonce counter
+    // Encrypts the data and increments the nonce counter.
     private fun encrypt(plaintext: ByteArray): ByteArray {
         val nonceBytes = nonce()
         val ivSpec = when (config.cipherMode) {
@@ -166,7 +169,7 @@ class ShadowCipher(private val config: ShadowConfig, var salt: ByteArray) {
         return encrypted
     }
 
-    // decrypts data and increments the nonce counter.
+    // Decrypts data and increments the nonce counter.
     fun decrypt(encrypted: ByteArray): ByteArray {
         val nonceBytes = nonce()
         val ivSpec = when (config.cipherMode) {
@@ -183,20 +186,7 @@ class ShadowCipher(private val config: ShadowConfig, var salt: ByteArray) {
         return plaintext
     }
 
-    // create a nonce using our counter
-//    private fun nonce(): ByteArray {
-//        // nonce must be 12 bytes
-//        val bufferSize = Long.SIZE_BYTES
-//        val buffer = ByteBuffer.allocate(bufferSize)
-//        // nonce is little Endian
-//        buffer.order(ByteOrder.LITTLE_ENDIAN)
-//        // create a byte array from counter
-//        buffer.putLong(counter.toLong())
-//        val counterBytes = ByteArray(12)
-//        buffer.get(counterBytes, 0, 8)
-//
-//        return counterBytes
-//    }
+    // Create a nonce using our counter.
     private fun nonce(): ByteArray {
         // nonce must be 12 bytes
         val buffer = ByteBuffer.allocate(12)
@@ -213,7 +203,7 @@ class ShadowCipher(private val config: ShadowConfig, var salt: ByteArray) {
     }
 }
 
-// CipherMode establishes what algorithm and version you are using
+// CipherMode establishes what algorithm and version you are using.
 enum class CipherMode {
     //  AES 196 is not currently supported by go-shadowsocks2.
     //  We are not supporting it at this time either.

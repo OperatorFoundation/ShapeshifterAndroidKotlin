@@ -10,6 +10,7 @@ import java.nio.channels.SocketChannel
 //}
 
 @kotlin.ExperimentalUnsignedTypes
+// Reads up to a specific number of bytes in a byte array.
 fun readNBytes(input: InputStream, numBytes: Int): ByteArray {
     val buffer = ByteArray(numBytes)
     var offset = input.read(buffer)
@@ -20,6 +21,7 @@ fun readNBytes(input: InputStream, numBytes: Int): ByteArray {
     return buffer
 }
 
+// Reads up to a specific number of bytes in a byte buffer.
 fun readNBytes(input: SocketChannel, numBytes: Int): ByteBuffer {
     val buffer = ByteBuffer.allocate(numBytes)
     val bufferArray = arrayOf((buffer))

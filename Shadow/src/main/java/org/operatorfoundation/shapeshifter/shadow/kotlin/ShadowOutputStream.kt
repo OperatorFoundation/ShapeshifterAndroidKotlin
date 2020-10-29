@@ -27,7 +27,7 @@ package org.operatorfoundation.shapeshifter.shadow.kotlin
 import java.io.OutputStream
 import java.lang.Integer.min
 
-// This abstract class is the superclass of all classes representing an output stream of bytes
+// This abstract class is the superclass of all classes representing an output stream of bytes.
 // An output stream accepts output bytes and sends them to some sink.
 class ShadowOutputStream(private val outputStream: OutputStream, private val encryptionCipher: ShadowCipher) : OutputStream() {
 
