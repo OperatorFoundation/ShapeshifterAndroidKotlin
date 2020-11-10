@@ -328,11 +328,13 @@ class ShadowSocket(private val config: ShadowConfig) : Socket() {
     // Receives the salt through the input stream.
     @ExperimentalUnsignedTypes
     private fun receiveSalt() {
-        val result = readNBytes(socket.inputStream, ShadowCipher.saltSize)
-        if (result.size == encryptionCipher.salt.size) {
-            decryptionCipher = ShadowCipher(config, result)
-        } else {
-            throw IOException()
+        val result = ShadowCipher.saltSize?.let { readNBytes(socket.inputStream, it) }
+        if (result != null) {
+            if (result.size == encryptionCipher.salt.size) {
+                decryptionCipher = ShadowCipher(config, result)
+            } else {
+                throw IOException()
+            }
         }
     }
 }

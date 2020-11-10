@@ -112,7 +112,7 @@ internal class ShadowSocketTest {
 
     @ExperimentalUnsignedTypes
     @Test
-    fun shadowSocketReadTest() {
+    fun shadowSocketReadTestAES128() {
         thread {
             runTestServer()
         }
@@ -128,6 +128,46 @@ internal class ShadowSocketTest {
         val buffer = ByteArray(2)
         shadowSocket.inputStream.read(buffer)
        assertEquals(String(buffer), "Yo")
+    }
+
+    @ExperimentalUnsignedTypes
+    @Test
+    fun shadowSocketReadTestAES256() {
+        thread {
+            runTestServer()
+        }
+
+        val password = "1234"
+        val config = ShadowConfig(password, "AES-256-GCM")
+        val shadowSocket = ShadowSocket(config, "127.0.0.1", 2222)
+        assertNotNull(shadowSocket)
+        val plaintext = "Hi"
+        val textBytes = plaintext.toByteArray()
+        shadowSocket.outputStream.write(textBytes)
+        shadowSocket.outputStream.flush()
+        val buffer = ByteArray(2)
+        shadowSocket.inputStream.read(buffer)
+        assertEquals(String(buffer), "Yo")
+    }
+
+    @ExperimentalUnsignedTypes
+    @Test
+    fun shadowSocketReadTestCHACHA() {
+        thread {
+            runTestServer()
+        }
+
+        val password = "1234"
+        val config = ShadowConfig(password, "CHACHA20-IETF-POLY1305")
+        val shadowSocket = ShadowSocket(config, "127.0.0.1", 2222)
+        assertNotNull(shadowSocket)
+        val plaintext = "Hi"
+        val textBytes = plaintext.toByteArray()
+        shadowSocket.outputStream.write(textBytes)
+        shadowSocket.outputStream.flush()
+        val buffer = ByteArray(2)
+        shadowSocket.inputStream.read(buffer)
+        assertEquals(String(buffer), "Yo")
     }
 
     //IPv6 Tests

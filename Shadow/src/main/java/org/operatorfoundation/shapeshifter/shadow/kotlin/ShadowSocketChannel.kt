@@ -195,11 +195,13 @@ class ShadowSocketChannel(selectorProvider: SelectorProvider, val config: Shadow
     @ExperimentalUnsignedTypes
     private fun receiveSalt() {
         val channel = socketChannel
-        val result = readNBytes(channel, ShadowCipher.saltSize)
-        if (result.position() == encryptionCipher.salt.size) {
-            decryptionCipher = ShadowCipher(config, result.array())
-        } else {
-            throw IOException()
+        val result = ShadowCipher.saltSize?.let { readNBytes(channel, it) }
+        if (result != null) {
+            if (result.position() == encryptionCipher.salt.size) {
+                decryptionCipher = ShadowCipher(config, result.array())
+            } else {
+                throw IOException()
+            }
         }
     }
 }

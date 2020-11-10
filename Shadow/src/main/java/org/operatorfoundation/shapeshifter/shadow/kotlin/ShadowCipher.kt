@@ -52,8 +52,7 @@ class ShadowCipher(private val config: ShadowConfig, var salt: ByteArray) {
         const val tagSize = 16
         const val maxPayloadSize = 16417
 
-        //TODO(Could i set the saltSize constant in a when loop)
-        const val saltSize = 16
+        var saltSize: Int? = null
         // this is in bytes
 //         val maxRead = maxPayloadSize + overhead
 //         val minRead = 1 + overhead
@@ -114,7 +113,7 @@ class ShadowCipher(private val config: ShadowConfig, var salt: ByteArray) {
                 CipherMode.AES_256_GCM -> 32
                 CipherMode.CHACHA20_IETF_POLY1305 -> 32
             }
-
+            ShadowCipher.saltSize = saltSize
             return Random.nextBytes(saltSize)
         }
     }
@@ -125,7 +124,7 @@ class ShadowCipher(private val config: ShadowConfig, var salt: ByteArray) {
         cipher = when (config.cipherMode) {
             CipherMode.AES_128_GCM -> Cipher.getInstance("AES_128/GCM/NoPadding")
             CipherMode.AES_256_GCM -> Cipher.getInstance("AES_256/GCM/NoPadding")
-            CipherMode.CHACHA20_IETF_POLY1305 -> Cipher.getInstance("CHACHA20_IETF/POLY1305/NoPadding")
+            CipherMode.CHACHA20_IETF_POLY1305 -> Cipher.getInstance("ChaCha20/Poly1305/NoPadding")
         }
     }
 
