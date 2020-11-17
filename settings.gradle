@@ -1,3 +1,3 @@
 include ':Shadow'
 include ':app'
-rootProject.name = "ShapeshifterJava"
+rootProject.name = "ShapeshifterAndroidKotlin"
