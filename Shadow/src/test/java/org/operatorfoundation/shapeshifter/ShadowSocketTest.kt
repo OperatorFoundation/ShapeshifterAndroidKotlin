@@ -20,6 +20,14 @@ internal class ShadowSocketTest {
         socket.outputStream.write("Yo".toByteArray())
     }
 
+    @ExperimentalUnsignedTypes
+    fun runTestServerVol2() {
+        val testServer = ServerSocket(3333)
+        val socket = testServer.accept()
+        readNBytes(socket.inputStream, 2)
+        socket.outputStream.write("Yeah!".toByteArray())
+    }
+
     //IPv4 Tests
 
     @Test
@@ -128,6 +136,101 @@ internal class ShadowSocketTest {
         val buffer = ByteArray(2)
         shadowSocket.inputStream.read(buffer)
        assertEquals(String(buffer), "Yo")
+    }
+
+    @ExperimentalUnsignedTypes
+    @Test
+    fun iDontKnow() {
+        thread {
+            runTestServerVol2()
+        }
+
+        val password = "1234"
+        val config = ShadowConfig(password, "AES-128-GCM")
+        val shadowSocket = ShadowSocket(config, "127.0.0.1", 2222)
+        assertNotNull(shadowSocket)
+        val plaintext = "GET / HTTP/1.0\r\n\r\n"
+        val textBytes = plaintext.toByteArray()
+        shadowSocket.outputStream.write(textBytes)
+        shadowSocket.outputStream.flush()
+        val buffer = ByteArray(5)
+        shadowSocket.inputStream.read(buffer)
+        assertEquals(String(buffer), "Yeah!")
+    }
+
+    @ExperimentalUnsignedTypes
+    @Test
+    fun curlTest() {
+        thread {
+            runTestServerVol2()
+        }
+
+        val shadowSocket = Socket("127.0.0.1", 1234)
+        assertNotNull(shadowSocket)
+        val plaintext = "GET / HTTP/1.0\r\n\r\n"
+        val textBytes = plaintext.toByteArray()
+        shadowSocket.outputStream.write(textBytes)
+        shadowSocket.outputStream.flush()
+        val buffer = ByteArray(244)
+        val len = shadowSocket.inputStream.read(buffer)
+        println(len)
+        assertEquals(String(buffer), "Yeah!")
+    }
+
+    @ExperimentalUnsignedTypes
+    @Test
+    fun demoServerResponseTestAES128() {
+        val password = "1234"
+        val config = ShadowConfig(password, "AES-128-GCM")
+        val shadowSocket = ShadowSocket(config, "159.203.158.90", 2346)
+        assertNotNull(shadowSocket)
+        // Send a request to the server
+        val httpRequest  = "GET / HTTP/1.0\r\n\r\n"
+        shadowSocket.outputStream.write(httpRequest.toByteArray())
+        shadowSocket.outputStream.flush()
+        val response = readNBytes(shadowSocket.inputStream, 1)
+    }
+
+    @ExperimentalUnsignedTypes
+    @Test
+    fun demoServerResponseTestWithOtherHost() {
+        thread {
+            runTestServer()
+        }
+
+        val password = "1234"
+        val config = ShadowConfig(password, "AES-128-GCM")
+        val shadowSocket = ShadowSocket(config, "127.0.0.1", 2222)
+        assertNotNull(shadowSocket)
+        // Send a request to the server
+        val httpRequest  = "GET / HTTP/1.0\r\n\r\n"
+        //val httpRequest = "Hi"
+        val textBytes = httpRequest.toByteArray()
+        shadowSocket.outputStream.write(textBytes)
+        shadowSocket.outputStream.flush()
+        val buffer = ByteArray(2)
+        val response = shadowSocket.inputStream.read(buffer)
+    }
+
+    @ExperimentalUnsignedTypes
+    @Test
+    fun demoServerResponseTestWithOtherHostVol2() {
+        thread {
+            runTestServer()
+        }
+
+        val password = "1234"
+        val config = ShadowConfig(password, "AES-128-GCM")
+        val shadowSocket = ShadowSocket(config, "159.203.158.90", 2346)
+        assertNotNull(shadowSocket)
+        // Send a request to the server
+        val httpRequest  = "GET / HTTP/1.0\r\n\r\n"
+        //val httpRequest = "Hi"
+        val textBytes = httpRequest.toByteArray()
+        shadowSocket.outputStream.write(textBytes)
+        shadowSocket.outputStream.flush()
+        val buffer = ByteArray(2)
+        val response = shadowSocket.inputStream.read(buffer)
     }
 
     @ExperimentalUnsignedTypes
