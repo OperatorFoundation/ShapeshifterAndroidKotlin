@@ -63,9 +63,10 @@ class ShadowInputStream(private val networkInputStream: InputStream, private val
         // decrypt encrypted length to find out payload length
         val lengthData = decryptionCipher.decrypt(encryptedLengthData)
 
+
         // change lengthData from BigEndian representation to int length
-        val leftByte = lengthData[0].toUByte()
-        val rightByte = lengthData[1].toUByte()
+        val leftByte = lengthData[0]?.toUByte()
+        val rightByte = lengthData[1]?.toUByte()
         val rightInt = rightByte.toInt()
         val leftInt = leftByte.toInt()
         val payloadLength = (leftInt * 256) + rightInt

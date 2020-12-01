@@ -3,144 +3,97 @@ package org.operatorfoundation.shapeshifter.shadow.kotlin
 import org.bouncycastle.crypto.digests.SHA1Digest
 import org.bouncycastle.crypto.generators.HKDFBytesGenerator
 import org.bouncycastle.crypto.params.HKDFParameters
-import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.security.MessageDigest
-import java.security.Security
-import java.security.spec.AlgorithmParameterSpec
-import java.util.*
 import javax.crypto.Cipher
-import javax.crypto.NoSuchPaddingException
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
-import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
-class ShadowAESCipher(config: ShadowConfig): ShadowCipher(config) {
-
-    init
+class ShadowAESCipher: ShadowCipher
+{
+    constructor(_config: ShadowConfig): super(_config)
     {
-        ShadowAESCipher(config, createSalt(config))
+        key = createSecretKey()
     }
 
-    constructor(config: ShadowConfig, salt: ByteArray) : this(config)
+    constructor(_config: ShadowConfig, _salt: ByteArray) : super(_config, _salt)
     {
-        this.config = config
-        this.salt = salt
-
-        key = createSecretKey(config, salt)
-        when (config.cipherMode) {
-            CipherMode.AES_128_GCM -> try {
-                cipher = Cipher.getInstance("AES_128/GCM/NoPadding")
-                saltSize = 16
-            } catch (e: NoSuchPaddingException) {
-                e.printStackTrace()
-            }
-            CipherMode.AES_256_GCM -> try {
-                cipher = Cipher.getInstance("AES_256/GCM/NoPadding")
-                saltSize = 32
-            } catch (e: NoSuchPaddingException) {
-                e.printStackTrace()
-            }
-            CipherMode.CHACHA20_IETF_POLY1305 -> try {
-                Security.addProvider(BouncyCastleProvider())
-                cipher = Cipher.getInstance("CHACHA7539")
-                saltSize = 32
-            } catch (e: NoSuchPaddingException) {
-                e.printStackTrace()
-            }
-        }
+        key = createSecretKey()
     }
 
-    override fun createSecretKey(config: ShadowConfig?, salt: ByteArray?): SecretKey
+    override fun createSecretKey(): SecretKey
     {
-        val presharedKey = kdf(config)
-        return hkdfSha1(config, salt, presharedKey)
+        val presharedKey = kdf()
+        return hkdfSha1(presharedKey)
     }
 
-    override fun hkdfSha1(config: ShadowConfig?, salt: ByteArray?, psk: ByteArray?): SecretKey
+    override fun hkdfSha1(psk: ByteArray): SecretKey
     {
+        val keyAlgorithm = "AES"
         val infoString = "ss-subkey"
         val info = infoString.toByteArray()
+        val okm = ByteArray(psk.size)
+
         val hkdf = HKDFBytesGenerator(SHA1Digest())
         hkdf.init(HKDFParameters(psk, salt, info))
-        val okm = ByteArray(psk!!.size)
         hkdf.generateBytes(okm, 0, psk.size)
-        var keyAlgorithm: String? = null
-        keyAlgorithm = when (config!!.cipherMode) {
-            CipherMode.AES_128_GCM, CipherMode.AES_256_GCM -> "AES"
-            CipherMode.CHACHA20_IETF_POLY1305 -> "ChaCha20"
-            else -> throw IllegalStateException("Unexpected or unsupported Algorithm value: $keyAlgorithm")
-        }
+
         return SecretKeySpec(okm, keyAlgorithm)
     }
 
-    override fun kdf(config: ShadowConfig?): ByteArray
+    override fun kdf(): ByteArray
     {
         val hash = MessageDigest.getInstance("MD5")
         var buffer = ByteArray(0)
         var prev = ByteArray(0)
+        val keylen = salt.size
 
-        var keylen = 0
-        when (config!!.cipherMode) {
-            CipherMode.AES_128_GCM -> keylen = 16
-            CipherMode.AES_256_GCM, CipherMode.CHACHA20_IETF_POLY1305 -> keylen = 32
-        }
-
-        while (buffer.size < keylen) {
+        while (buffer.size < keylen)
+        {
             hash.update(prev)
             hash.update(config.password.encodeToByteArray())
-            buffer = buffer + hash.digest()
+            buffer += hash.digest()
             val index = buffer.size - hash.digestLength
-            prev = Arrays.copyOfRange(buffer, index, buffer.size)
+            prev = buffer.copyOfRange(index, buffer.size)
             hash.reset()
         }
 
         return buffer.copyOfRange(0, keylen)
     }
 
-    override fun pack(plaintext: ByteArray?): ByteArray?
+    // [encrypted payload length][length tag] + [encrypted payload][payload tag]
+    // Pack takes the data above and packs them into a singular byte array.
+    @ExperimentalUnsignedTypes
+    override fun pack(plaintext: ByteArray): ByteArray
     {
-        // find the length of plaintext
-        val plaintextLength = plaintext!!.size
+        // find length of plaintext
+        val plaintextLength = plaintext.size
 
         // turn the length into two shorts and put them into an array
-        // this is encoded in big endian
-        val shortPlaintextLength = plaintextLength.toShort()
-        val leftShort = (shortPlaintextLength / 256).toShort()
-        val rightShort = (shortPlaintextLength % 256).toShort()
+        val shortPlaintextLength = plaintextLength.toUShort()
+        val leftShort = shortPlaintextLength / 256u
+        val rightShort = shortPlaintextLength % 256u
         val leftByte = leftShort.toByte()
         val rightByte = rightShort.toByte()
         val lengthBytes = byteArrayOf(leftByte, rightByte)
 
         // encrypt the length and the payload, adding a tag to each
         val encryptedLengthBytes = encrypt(lengthBytes)
+        val encryptedPayload = encrypt(plaintext)
 
-        if (encryptedLengthBytes != null) {
-            val encryptedPayload = encrypt(plaintext)
-
-            if (encryptedPayload != null) {
-                return encryptedLengthBytes + encryptedPayload
-            } else {
-                return null
-            }
-        } else {
-            return null
-        }
+        return encryptedLengthBytes + encryptedPayload
     }
 
-    override fun encrypt(plaintext: ByteArray?): ByteArray?
+    override fun encrypt(plaintext: ByteArray): ByteArray
     {
         val nonceBytes = nonce()
-        val ivSpec: AlgorithmParameterSpec
-        ivSpec = when (config!!.cipherMode) {
-            CipherMode.AES_128_GCM, CipherMode.AES_256_GCM -> GCMParameterSpec(
-                tagSizeBits,
-                nonceBytes
-            )
-            CipherMode.CHACHA20_IETF_POLY1305 -> IvParameterSpec(nonceBytes)
-        }
-        cipher!!.init(Cipher.ENCRYPT_MODE, key, ivSpec)
-        val encrypted = cipher!!.doFinal(plaintext)
+        val ivSpec = GCMParameterSpec(
+            tagSizeBits,
+            nonceBytes
+        )
+
+        cipher.init(Cipher.ENCRYPT_MODE, key, ivSpec)
+        val encrypted = cipher.doFinal(plaintext)
 
         // increment counter every time nonce is used (encrypt/decrypt)
         counter += 1
@@ -148,22 +101,20 @@ class ShadowAESCipher(config: ShadowConfig): ShadowCipher(config) {
         return encrypted
     }
 
-    override fun decrypt(encrypted: ByteArray?): ByteArray?
+    override fun decrypt(encrypted: ByteArray): ByteArray
     {
         val nonceBytes = nonce()
-        val ivSpec: AlgorithmParameterSpec
-        ivSpec = when (config!!.cipherMode) {
-            CipherMode.AES_128_GCM, CipherMode.AES_256_GCM -> GCMParameterSpec(
-                tagSizeBits,
-                nonceBytes
-            )
-            CipherMode.CHACHA20_IETF_POLY1305 -> IvParameterSpec(nonceBytes)
-        }
-        cipher!!.init(Cipher.DECRYPT_MODE, key, ivSpec)
+        val ivSpec = GCMParameterSpec(
+            tagSizeBits,
+            nonceBytes
+        )
+
+        cipher.init(Cipher.DECRYPT_MODE, key, ivSpec)
+        val decrypted = cipher.doFinal(encrypted)
 
         //increment counter every time nonce is used (encrypt/decrypt)
         counter += 1
 
-        return cipher!!.doFinal(encrypted)
+        return decrypted
     }
 }

@@ -29,29 +29,25 @@ import java.nio.ByteOrder
 import java.security.InvalidAlgorithmParameterException
 import java.security.InvalidKeyException
 import java.security.NoSuchAlgorithmException
-import javax.crypto.BadPaddingException
-import javax.crypto.Cipher
-import javax.crypto.IllegalBlockSizeException
-import javax.crypto.SecretKey
+import javax.crypto.*
 
 // ShadowCipher contains the encryption and decryption methods.
-abstract class ShadowCipher(config: ShadowConfig) {
-
-    var lengthWithTagSize = 2 + 16
-    var tagSizeBits = 16 * 8
-    var tagSize = 16
-    var maxPayloadSize = 16417
-    private var finalSaltSize = 0
-
+abstract class ShadowCipher()
+{
+    lateinit var config: ShadowConfig
     lateinit var salt: ByteArray
-    var saltSize = 0
-    var cipher: Cipher? = null
-    var config: ShadowConfig? = null
+    lateinit var cipher: Cipher
+
+    var tagSizeBits = 16 * 8
     var key: SecretKey? = null
     var counter = 0
 
     companion object
     {
+        var tagSize = 16
+        var lengthWithTagSize = 2 + 16
+        var maxPayloadSize = 16417
+
         // Creates a byteArray of a specified length containing random bytes.
         fun createSalt(config: ShadowConfig): ByteArray {
             val saltSize: Int = when (config.cipherMode) {
@@ -65,42 +61,77 @@ abstract class ShadowCipher(config: ShadowConfig) {
         }
     }
 
-    init {
-        when (config.cipherMode) {
-            CipherMode.AES_128_GCM, CipherMode.AES_256_GCM -> ShadowAESCipher(config)
-            CipherMode.CHACHA20_IETF_POLY1305 -> ShadowChaChaCipher(config)
+    constructor(_config: ShadowConfig) : this()
+    {
+        config = _config
+        salt = createSalt(_config)
+
+        when (_config.cipherMode) {
+            CipherMode.AES_128_GCM ->
+                try {
+                    cipher = Cipher.getInstance("AES_128/GCM/NoPadding")
+                    ShadowAESCipher(config)
+                } catch (e: NoSuchPaddingException) {
+                    e.printStackTrace()
+                }
+            CipherMode.AES_256_GCM ->
+                try {
+                    cipher = Cipher.getInstance("AES_256/GCM/NoPadding")
+                    ShadowAESCipher(config)
+                } catch (e: NoSuchPaddingException) {
+                    e.printStackTrace()
+                }
+            CipherMode.CHACHA20_IETF_POLY1305 ->
+                try {
+                    cipher = Cipher.getInstance("ChaCha20/Poly1305/NoPadding")
+                    ShadowChaChaCipher(config)
+                } catch (e: NoSuchPaddingException) {
+                    e.printStackTrace()
+                }
         }
     }
 
-    constructor(config: ShadowConfig, salt: ByteArray) : this(config)
+    constructor(_config: ShadowConfig, _salt: ByteArray) : this()
     {
-        when (config.cipherMode) {
-            CipherMode.AES_128_GCM, CipherMode.AES_256_GCM -> ShadowAESCipher(config, salt)
-            CipherMode.CHACHA20_IETF_POLY1305 -> ShadowChaChaCipher(config, salt)
-        }
-    }
+        config = _config
+        salt = _salt
 
-    open fun determineSaltSize(config: ShadowConfig): Int
-    {
-        finalSaltSize = when (config.cipherMode) {
-            CipherMode.AES_128_GCM -> 16
-            CipherMode.AES_256_GCM, CipherMode.CHACHA20_IETF_POLY1305 -> 32
+        when (_config.cipherMode) {
+            CipherMode.AES_128_GCM ->
+                try {
+                    cipher = Cipher.getInstance("AES_128/GCM/NoPadding")
+                    ShadowAESCipher(config)
+                } catch (e: NoSuchPaddingException) {
+                    e.printStackTrace()
+                }
+            CipherMode.AES_256_GCM ->
+                try {
+                    cipher = Cipher.getInstance("AES_256/GCM/NoPadding")
+                    ShadowAESCipher(config)
+                } catch (e: NoSuchPaddingException) {
+                    e.printStackTrace()
+                }
+            CipherMode.CHACHA20_IETF_POLY1305 ->
+                try {
+                    cipher = Cipher.getInstance("ChaCha20/Poly1305/NoPadding")
+                    ShadowChaChaCipher(config)
+                } catch (e: NoSuchPaddingException) {
+                    e.printStackTrace()
+                }
         }
-
-        return finalSaltSize
     }
 
     // Create a secret key using the two key derivation functions.
     @Throws(NoSuchAlgorithmException::class)
-    abstract fun createSecretKey(config: ShadowConfig?, salt: ByteArray?): SecretKey
+    abstract fun createSecretKey(): SecretKey
 
     // Key derivation functions:
     // Derives the secret key from the preshared key and adds the salt.
-    abstract fun hkdfSha1(config: ShadowConfig?, salt: ByteArray?, psk: ByteArray?): SecretKey
+    abstract fun hkdfSha1(psk: ByteArray): SecretKey
 
     // Derives the pre-shared key from the config.
     @Throws(NoSuchAlgorithmException::class)
-    abstract fun kdf(config: ShadowConfig?): ByteArray
+    abstract fun kdf(): ByteArray
 
     // [encrypted payload length][length tag] + [encrypted payload][payload tag]
     // Pack takes the data above and packs them into a singular byte array.
@@ -110,7 +141,7 @@ abstract class ShadowCipher(config: ShadowConfig) {
         BadPaddingException::class,
         IllegalBlockSizeException::class
     )
-    abstract fun pack(plaintext: ByteArray?): ByteArray?
+    abstract fun pack(plaintext: ByteArray): ByteArray
 
     // Encrypts the data and increments the nonce counter.
     @Throws(
@@ -119,7 +150,7 @@ abstract class ShadowCipher(config: ShadowConfig) {
         BadPaddingException::class,
         IllegalBlockSizeException::class
     )
-    abstract fun encrypt(plaintext: ByteArray?): ByteArray?
+    abstract fun encrypt(plaintext: ByteArray): ByteArray
 
     // Decrypts data and increments the nonce counter.
     @Throws(
@@ -128,7 +159,8 @@ abstract class ShadowCipher(config: ShadowConfig) {
         BadPaddingException::class,
         IllegalBlockSizeException::class
     )
-    abstract fun decrypt(encrypted: ByteArray?): ByteArray?
+
+    abstract fun decrypt(encrypted: ByteArray): ByteArray
 
     // Create a nonce using our counter.
     open fun nonce(): ByteArray? {
