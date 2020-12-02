@@ -3,32 +3,39 @@ package org.operatorfoundation.shapeshifter.shadow.kotlin
 import org.bouncycastle.crypto.digests.SHA1Digest
 import org.bouncycastle.crypto.generators.HKDFBytesGenerator
 import org.bouncycastle.crypto.params.HKDFParameters
+import org.libsodium.jni.NaCl
 import java.security.MessageDigest
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
 
 class ShadowChaChaCipher: ShadowCipher
 {
-    constructor(_config: ShadowConfig) : super(_config)
+    constructor(config: ShadowConfig)
     {
-        key = createSecretKey()
+        this.config = config
+        createSalt(config)
     }
 
-    constructor(_config: ShadowConfig, _salt: ByteArray) : super(_config, _salt)
+    constructor(config: ShadowConfig, salt: ByteArray)
     {
-        key = createSecretKey()
+        NaCl.sodium()
+
+        this.config = config
+        this.salt = salt
+
+        key = createSecretKey(config, salt)
     }
 
     // Create a secret key using the two key derivation functions.
-    override fun createSecretKey(): SecretKey
+    override fun createSecretKey(config: ShadowConfig, salt: ByteArray): SecretKey
     {
-        val presharedKey = kdf()
-        return hkdfSha1(presharedKey)
+        val presharedKey = kdf(config)
+        return hkdfSha1(config, salt, presharedKey)
     }
 
     // Key derivation functions:
     // Derives the secret key from the preshared key and adds the salt.
-    override fun hkdfSha1(psk: ByteArray): SecretKey
+    override fun hkdfSha1(config: ShadowConfig, salt: ByteArray, psk: ByteArray): SecretKey
     {
         val keyAlgorithm = "ChaCha20"
         val infoString = "ss-subkey"
@@ -43,7 +50,7 @@ class ShadowChaChaCipher: ShadowCipher
     }
 
     // Derives the pre-shared key from the config.
-    override fun kdf(): ByteArray
+    override fun kdf(config: ShadowConfig): ByteArray
     {
         val hash = MessageDigest.getInstance("MD5")
         var buffer: ByteArray = byteArrayOf()
@@ -88,11 +95,15 @@ class ShadowChaChaCipher: ShadowCipher
     override fun encrypt(plaintext: ByteArray): ByteArray
     {
         val nonce = nonce()
-        TODO("Not yet implemented")
-
+        val key = key?.encoded
+        counter += 1
+        return SodiumWrapper().encrypt(plaintext, nonce, key)
     }
 
     override fun decrypt(encrypted: ByteArray): ByteArray {
-        TODO("Not yet implemented")
+        val nonce = nonce()
+        val key = key?.encoded
+        counter += 1
+        return  SodiumWrapper().decrypt(encrypted, nonce, key)
     }
 }

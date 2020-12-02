@@ -4,6 +4,12 @@ import org.libsodium.jni.NaCl;
 import org.libsodium.jni.Sodium;
 import org.libsodium.jni.SodiumConstants;
 
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+
 // https://doc.libsodium.org/public-key_cryptography/authenticated_encryption
 public class SodiumWrapper
 {
@@ -34,29 +40,48 @@ public class SodiumWrapper
         return fullMessage;
     }
 
-    public byte[] decrypt(byte[] encryptedBytes, byte[] senderPublicKey, byte[] receiverPrivateKey)
-    {
-        // Get the nonce from the encrypted bytes
-        byte[] nonce = new byte[SodiumConstants.NONCE_BYTES];
-        System.arraycopy(encryptedBytes, 0, nonce, 0, nonce.length);
+    public byte[] decrypt(byte[] encrypted, byte[] nonce, byte[] key) throws InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+        byte[] additional = new byte[0];
+        int additional_length = 0;
 
-        // get the cipher text from the encrypted bytes
-        byte[] cipherText = new byte[encryptedBytes.length - nonce.length];
-        System.arraycopy(encryptedBytes, nonce.length, cipherText, 0, cipherText.length);
+        int[] plaintext_length = {encrypted.length - Sodium.crypto_aead_chacha20poly1305_ietf_abytes()};
+        byte[] plaintext = new byte[plaintext_length[0]];
+        byte[] nsec = new byte[0];
 
-        // container for the decrypt results
-        byte[] decryptedMessageBytes = new byte[(int) (cipherText.length - Sodium.crypto_box_macbytes())];
-
-
-        Sodium.crypto_box_open_easy(
-                decryptedMessageBytes,
-                cipherText,
-                cipherText.length,
-                nonce,
-                senderPublicKey,
-                receiverPrivateKey
+        Sodium.crypto_aead_chacha20poly1305_ietf_decrypt(
+                plaintext, plaintext_length,
+                nsec,
+                encrypted, encrypted.length,
+                additional, additional_length,
+                nonce, key
         );
 
-        return decryptedMessageBytes;
+        return plaintext;
     }
+
+//    public byte[] decrypt(byte[] encryptedBytes, byte[] senderPublicKey, byte[] receiverPrivateKey)
+//    {
+//        // Get the nonce from the encrypted bytes
+//        byte[] nonce = new byte[SodiumConstants.NONCE_BYTES];
+//        System.arraycopy(encryptedBytes, 0, nonce, 0, nonce.length);
+//
+//        // get the cipher text from the encrypted bytes
+//        byte[] cipherText = new byte[encryptedBytes.length - nonce.length];
+//        System.arraycopy(encryptedBytes, nonce.length, cipherText, 0, cipherText.length);
+//
+//        // container for the decrypt results
+//        byte[] decryptedMessageBytes = new byte[(int) (cipherText.length - Sodium.crypto_box_macbytes())];
+//
+//
+//        Sodium.crypto_box_open_easy(
+//                decryptedMessageBytes,
+//                cipherText,
+//                cipherText.length,
+//                nonce,
+//                senderPublicKey,
+//                receiverPrivateKey
+//        );
+//
+//        return decryptedMessageBytes;
+//    }
 }

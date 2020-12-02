@@ -43,7 +43,7 @@ class ShadowSocket(private val config: ShadowConfig) : Socket() {
         // Create salt for encryptionCipher.
         val salt = ShadowCipher.createSalt(config)
         // Create an encryptionCipher.
-        encryptionCipher = ShadowCipher(config, salt)
+        encryptionCipher = ShadowCipher.makeShadowCipherWithSalt(config, salt)
     }
 
     // Constructors:
@@ -58,11 +58,7 @@ class ShadowSocket(private val config: ShadowConfig) : Socket() {
     // Creates a socket and connects it to the specified remote host on the specified remote port.
     @ExperimentalUnsignedTypes
     constructor(
-        config: ShadowConfig,
-        host: String,
-        port: Int,
-        localAddr: InetAddress,
-        localPort: Int
+        config: ShadowConfig, host: String, port: Int, localAddr: InetAddress, localPort: Int
     ) : this(config) {
         socket = Socket(host, port, localAddr, localPort)
         connectionStatus = true
@@ -328,13 +324,12 @@ class ShadowSocket(private val config: ShadowConfig) : Socket() {
     // Receives the salt through the input stream.
     @ExperimentalUnsignedTypes
     private fun receiveSalt() {
-        val result = ShadowCipher.saltSize?.let { readNBytes(socket.inputStream, it) }
-        if (result != null) {
-            if (result.size == encryptionCipher.salt.size) {
-                decryptionCipher = ShadowCipher(config, result)
-            } else {
-                throw IOException()
-            }
+        val saltSize = ShadowCipher.determineSaltSize(encryptionCipher.config)
+        val result = readNBytes(socket.inputStream, saltSize)
+        if (result.size == encryptionCipher.salt.size) {
+            decryptionCipher = ShadowCipher.makeShadowCipherWithSalt(config, result)
+        } else {
+            throw IOException()
         }
     }
 }

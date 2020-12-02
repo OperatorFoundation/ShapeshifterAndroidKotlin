@@ -5,29 +5,40 @@ import org.bouncycastle.crypto.generators.HKDFBytesGenerator
 import org.bouncycastle.crypto.params.HKDFParameters
 import java.security.MessageDigest
 import javax.crypto.Cipher
+import javax.crypto.NoSuchPaddingException
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
 class ShadowAESCipher: ShadowCipher
 {
-    constructor(_config: ShadowConfig): super(_config)
+    constructor(config: ShadowConfig)
     {
-        key = createSecretKey()
+        this.config = config
+        createSalt(config)
     }
 
-    constructor(_config: ShadowConfig, _salt: ByteArray) : super(_config, _salt)
+    constructor(config: ShadowConfig, salt: ByteArray)
     {
-        key = createSecretKey()
+        this.config = config
+        this.salt = salt
+
+        key = createSecretKey(config, salt)
+
+        cipher = when (config.cipherMode) {
+            CipherMode.AES_128_GCM -> Cipher.getInstance("AES_128/GCM/NoPadding")
+            CipherMode.AES_256_GCM -> Cipher.getInstance("AES_256/GCM/NoPadding")
+            else -> throw NoSuchPaddingException()
+        }
     }
 
-    override fun createSecretKey(): SecretKey
+    override fun createSecretKey(config: ShadowConfig, salt: ByteArray): SecretKey
     {
-        val presharedKey = kdf()
-        return hkdfSha1(presharedKey)
+        val presharedKey = kdf(config)
+        return hkdfSha1(config, salt, presharedKey)
     }
 
-    override fun hkdfSha1(psk: ByteArray): SecretKey
+    override fun hkdfSha1(config: ShadowConfig, salt: ByteArray, psk: ByteArray): SecretKey
     {
         val keyAlgorithm = "AES"
         val infoString = "ss-subkey"
@@ -41,12 +52,13 @@ class ShadowAESCipher: ShadowCipher
         return SecretKeySpec(okm, keyAlgorithm)
     }
 
-    override fun kdf(): ByteArray
+    override fun kdf(config: ShadowConfig): ByteArray
     {
         val hash = MessageDigest.getInstance("MD5")
         var buffer = ByteArray(0)
         var prev = ByteArray(0)
-        val keylen = salt.size
+        // TODO (Idk about this line using the right salt size)
+        val keylen = finalSaltSize
 
         while (buffer.size < keylen)
         {
