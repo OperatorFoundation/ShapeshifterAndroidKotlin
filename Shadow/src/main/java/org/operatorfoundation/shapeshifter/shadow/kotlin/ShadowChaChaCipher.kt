@@ -8,16 +8,13 @@ import java.security.MessageDigest
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
 
-class ShadowChaChaCipher: ShadowCipher
-{
-    constructor(config: ShadowConfig)
-    {
+class ShadowChaChaCipher : ShadowCipher {
+    constructor(config: ShadowConfig) {
         this.config = config
         createSalt(config)
     }
 
-    constructor(config: ShadowConfig, salt: ByteArray)
-    {
+    constructor(config: ShadowConfig, salt: ByteArray) {
         NaCl.sodium()
 
         this.config = config
@@ -27,16 +24,14 @@ class ShadowChaChaCipher: ShadowCipher
     }
 
     // Create a secret key using the two key derivation functions.
-    override fun createSecretKey(config: ShadowConfig, salt: ByteArray): SecretKey
-    {
+    override fun createSecretKey(config: ShadowConfig, salt: ByteArray): SecretKey {
         val presharedKey = kdf(config)
         return hkdfSha1(config, salt, presharedKey)
     }
 
     // Key derivation functions:
     // Derives the secret key from the preshared key and adds the salt.
-    override fun hkdfSha1(config: ShadowConfig, salt: ByteArray, psk: ByteArray): SecretKey
-    {
+    override fun hkdfSha1(config: ShadowConfig, salt: ByteArray, psk: ByteArray): SecretKey {
         val keyAlgorithm = "ChaCha20"
         val infoString = "ss-subkey"
         val info = infoString.toByteArray()
@@ -50,8 +45,7 @@ class ShadowChaChaCipher: ShadowCipher
     }
 
     // Derives the pre-shared key from the config.
-    override fun kdf(config: ShadowConfig): ByteArray
-    {
+    override fun kdf(config: ShadowConfig): ByteArray {
         val hash = MessageDigest.getInstance("MD5")
         var buffer: ByteArray = byteArrayOf()
         var prev: ByteArray = byteArrayOf()
@@ -72,8 +66,7 @@ class ShadowChaChaCipher: ShadowCipher
     // [encrypted payload length][length tag] + [encrypted payload][payload tag]
     // Pack takes the data above and packs them into a singular byte array.
     @ExperimentalUnsignedTypes
-    override fun pack(plaintext: ByteArray): ByteArray
-    {
+    override fun pack(plaintext: ByteArray): ByteArray {
         // find length of plaintext
         val plaintextLength = plaintext.size
 
@@ -92,8 +85,7 @@ class ShadowChaChaCipher: ShadowCipher
         return encryptedLengthBytes + encryptedPayload
     }
 
-    override fun encrypt(plaintext: ByteArray): ByteArray
-    {
+    override fun encrypt(plaintext: ByteArray): ByteArray {
         val nonce = nonce()
         val key = key?.encoded
         counter += 1
@@ -104,6 +96,6 @@ class ShadowChaChaCipher: ShadowCipher
         val nonce = nonce()
         val key = key?.encoded
         counter += 1
-        return  SodiumWrapper().decrypt(encrypted, nonce, key)
+        return SodiumWrapper().decrypt(encrypted, nonce, key)
     }
 }

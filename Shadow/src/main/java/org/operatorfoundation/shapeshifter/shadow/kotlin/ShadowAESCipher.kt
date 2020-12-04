@@ -10,16 +10,13 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
-class ShadowAESCipher: ShadowCipher
-{
-    constructor(config: ShadowConfig)
-    {
+class ShadowAESCipher : ShadowCipher {
+    constructor(config: ShadowConfig) {
         this.config = config
         createSalt(config)
     }
 
-    constructor(config: ShadowConfig, salt: ByteArray)
-    {
+    constructor(config: ShadowConfig, salt: ByteArray) {
         this.config = config
         this.salt = salt
 
@@ -32,14 +29,12 @@ class ShadowAESCipher: ShadowCipher
         }
     }
 
-    override fun createSecretKey(config: ShadowConfig, salt: ByteArray): SecretKey
-    {
+    override fun createSecretKey(config: ShadowConfig, salt: ByteArray): SecretKey {
         val presharedKey = kdf(config)
         return hkdfSha1(config, salt, presharedKey)
     }
 
-    override fun hkdfSha1(config: ShadowConfig, salt: ByteArray, psk: ByteArray): SecretKey
-    {
+    override fun hkdfSha1(config: ShadowConfig, salt: ByteArray, psk: ByteArray): SecretKey {
         val keyAlgorithm = "AES"
         val infoString = "ss-subkey"
         val info = infoString.toByteArray()
@@ -52,16 +47,18 @@ class ShadowAESCipher: ShadowCipher
         return SecretKeySpec(okm, keyAlgorithm)
     }
 
-    override fun kdf(config: ShadowConfig): ByteArray
-    {
+    override fun kdf(config: ShadowConfig): ByteArray {
         val hash = MessageDigest.getInstance("MD5")
         var buffer = ByteArray(0)
         var prev = ByteArray(0)
-        // TODO (Idk about this line using the right salt size)
-        val keylen = finalSaltSize
+        val keylen = when (config.cipherMode) {
+            CipherMode.AES_128_GCM -> 16
+            CipherMode.AES_256_GCM -> 32
+            // TODO(make a better else case)
+            else -> 0
+        }
 
-        while (buffer.size < keylen)
-        {
+        while (buffer.size < keylen) {
             hash.update(prev)
             hash.update(config.password.encodeToByteArray())
             buffer += hash.digest()
@@ -76,8 +73,7 @@ class ShadowAESCipher: ShadowCipher
     // [encrypted payload length][length tag] + [encrypted payload][payload tag]
     // Pack takes the data above and packs them into a singular byte array.
     @ExperimentalUnsignedTypes
-    override fun pack(plaintext: ByteArray): ByteArray
-    {
+    override fun pack(plaintext: ByteArray): ByteArray {
         // find length of plaintext
         val plaintextLength = plaintext.size
 
@@ -96,8 +92,7 @@ class ShadowAESCipher: ShadowCipher
         return encryptedLengthBytes + encryptedPayload
     }
 
-    override fun encrypt(plaintext: ByteArray): ByteArray
-    {
+    override fun encrypt(plaintext: ByteArray): ByteArray {
         val nonceBytes = nonce()
         val ivSpec = GCMParameterSpec(
             tagSizeBits,
@@ -113,8 +108,7 @@ class ShadowAESCipher: ShadowCipher
         return encrypted
     }
 
-    override fun decrypt(encrypted: ByteArray): ByteArray
-    {
+    override fun decrypt(encrypted: ByteArray): ByteArray {
         val nonceBytes = nonce()
         val ivSpec = GCMParameterSpec(
             tagSizeBits,

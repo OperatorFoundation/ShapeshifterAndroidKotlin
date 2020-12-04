@@ -135,7 +135,7 @@ internal class ShadowSocketTest {
         shadowSocket.outputStream.flush()
         val buffer = ByteArray(2)
         shadowSocket.inputStream.read(buffer)
-       assertEquals(String(buffer), "Yo")
+        assertEquals(String(buffer), "Yo")
     }
 
     @ExperimentalUnsignedTypes
@@ -185,7 +185,7 @@ internal class ShadowSocketTest {
         val shadowSocket = ShadowSocket(config, "159.203.158.90", 2346)
         assertNotNull(shadowSocket)
         // Send a request to the server
-        val httpRequest  = "GET / HTTP/1.0\r\n\r\n"
+        val httpRequest = "GET / HTTP/1.0\r\n\r\n"
         shadowSocket.outputStream.write(httpRequest.toByteArray())
         shadowSocket.outputStream.flush()
         val response = readNBytes(shadowSocket.inputStream, 1)
@@ -203,7 +203,7 @@ internal class ShadowSocketTest {
         val shadowSocket = ShadowSocket(config, "127.0.0.1", 2222)
         assertNotNull(shadowSocket)
         // Send a request to the server
-        val httpRequest  = "GET / HTTP/1.0\r\n\r\n"
+        val httpRequest = "GET / HTTP/1.0\r\n\r\n"
         //val httpRequest = "Hi"
         val textBytes = httpRequest.toByteArray()
         shadowSocket.outputStream.write(textBytes)
@@ -224,7 +224,7 @@ internal class ShadowSocketTest {
         val shadowSocket = ShadowSocket(config, "159.203.158.90", 2346)
         assertNotNull(shadowSocket)
         // Send a request to the server
-        val httpRequest  = "GET / HTTP/1.0\r\n\r\n"
+        val httpRequest = "GET / HTTP/1.0\r\n\r\n"
         //val httpRequest = "Hi"
         val textBytes = httpRequest.toByteArray()
         shadowSocket.outputStream.write(textBytes)
