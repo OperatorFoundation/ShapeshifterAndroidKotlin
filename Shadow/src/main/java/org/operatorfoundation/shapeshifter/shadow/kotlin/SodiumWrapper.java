@@ -33,11 +33,11 @@ public class SodiumWrapper
                 additional, additional_length, nsec, nonce, key);
 
         // Return nonce + cipher text
-        byte[] fullMessage = new byte[nonce.length + ciphertext.length];
-        System.arraycopy(nonce, 0, fullMessage, 0, nonce.length);
-        System.arraycopy(ciphertext, 0, fullMessage, nonce.length, ciphertext.length);
+//        byte[] fullMessage = new byte[nonce.length + ciphertext.length];
+//        System.arraycopy(nonce, 0, fullMessage, 0, nonce.length);
+//        System.arraycopy(ciphertext, 0, fullMessage, nonce.length, ciphertext.length);
 
-        return fullMessage;
+        return ciphertext;
     }
 
     public byte[] decrypt(byte[] encrypted, byte[] nonce, byte[] key) throws InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
