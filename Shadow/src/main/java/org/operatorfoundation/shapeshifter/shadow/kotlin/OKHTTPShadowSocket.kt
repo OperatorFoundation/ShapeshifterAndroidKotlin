@@ -10,4 +10,13 @@ class OKHTTPShadowSocket(config: ShadowConfig, shadowHost: String, shadowPort: I
 
     }
 
+    @ExperimentalUnsignedTypes
+    override fun connect(endpoint: SocketAddress?, timeout: Int) {
+
+    }
+
+    // Converts this socket to a String.
+    override fun toString(): String {
+        return "OKHTTPShadowSocket[" + "password = " + config.password + ", cipherName = " + config.cipherName + "]"
+    }
 }

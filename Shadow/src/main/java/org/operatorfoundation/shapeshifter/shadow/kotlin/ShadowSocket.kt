@@ -32,7 +32,7 @@ import java.nio.channels.SocketChannel
 
 // This class implements client sockets (also called just "sockets").
 // A socket is an endpoint for communication between two machines.
-open class ShadowSocket(private val config: ShadowConfig) : Socket() {
+open class ShadowSocket(val config: ShadowConfig) : Socket() {
     // Fields:
     private var socket: Socket = Socket()
     private var encryptionCipher: ShadowCipher
