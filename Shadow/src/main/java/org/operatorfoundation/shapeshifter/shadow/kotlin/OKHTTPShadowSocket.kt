@@ -2,7 +2,8 @@ package org.operatorfoundation.shapeshifter.shadow.kotlin
 
 import java.net.SocketAddress
 
-class OKHTTPShadowSocket(config: ShadowConfig) : ShadowSocket(config) {
+@ExperimentalUnsignedTypes
+class OKHTTPShadowSocket(config: ShadowConfig, shadowHost: String, shadowPort: Int) : ShadowSocket(config, shadowHost, shadowPort) {
 
     @ExperimentalUnsignedTypes
     override fun connect(endpoint: SocketAddress?) {

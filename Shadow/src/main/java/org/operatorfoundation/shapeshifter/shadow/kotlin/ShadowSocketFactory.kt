@@ -55,7 +55,8 @@ class ShadowSocketFactory(private val shadowConfig: ShadowConfig, private val sh
 
     }
 
+    @ExperimentalUnsignedTypes
     override fun createSocket(): Socket {
-        return ShadowSocket (shadowConfig)
+        return OKHTTPShadowSocket (shadowConfig, shadowHost, shadowPort)
     }
 }
