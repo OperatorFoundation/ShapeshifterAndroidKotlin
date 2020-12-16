@@ -86,6 +86,19 @@ class ShadowInputStream(private val networkInputStream: InputStream, private val
         return resultSize
     }
 
+    @ExperimentalUnsignedTypes
+    override fun read(b: ByteArray?, off: Int, len: Int): Int {
+        b?.let {
+            val readbuf = ByteArray(len)
+            val buflen = read(readbuf)
+            readbuf.copyInto(b, off, 0, buflen)
+            return buflen
+        }
+
+        // If given an empty byte array, no bytes will be read.
+        return 0
+    }
+
     // Reads the next byte of data from the input stream.
     @ExperimentalUnsignedTypes
     override fun read(): Int {

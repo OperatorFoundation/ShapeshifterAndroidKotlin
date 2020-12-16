@@ -46,6 +46,15 @@ class ShadowOutputStream(private val outputStream: OutputStream, private val enc
     }
 
     @ExperimentalUnsignedTypes
+    override fun write(b: ByteArray?, off: Int, len: Int) {
+        // if b is null, nothing will happen and that's okay.
+        b?.let {
+            val buffer = b.sliceArray(off until len)
+            write(buffer)
+        }
+    }
+
+    @ExperimentalUnsignedTypes
     // Writes b.length bytes from the specified byte array to this output stream.
     override fun write(b: ByteArray) {
         if (b.isEmpty()) {
