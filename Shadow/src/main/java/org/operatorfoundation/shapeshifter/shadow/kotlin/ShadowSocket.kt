@@ -326,7 +326,7 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     private fun receiveSalt() {
         val saltSize = ShadowCipher.determineSaltSize(encryptionCipher.config)
         val result = readNBytes(socket.inputStream, saltSize)
-        if (result.size == encryptionCipher.salt.size) {
+        if (result != null && result.size == encryptionCipher.salt.size) {
             decryptionCipher = ShadowCipher.makeShadowCipherWithSalt(config, result)
         } else {
             throw IOException()
