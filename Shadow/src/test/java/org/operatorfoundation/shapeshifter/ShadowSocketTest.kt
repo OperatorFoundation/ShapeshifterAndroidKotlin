@@ -231,6 +231,8 @@ internal class ShadowSocketTest {
         shadowSocket.outputStream.flush()
         val buffer = ByteArray(244)
         val response = shadowSocket.inputStream.read(buffer)
+        println(response)
+
     }
 
     @ExperimentalUnsignedTypes

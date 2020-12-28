@@ -49,7 +49,7 @@ class ShadowInputStream(private val networkInputStream: InputStream, private val
         if (b.size <= buffer.size) {
             val resultSize = min(b.size, buffer.size)
             buffer.copyInto(b, 0, 0, resultSize)
-            buffer = buffer.sliceArray(resultSize + 1 until buffer.size)
+            buffer = buffer.sliceArray(resultSize until buffer.size)
 
             return resultSize
         }
@@ -87,7 +87,7 @@ class ShadowInputStream(private val networkInputStream: InputStream, private val
         buffer.copyInto(b, 0, 0, resultSize)
 
         // take bytes out of buffer
-        buffer = buffer.sliceArray(resultSize + 1 until buffer.size)
+        buffer = buffer.sliceArray(resultSize until buffer.size)
 
         return resultSize
     }
