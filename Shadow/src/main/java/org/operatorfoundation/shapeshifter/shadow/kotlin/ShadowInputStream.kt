@@ -28,10 +28,14 @@ import java.io.InputStream
 import java.lang.Integer.min
 
 // This abstract class is the superclass of all classes representing an input stream of bytes.
-class ShadowInputStream(private val networkInputStream: InputStream, private val decryptionCipher: ShadowCipher) :
+class ShadowInputStream(
+    private val networkInputStream: InputStream,
+    private val decryptionCipher: ShadowCipher
+) :
     InputStream() {
 
     private var buffer: ByteArray = byteArrayOf()
+    private var decryptionFailed = false
 
     // Closes this input stream and releases any system resources associated with the stream.
     override fun close() {
@@ -41,6 +45,9 @@ class ShadowInputStream(private val networkInputStream: InputStream, private val
     // Reads some number of bytes from the input stream and stores them into the buffer array b.
     @ExperimentalUnsignedTypes
     override fun read(b: ByteArray): Int {
+        if (decryptionFailed) {
+            return -1
+        }
         if (b.isEmpty()) {
             return 0
         }
@@ -63,33 +70,42 @@ class ShadowInputStream(private val networkInputStream: InputStream, private val
             return -1
         }
 
-        // decrypt encrypted length to find out payload length
-        val lengthData = decryptionCipher.decrypt(encryptedLengthData!!)
+        try {
+            // decrypt encrypted length to find out payload length
+            val lengthData = decryptionCipher.decrypt(encryptedLengthData!!)
 
 
-        // change lengthData from BigEndian representation to int length
-        val leftByte = lengthData[0]?.toUByte()
-        val rightByte = lengthData[1]?.toUByte()
-        val rightInt = rightByte.toInt()
-        val leftInt = leftByte.toInt()
-        val payloadLength = (leftInt * 256) + rightInt
+            // change lengthData from BigEndian representation to int length
+            val leftByte = lengthData[0]?.toUByte()
+            val rightByte = lengthData[1]?.toUByte()
+            val rightInt = rightByte.toInt()
+            val leftInt = leftByte.toInt()
+            val payloadLength = (leftInt * 256) + rightInt
 
-        // read and decrypt payload with the resulting length
-        val encryptedPayload = readNBytes(networkInputStream, payloadLength + ShadowCipher.tagSize)
-        if (encryptedPayload == null) {
+            // read and decrypt payload with the resulting length
+            val encryptedPayload =
+                readNBytes(networkInputStream, payloadLength + ShadowCipher.tagSize)
+            if (encryptedPayload == null) {
+                return -1
+            }
+
+
+            val payload = decryptionCipher.decrypt(encryptedPayload)
+
+            // put payload into buffer
+            buffer += payload
+            val resultSize = min(b.size, buffer.size)
+            buffer.copyInto(b, 0, 0, resultSize)
+
+            // take bytes out of buffer
+            buffer = buffer.sliceArray(resultSize until buffer.size)
+
+            return resultSize
+
+        } catch (e: Exception) {
+            decryptionFailed = true
             return -1
         }
-        val payload = decryptionCipher.decrypt(encryptedPayload)
-
-        // put payload into buffer
-        buffer += payload
-        val resultSize = min(b.size, buffer.size)
-        buffer.copyInto(b, 0, 0, resultSize)
-
-        // take bytes out of buffer
-        buffer = buffer.sliceArray(resultSize until buffer.size)
-
-        return resultSize
     }
 
     @ExperimentalUnsignedTypes
