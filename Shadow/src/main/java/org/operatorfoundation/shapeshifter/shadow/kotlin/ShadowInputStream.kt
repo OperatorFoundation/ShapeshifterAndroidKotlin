@@ -24,6 +24,7 @@
 
 package org.operatorfoundation.shapeshifter.shadow.kotlin
 
+import android.util.Log
 import java.io.InputStream
 import java.lang.Integer.min
 
@@ -46,9 +47,11 @@ class ShadowInputStream(
     @ExperimentalUnsignedTypes
     override fun read(b: ByteArray): Int {
         if (decryptionFailed) {
+            Log.e("read", "Decryption failed on read.")
             return -1
         }
         if (b.isEmpty()) {
+            Log.e("read", "read was given an empty byte array.")
             return 0
         }
 
@@ -67,6 +70,7 @@ class ShadowInputStream(
         // read bytes up to size of encrypted lengthSize into a byte buffer
         val encryptedLengthData = readNBytes(networkInputStream, lengthDataSize)
         if (encryptedLengthData == null) {
+            Log.e("read", "Could not read encrypted length bytes.")
             return -1
         }
 
@@ -86,6 +90,7 @@ class ShadowInputStream(
             val encryptedPayload =
                 readNBytes(networkInputStream, payloadLength + ShadowCipher.tagSize)
             if (encryptedPayload == null) {
+                Log.e("read", "Could not read encrypted length data.")
                 return -1
             }
 
@@ -103,6 +108,7 @@ class ShadowInputStream(
             return resultSize
 
         } catch (e: Exception) {
+            Log.e("read", "Decryption failed on read.")
             decryptionFailed = true
             return -1
         }
@@ -118,6 +124,7 @@ class ShadowInputStream(
         }
 
         // If given an empty byte array, no bytes will be read.
+        Log.e("read", "No bytes were read.")
         return 0
     }
 

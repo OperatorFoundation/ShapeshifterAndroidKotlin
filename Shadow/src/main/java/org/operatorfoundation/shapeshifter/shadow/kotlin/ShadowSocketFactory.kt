@@ -29,34 +29,38 @@ import java.net.Socket
 import javax.net.SocketFactory
 
 /** A built-in SocketFactory to make it easy for developers to plug this into existing HTTP libraries, such as OkHTTP **/
-class ShadowSocketFactory(private val shadowConfig: ShadowConfig, private val shadowHost : String, private val shadowPort : Int) : SocketFactory() {
+class ShadowSocketFactory(
+    private val shadowConfig: ShadowConfig,
+    private val shadowHost: String,
+    private val shadowPort: Int
+) : SocketFactory() {
 
     @ExperimentalUnsignedTypes
     override fun createSocket(remoteHost: String?, remotePort: Int): Socket {
 
-        return ShadowSocket (shadowConfig, shadowHost, shadowPort)
+        return ShadowSocket(shadowConfig, shadowHost, shadowPort)
     }
 
     @ExperimentalUnsignedTypes
     override fun createSocket(p0: String?, p1: Int, p2: InetAddress?, p3: Int): Socket {
-        return ShadowSocket (shadowConfig, shadowHost, shadowPort)
+        return ShadowSocket(shadowConfig, shadowHost, shadowPort)
 
     }
 
     @ExperimentalUnsignedTypes
     override fun createSocket(p0: InetAddress?, p1: Int): Socket {
-        return ShadowSocket (shadowConfig, shadowHost, shadowPort)
+        return ShadowSocket(shadowConfig, shadowHost, shadowPort)
 
     }
 
     @ExperimentalUnsignedTypes
     override fun createSocket(p0: InetAddress?, p1: Int, p2: InetAddress?, p3: Int): Socket {
-        return ShadowSocket (shadowConfig, shadowHost, shadowPort)
+        return ShadowSocket(shadowConfig, shadowHost, shadowPort)
 
     }
 
     @ExperimentalUnsignedTypes
     override fun createSocket(): Socket {
-        return OKHTTPShadowSocket (shadowConfig, shadowHost, shadowPort)
+        return OKHTTPShadowSocket(shadowConfig, shadowHost, shadowPort)
     }
 }

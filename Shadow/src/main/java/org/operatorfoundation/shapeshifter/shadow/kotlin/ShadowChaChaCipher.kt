@@ -1,9 +1,11 @@
 package org.operatorfoundation.shapeshifter.shadow.kotlin
 
+import android.util.Log
 import org.bouncycastle.crypto.digests.SHA1Digest
 import org.bouncycastle.crypto.generators.HKDFBytesGenerator
 import org.bouncycastle.crypto.params.HKDFParameters
 import org.libsodium.jni.NaCl
+import java.lang.IllegalArgumentException
 import java.security.MessageDigest
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
@@ -40,8 +42,14 @@ class ShadowChaChaCipher : ShadowCipher {
         val hkdf = HKDFBytesGenerator(SHA1Digest())
         hkdf.init(HKDFParameters(psk, salt, info))
         hkdf.generateBytes(okm, 0, psk.size)
-
-        return SecretKeySpec(okm, keyAlgorithm)
+        try {
+            val secretKey = SecretKeySpec(okm, keyAlgorithm)
+            Log.i("hkdfSha1", "SecretKey created.")
+            return secretKey
+        } catch (e: IllegalArgumentException) {
+            Log.e("hkdfSha1", "Could not create SecretKey.")
+            throw e
+        }
     }
 
     // Derives the pre-shared key from the config.

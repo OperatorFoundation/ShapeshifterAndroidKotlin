@@ -45,7 +45,12 @@ open class ShadowServerSocket(private val config: ShadowConfig) : ServerSocket()
     }
 
     // Create a server with the specified port, listen backlog, and local IP address to bind to.
-    constructor(config: ShadowConfig, port: Int, backlog: Int, bindAddr: InetAddress) : this(config) {
+    constructor(
+        config: ShadowConfig,
+        port: Int,
+        backlog: Int,
+        bindAddr: InetAddress
+    ) : this(config) {
         serverSocket = ServerSocket(port, backlog, bindAddr)
     }
 

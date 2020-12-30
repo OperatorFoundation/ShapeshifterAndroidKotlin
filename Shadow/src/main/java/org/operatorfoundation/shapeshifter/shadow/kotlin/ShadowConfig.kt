@@ -24,6 +24,7 @@
 
 package org.operatorfoundation.shapeshifter.shadow.kotlin
 
+import android.util.Log
 import java.lang.IllegalArgumentException
 
 // ShadowConfig is a class that implements the arguments necessary for a Shadowsocks connection.
@@ -41,8 +42,8 @@ class ShadowConfig(val password: String, val cipherName: String) {
                 else -> null
             }
         } catch (error: IllegalArgumentException) {
-            println("invalid cipherMode in the config")
-            println(cipherName)
+            Log.e("ShadowConfig", "Invalid cipherMode in the config: $cipherName")
+
         }
 
         requireNotNull(maybeMode)

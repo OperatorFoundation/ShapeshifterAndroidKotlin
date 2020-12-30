@@ -24,12 +24,16 @@
 
 package org.operatorfoundation.shapeshifter.shadow.kotlin
 
+import android.util.Log
 import java.io.OutputStream
 import java.lang.Integer.min
 
 // This abstract class is the superclass of all classes representing an output stream of bytes.
 // An output stream accepts output bytes and sends them to some sink.
-class ShadowOutputStream(private val outputStream: OutputStream, private val encryptionCipher: ShadowCipher) : OutputStream() {
+class ShadowOutputStream(
+    private val outputStream: OutputStream,
+    private val encryptionCipher: ShadowCipher
+) : OutputStream() {
 
     private var buffer = byteArrayOf()
 
@@ -58,6 +62,7 @@ class ShadowOutputStream(private val outputStream: OutputStream, private val enc
     // Writes b.length bytes from the specified byte array to this output stream.
     override fun write(b: ByteArray) {
         if (b.isEmpty()) {
+            Log.e("write", "Write function was given an empty byte array.")
             return
         }
 

@@ -24,6 +24,7 @@
 
 package org.operatorfoundation.shapeshifter.shadow.kotlin
 
+import android.util.Log
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -44,6 +45,7 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         val salt = ShadowCipher.createSalt(config)
         // Create an encryptionCipher.
         encryptionCipher = ShadowCipher.makeShadowCipherWithSalt(config, salt)
+        Log.i("init", "Encryption cipher created.")
     }
 
     // Constructors:
@@ -103,6 +105,7 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
 
     // Closes this socket.
     override fun close() {
+        Log.i("close", "Socket closed.")
         socket.close()
     }
 
@@ -115,6 +118,7 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         }
         connectionStatus = true
         handshake()
+        Log.i("connect", "Connect succeeded.")
     }
 
     // Connects this socket to the server with a specified timeout value and initiates the handshake.
@@ -125,6 +129,7 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
             throw IOException()
         }
         handshake()
+        Log.i("connect", "Connect succeeded. Timeout is $timeout.")
     }
 
     // Returns the unique SocketChannel object associated with this socket, if any.
@@ -141,8 +146,10 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     override fun getInputStream(): InputStream {
         val cipher = decryptionCipher
         cipher?.let {
+            Log.i("getInputStream", "Decryption cipher created.")
             return ShadowInputStream(socket.inputStream, cipher)
         }
+        Log.e("getInputStream", "Decryption cipher was not created.")
         throw IOException()
     }
 
@@ -314,11 +321,13 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     private fun handshake() {
         sendSalt()
         receiveSalt()
+        Log.i("handshake", "handshake completed")
     }
 
     // Sends the salt through the output stream.
     private fun sendSalt() {
         socket.outputStream.write(encryptionCipher.salt)
+        Log.i("sendSalt", "Salt sent.")
     }
 
     // Receives the salt through the input stream.
@@ -328,7 +337,9 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         val result = readNBytes(socket.inputStream, saltSize)
         if (result != null && result.size == encryptionCipher.salt.size) {
             decryptionCipher = ShadowCipher.makeShadowCipherWithSalt(config, result)
+            Log.i("receiveSalt", "Salt received.")
         } else {
+            Log.e("receiveSalt", "Salt was not received.")
             throw IOException()
         }
     }

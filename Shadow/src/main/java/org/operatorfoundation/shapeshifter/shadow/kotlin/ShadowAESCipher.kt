@@ -1,8 +1,10 @@
 package org.operatorfoundation.shapeshifter.shadow.kotlin
 
+import android.util.Log
 import org.bouncycastle.crypto.digests.SHA1Digest
 import org.bouncycastle.crypto.generators.HKDFBytesGenerator
 import org.bouncycastle.crypto.params.HKDFParameters
+import java.lang.IllegalArgumentException
 import java.security.MessageDigest
 import javax.crypto.Cipher
 import javax.crypto.NoSuchPaddingException
@@ -43,8 +45,14 @@ class ShadowAESCipher : ShadowCipher {
         val hkdf = HKDFBytesGenerator(SHA1Digest())
         hkdf.init(HKDFParameters(psk, salt, info))
         hkdf.generateBytes(okm, 0, psk.size)
-
-        return SecretKeySpec(okm, keyAlgorithm)
+        try {
+            val secretKey = SecretKeySpec(okm, keyAlgorithm)
+            Log.i("hkdfSha1", "SecretKey created.")
+            return secretKey
+        } catch (e: IllegalArgumentException) {
+            Log.e("hkdfSha1", "Could not create SecretKey.")
+            throw e
+        }
     }
 
     override fun kdf(config: ShadowConfig): ByteArray {
@@ -54,8 +62,11 @@ class ShadowAESCipher : ShadowCipher {
         val keylen = when (config.cipherMode) {
             CipherMode.AES_128_GCM -> 16
             CipherMode.AES_256_GCM -> 32
-            // TODO(make a better else case)
             else -> 0
+        }
+
+        if (keylen == 0) {
+            Log.e("kdf", "Invalid key length.")
         }
 
         while (buffer.size < keylen) {
@@ -117,6 +128,7 @@ class ShadowAESCipher : ShadowCipher {
 
         cipher.init(Cipher.DECRYPT_MODE, key, ivSpec)
         val decrypted = cipher.doFinal(encrypted)
+
 
         //increment counter every time nonce is used (encrypt/decrypt)
         counter += 1
