@@ -60,11 +60,7 @@ abstract class ShadowCipher() {
             val salt = ByteArray(saltSize)
             val random = java.util.Random()
             random.nextBytes(salt)
-            if (salt.size == saltSize) {
-                Log.i("createSalt", "Salt created.")
-            } else {
-                Log.e("createSalt", "Salt was not created")
-            }
+            Log.i("createSalt", "Salt created.")
             return salt
         }
 

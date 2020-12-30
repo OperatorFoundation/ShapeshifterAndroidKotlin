@@ -77,7 +77,7 @@ class ShadowInputStream(
         try {
             // decrypt encrypted length to find out payload length
             val lengthData = decryptionCipher.decrypt(encryptedLengthData!!)
-
+            Log.i("read", "Length bytes decrypted.")
 
             // change lengthData from BigEndian representation to int length
             val leftByte = lengthData[0]?.toUByte()
@@ -96,7 +96,7 @@ class ShadowInputStream(
 
 
             val payload = decryptionCipher.decrypt(encryptedPayload)
-
+            Log.i("read", "Payload decrypted.")
             // put payload into buffer
             buffer += payload
             val resultSize = min(b.size, buffer.size)

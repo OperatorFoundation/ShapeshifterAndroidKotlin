@@ -114,6 +114,7 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     override fun connect(endpoint: SocketAddress?) {
         socket.connect(endpoint)
         if (connectionStatus) {
+            Log.e("connect", "Already connected.")
             throw IOException()
         }
         connectionStatus = true
@@ -126,6 +127,7 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     override fun connect(endpoint: SocketAddress?, timeout: Int) {
         socket.connect(endpoint, timeout)
         if (connectionStatus) {
+            Log.e("connect", "Already connected.")
             throw IOException()
         }
         handshake()

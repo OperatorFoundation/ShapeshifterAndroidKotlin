@@ -82,6 +82,7 @@ class ShadowOutputStream(
             val cipherText = encryptionCipher.pack(bytesToSend)
 
             outputStream.write(cipherText)
+            Log.i("write", "Write successful.")
         }
     }
 
