@@ -25,13 +25,15 @@
 package org.operatorfoundation.shapeshifter.shadow.kotlin
 
 import android.util.Log
+import java.io.IOException
 import java.io.InputStream
 import java.lang.Integer.min
 
 // This abstract class is the superclass of all classes representing an input stream of bytes.
 class ShadowInputStream(
     private val networkInputStream: InputStream,
-    private val decryptionCipher: ShadowCipher
+    private val decryptionCipher: ShadowCipher,
+    private val shadowSocket: ShadowSocket
 ) :
     InputStream() {
 
@@ -48,7 +50,8 @@ class ShadowInputStream(
     override fun read(b: ByteArray): Int {
         if (decryptionFailed) {
             Log.e("read", "Decryption failed on read.")
-            return -1
+            shadowSocket.close()
+            throw IOException()
         }
         if (b.isEmpty()) {
             Log.e("read", "read was given an empty byte array.")
@@ -71,7 +74,8 @@ class ShadowInputStream(
         val encryptedLengthData = readNBytes(networkInputStream, lengthDataSize)
         if (encryptedLengthData == null) {
             Log.e("read", "Could not read encrypted length bytes.")
-            return -1
+            shadowSocket.close()
+            throw IOException()
         }
 
         try {
@@ -110,7 +114,8 @@ class ShadowInputStream(
         } catch (e: Exception) {
             Log.e("read", "Decryption failed on read.")
             decryptionFailed = true
-            return -1
+            shadowSocket.close()
+            throw IOException()
         }
     }
 

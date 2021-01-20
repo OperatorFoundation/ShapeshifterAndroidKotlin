@@ -149,7 +149,7 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         val cipher = decryptionCipher
         cipher?.let {
             Log.i("getInputStream", "Decryption cipher created.")
-            return ShadowInputStream(socket.inputStream, cipher)
+            return ShadowInputStream(socket.inputStream, cipher, this)
         }
         Log.e("getInputStream", "Decryption cipher was not created.")
         throw IOException()
