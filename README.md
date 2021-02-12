@@ -22,7 +22,7 @@ ShapeshifterAndroidKotlin dependency setup:
                 androidTestImplementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.2'
     	}
 
-    3) Make sure the min SDK in your build.gradle is 29 in each project/app related build.gradle
+    3) Make sure the min SDK in your build.gradle is 21 or higher in each project/app related build.gradle
 
     4) If you plan on supporting ChaCha20, add the following to your AndroidManifest.xml:
                <manifest xmlns:android="http://schemas.android.com/apk/res/android"
