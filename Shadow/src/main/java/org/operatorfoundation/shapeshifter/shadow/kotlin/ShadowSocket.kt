@@ -312,11 +312,6 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         socket.shutdownOutput()
     }
 
-    // Converts this socket to a String.
-    override fun toString(): String {
-        return "ShadowSocket[" + "password = " + config.password + ", cipherName = " + config.cipherName + "]"
-    }
-
     // Private functions:
     // Exchanges the salt.
     @ExperimentalUnsignedTypes

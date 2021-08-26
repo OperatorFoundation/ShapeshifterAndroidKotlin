@@ -136,9 +136,4 @@ open class ShadowServerSocket(private val config: ShadowConfig) : ServerSocket()
     // Enable/disable SO_TIMEOUT with the specified timeout, in milliseconds.
     override fun setSoTimeout(timeout: Int) {
     }
-
-    // Returns the implementation address and implementation port of this socket as a String.
-    override fun toString(): String {
-        return "ShadowServerSocket[" + "password = " + config.password + ", cipherName = " + config.cipherName + "]"
-    }
 }

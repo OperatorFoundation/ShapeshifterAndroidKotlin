@@ -58,7 +58,7 @@ abstract class ShadowCipher() {
                 CipherMode.AES_256_GCM, CipherMode.CHACHA20_IETF_POLY1305 -> 32
             }
             val salt = ByteArray(saltSize)
-            val random = java.util.Random()
+            val random = java.security.SecureRandom()
             random.nextBytes(salt)
             Log.i("createSalt", "Salt created.")
             return salt

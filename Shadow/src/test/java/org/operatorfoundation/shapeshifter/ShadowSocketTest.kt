@@ -222,7 +222,7 @@ internal class ShadowSocketTest {
     fun demoServerAES128Test() {
         val password = "1234"
         val config = ShadowConfig(password, "AES-128-GCM")
-        val shadowSocket = ShadowSocket(config, "159.203.158.90", 2346)
+        val shadowSocket = ShadowSocket(config, "", 2346)
         assertNotNull(shadowSocket)
         // Send a request to the server
         val httpRequest = "GET / HTTP/1.0\r\n\r\n"
