@@ -43,8 +43,6 @@ internal class ShadowSocketTest {
         buffer.put(0)
         buffer.put(0)
         buffer.put(0)
-
-        println(buffer)
     }
 
     @ExperimentalUnsignedTypes
@@ -213,7 +211,6 @@ internal class ShadowSocketTest {
         shadowSocket.outputStream.flush()
         val buffer = ByteArray(244)
         val len = shadowSocket.inputStream.read(buffer)
-        println(len)
         assertEquals(String(buffer), "Yeah!")
     }
 
@@ -232,7 +229,6 @@ internal class ShadowSocketTest {
         shadowSocket.outputStream.flush()
         val buffer = ByteArray(244)
         val response = shadowSocket.inputStream.read(buffer)
-        println(response)
     }
 
     //IPv6 Tests

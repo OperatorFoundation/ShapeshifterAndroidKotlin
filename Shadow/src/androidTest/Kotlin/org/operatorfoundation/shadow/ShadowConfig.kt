@@ -41,8 +41,6 @@ class ShadowConfig(val password: String, val cipherName: String) {
                 else -> null
             }
         } catch (error: IllegalArgumentException) {
-            println("invalid cipherMode in the config")
-            println(cipherName)
         }
 
         requireNotNull(maybeMode)
