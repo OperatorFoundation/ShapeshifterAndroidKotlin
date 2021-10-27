@@ -160,9 +160,6 @@ class ShadowCipher(private val config: ShadowConfig, var salt: ByteArray) {
         cipher.init(Cipher.ENCRYPT_MODE, key, ivSpec)
         val encrypted = cipher.doFinal(plaintext)
 
-        // increment counter every time nonce is used (encrypt/decrypt)
-        counter += 1
-
         return encrypted
     }
 
@@ -176,9 +173,6 @@ class ShadowCipher(private val config: ShadowConfig, var salt: ByteArray) {
         }
         cipher.init(Cipher.DECRYPT_MODE, key, ivSpec)
         val plaintext: ByteArray = cipher.doFinal(encrypted)
-
-        // increment counter every time nonce is used (encrypt/decrypt)
-        counter += 1
 
         return plaintext
     }
@@ -205,5 +199,6 @@ enum class CipherMode {
     //  We are not supporting it at this time either.
     AES_128_GCM,
     AES_256_GCM,
-    CHACHA20_IETF_POLY1305
+    CHACHA20_IETF_POLY1305,
+    DarkStar
 }

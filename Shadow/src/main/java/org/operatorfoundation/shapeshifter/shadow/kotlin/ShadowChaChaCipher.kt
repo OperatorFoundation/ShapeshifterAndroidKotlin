@@ -96,14 +96,12 @@ class ShadowChaChaCipher : ShadowCipher {
     override fun encrypt(plaintext: ByteArray): ByteArray {
         val nonce = nonce()
         val key = key?.encoded
-        counter += 1
         return SodiumWrapper().encrypt(plaintext, nonce, key)
     }
 
     override fun decrypt(encrypted: ByteArray): ByteArray {
         val nonce = nonce()
         val key = key?.encoded
-        counter += 1
         return SodiumWrapper().decrypt(encrypted, nonce, key)
     }
 }

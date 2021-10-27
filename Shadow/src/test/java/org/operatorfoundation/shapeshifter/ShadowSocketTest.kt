@@ -5,9 +5,13 @@ import org.junit.Test
 import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowConfig
 import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowSocket
 import org.operatorfoundation.shapeshifter.shadow.kotlin.readNBytes
+import java.io.IOException
 import java.net.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.security.NoSuchAlgorithmException
+import java.security.NoSuchProviderException
+import java.security.spec.InvalidKeySpecException
 import kotlin.concurrent.thread
 
 internal class ShadowSocketTest {
@@ -305,6 +309,31 @@ internal class ShadowSocketTest {
         val password = "1234"
         val config = ShadowConfig(password, "AES-128-GCM")
         ShadowSocket(config, "127.0.0.1", 2222)
+    }
+
+    @Test
+    @Throws(
+        IOException::class,
+        NoSuchAlgorithmException::class,
+        InvalidKeySpecException::class,
+        NoSuchProviderException::class
+    )
+
+    fun shadowDarkStarServerTest() {
+        // generate public key on swift for SPPK
+        val config = ShadowConfig(
+            "d089c225ef8cda8d477a586f062b31a756270124d94944e458edf1a9e1e41ed6",
+            "DarkStar"
+        )
+        val shadowSocket = ShadowSocket(config, "127.0.0.1", 1234)
+        assertNotNull(shadowSocket)
+        val httpRequest = "GET / HTTP/1.0\r\n\r\n"
+        val textBytes = httpRequest.toByteArray()
+        shadowSocket.outputStream.write(textBytes)
+        shadowSocket.outputStream.flush()
+        var buffer = ByteArray(5)
+        System.out.println("bytes available: " + shadowSocket.inputStream.available())
+        shadowSocket.inputStream.read(buffer)
     }
 
 }

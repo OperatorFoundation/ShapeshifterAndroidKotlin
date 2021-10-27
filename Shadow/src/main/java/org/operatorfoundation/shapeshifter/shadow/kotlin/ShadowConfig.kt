@@ -39,6 +39,7 @@ class ShadowConfig(val password: String, val cipherName: String) {
                 "AES-128-GCM" -> CipherMode.AES_128_GCM
                 "AES-256-GCM" -> CipherMode.AES_256_GCM
                 "CHACHA20-IETF-POLY1305" -> CipherMode.CHACHA20_IETF_POLY1305
+                "DarkStar" -> CipherMode.DarkStar
                 else -> null
             }
         } catch (error: IllegalArgumentException) {

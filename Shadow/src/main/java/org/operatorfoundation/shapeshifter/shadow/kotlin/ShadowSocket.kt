@@ -36,15 +36,19 @@ import java.nio.channels.SocketChannel
 open class ShadowSocket(val config: ShadowConfig) : Socket() {
     // Fields:
     private var socket: Socket = Socket()
-    private var encryptionCipher: ShadowCipher
+    private lateinit var salt: ByteArray
+    private lateinit var encryptionCipher: ShadowCipher
     private var decryptionCipher: ShadowCipher? = null
     private var connectionStatus: Boolean = false
+    private var darkStar: DarkStar? = null
+    private var host: String? = null
+    private var port: Int? = null
 
     init {
         // Create salt for encryptionCipher.
-        val salt = ShadowCipher.createSalt(config)
-        // Create an encryptionCipher.
-        encryptionCipher = ShadowCipher.makeShadowCipherWithSalt(config, salt)
+        if (!config.cipherMode.equals(CipherMode.DarkStar)) {
+            this.salt = ShadowCipher.createSalt(config)
+        }
         Log.i("init", "Encryption cipher created.")
     }
 
@@ -52,9 +56,21 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     // Creates a stream socket and connects it to the specified port number on the named host.
     @ExperimentalUnsignedTypes
     constructor(config: ShadowConfig, host: String, port: Int) : this(config) {
-        socket = Socket(host, port)
-        connectionStatus = true
-        handshake()
+        this.host = host
+        this.port = port
+        if (config.cipherMode == CipherMode.DarkStar) {
+            darkStar = DarkStar(config, host!!, port!!)
+            this.salt = darkStar!!.createSalt()
+            socket = Socket(host, port)
+            connectionStatus = true
+            handshake()
+            encryptionCipher = darkStar!!.makeEncryptionCipher()
+        } else {
+            encryptionCipher = ShadowCipher.makeShadowCipherWithSalt(config, salt)
+            socket = Socket(host, port)
+            connectionStatus = true
+            handshake()
+        }
     }
 
     // Creates a socket and connects it to the specified remote host on the specified remote port.
@@ -323,17 +339,22 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
 
     // Sends the salt through the output stream.
     private fun sendSalt() {
-        socket.outputStream.write(encryptionCipher.salt)
+        socket.outputStream.write(salt)
         Log.i("sendSalt", "Salt sent.")
     }
 
     // Receives the salt through the input stream.
     @ExperimentalUnsignedTypes
     private fun receiveSalt() {
-        val saltSize = ShadowCipher.determineSaltSize(encryptionCipher.config)
+        val saltSize = ShadowCipher.determineSaltSize(config)
         val result = readNBytes(socket.inputStream, saltSize)
-        if (result != null && result.size == encryptionCipher.salt.size) {
-            decryptionCipher = ShadowCipher.makeShadowCipherWithSalt(config, result)
+        if (result != null && result.size == salt.size) {
+            if (config.cipherMode.equals(CipherMode.DarkStar)) {
+                decryptionCipher = darkStar!!.makeDecryptionCipher(result)
+                encryptionCipher = darkStar!!.makeEncryptionCipher()
+            } else {
+                decryptionCipher = ShadowCipher.makeShadowCipherWithSalt(config, result)
+            }
             Log.i("receiveSalt", "Salt received.")
         } else {
             Log.e("receiveSalt", "Salt was not received.")

@@ -60,7 +60,10 @@ class ShadowInputStream(
 
         // puts the bytes in a buffer.
         if (b.size <= buffer.size) {
-            val resultSize = min(b.size, buffer.size)
+            var resultSize = b.size
+            if (buffer.size < resultSize) {
+                resultSize = buffer.size
+            }
             buffer.copyInto(b, 0, 0, resultSize)
             buffer = buffer.sliceArray(resultSize until buffer.size)
 
@@ -103,7 +106,10 @@ class ShadowInputStream(
             Log.i("read", "Payload decrypted.")
             // put payload into buffer
             buffer += payload
-            val resultSize = min(b.size, buffer.size)
+            var resultSize = b.size
+            if (buffer.size < resultSize) {
+                resultSize = buffer.size
+            }
             buffer.copyInto(b, 0, 0, resultSize)
 
             // take bytes out of buffer

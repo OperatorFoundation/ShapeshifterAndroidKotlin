@@ -113,9 +113,6 @@ class ShadowAESCipher : ShadowCipher {
         cipher.init(Cipher.ENCRYPT_MODE, key, ivSpec)
         val encrypted = cipher.doFinal(plaintext)
 
-        // increment counter every time nonce is used (encrypt/decrypt)
-        counter += 1
-
         return encrypted
     }
 
@@ -128,10 +125,6 @@ class ShadowAESCipher : ShadowCipher {
 
         cipher.init(Cipher.DECRYPT_MODE, key, ivSpec)
         val decrypted = cipher.doFinal(encrypted)
-
-
-        //increment counter every time nonce is used (encrypt/decrypt)
-        counter += 1
 
         return decrypted
     }

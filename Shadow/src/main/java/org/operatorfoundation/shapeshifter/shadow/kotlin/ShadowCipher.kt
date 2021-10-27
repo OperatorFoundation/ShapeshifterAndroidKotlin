@@ -25,6 +25,7 @@
 package org.operatorfoundation.shapeshifter.shadow.kotlin
 
 import android.util.Log
+import java.lang.IllegalStateException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.InvalidAlgorithmParameterException
@@ -42,7 +43,7 @@ abstract class ShadowCipher() {
     lateinit var cipher: Cipher
 
     var tagSizeBits = 16 * 8
-    var key: SecretKey? = null
+    open var key: SecretKey? = null
     var counter = 0
 
     companion object {
@@ -56,6 +57,7 @@ abstract class ShadowCipher() {
             val saltSize: Int = when (config.cipherMode) {
                 CipherMode.AES_128_GCM -> 16
                 CipherMode.AES_256_GCM, CipherMode.CHACHA20_IETF_POLY1305 -> 32
+                CipherMode.DarkStar -> 32
             }
             val salt = ByteArray(saltSize)
             val random = java.security.SecureRandom()
@@ -68,6 +70,7 @@ abstract class ShadowCipher() {
             return when (config.cipherMode) {
                 CipherMode.AES_128_GCM, CipherMode.AES_256_GCM -> ShadowAESCipher(config)
                 CipherMode.CHACHA20_IETF_POLY1305 -> ShadowChaChaCipher(config)
+                else -> throw IllegalStateException("Unexpected or unsupported Algorithm value")
             }
         }
 
@@ -75,6 +78,7 @@ abstract class ShadowCipher() {
             return when (config.cipherMode) {
                 CipherMode.AES_128_GCM, CipherMode.AES_256_GCM -> ShadowAESCipher(config, salt)
                 CipherMode.CHACHA20_IETF_POLY1305 -> ShadowChaChaCipher(config, salt)
+                else -> throw IllegalStateException("Unexpected or unsupported Algorithm value")
             }
         }
 
@@ -82,6 +86,7 @@ abstract class ShadowCipher() {
             finalSaltSize = when (config.cipherMode) {
                 CipherMode.AES_128_GCM -> 16
                 CipherMode.AES_256_GCM, CipherMode.CHACHA20_IETF_POLY1305 -> 32
+                CipherMode.DarkStar -> 64
             }
             Log.i("determineSaltSize", "Salt size is $finalSaltSize")
             return finalSaltSize
@@ -142,6 +147,8 @@ abstract class ShadowCipher() {
         buffer.put(0.toByte())
         buffer.put(0.toByte())
         Log.i("nonce", "Nonce created. Counter is $counter.")
+
+        counter += 1
         return buffer.array()
     }
 }
@@ -152,5 +159,6 @@ enum class CipherMode {
     //  We are not supporting it at this time either.
     AES_128_GCM,
     AES_256_GCM,
-    CHACHA20_IETF_POLY1305
+    CHACHA20_IETF_POLY1305,
+    DarkStar
 }
