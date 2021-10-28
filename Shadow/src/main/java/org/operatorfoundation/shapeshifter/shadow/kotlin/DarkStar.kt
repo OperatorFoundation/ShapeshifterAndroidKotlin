@@ -218,11 +218,12 @@ class DarkStar(var config: ShadowConfig, var host: String, var port: Int) {
             )
             val serverIdentifier = makeServerIdentifier(host, port)
             val digest = MessageDigest.getInstance("SHA-256")
-            println("(SharedKeyClient) ecdh1: " + bytesToHex(ecdh1!!.encoded))
-            println("(SharedKeyClient) ecdh2: " + bytesToHex(ecdh2!!.encoded))
-            println("(SharedKeyClient) SEPub: " + bytesToHex(publicKeyToBytes(serverEphemeralPublicKey)))
-            digest.update(ecdh1.encoded)
-            digest.update(ecdh2.encoded)
+            if (ecdh1 != null) {
+                digest.update(ecdh1.encoded)
+            }
+            if (ecdh2 != null) {
+                digest.update(ecdh2.encoded)
+            }
             digest.update(serverIdentifier)
             digest.update(publicKeyToBytes(clientEphemeral.public))
             digest.update(publicKeyToBytes(serverEphemeralPublicKey))
@@ -257,10 +258,6 @@ class DarkStar(var config: ShadowConfig, var host: String, var port: Int) {
             val serverIdentifier = makeServerIdentifier(host, port)
             val serverEphemeralPublicKeyData = publicKeyToBytes(serverEphemeralPublicKey)
             val clientEphemeralPublicKeyData = publicKeyToBytes(clientEphemeralPublicKey)
-            println("(ServerConfirmation) secretKey: " + bytesToHex(secretKeyData))
-            println("(ServerConfirmation) serverIdentifier: " + bytesToHex(serverIdentifier))
-            println("(ServerConfirmation) SEPubKey: " + bytesToHex(serverEphemeralPublicKeyData))
-            println("(ServerConfirmation) CEPubKey: " + bytesToHex(clientEphemeralPublicKeyData))
             val secretKeySpec = SecretKeySpec(secretKeyData, "HmacSHA256")
             val mac = Mac.getInstance("HmacSHA256")
             mac.init(secretKeySpec)
@@ -286,11 +283,9 @@ class DarkStar(var config: ShadowConfig, var host: String, var port: Int) {
             val serverPersistentPublicKeyData = publicKeyToBytes(serverPersistentPublicKey)
             val clientEphemeralPublicKeyData = publicKeyToBytes(clientEphemeralPublicKey)
             val digest = MessageDigest.getInstance("SHA-256")
-            println("(ClientConfirmation) ecdhData: " + bytesToHex(sharedSecret!!.encoded))
-            println("(ClientConfirmation) serverIdentifier: " + bytesToHex(serverIdentifier))
-            println("(ClientConfirmation) SPPubKey: " + bytesToHex(serverPersistentPublicKeyData))
-            println("(ClientConfirmation) CEPubKey: " + bytesToHex(clientEphemeralPublicKeyData))
-            digest.update(sharedSecret.encoded)
+            if (sharedSecret != null) {
+                digest.update(sharedSecret.encoded)
+            }
             digest.update(serverIdentifier)
             digest.update(serverPersistentPublicKeyData)
             digest.update(clientEphemeralPublicKeyData)
