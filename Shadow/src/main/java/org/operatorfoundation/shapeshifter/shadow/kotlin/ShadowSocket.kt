@@ -46,7 +46,7 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
 
     init {
         // Create salt for encryptionCipher.
-        if (!config.cipherMode.equals(CipherMode.DarkStar)) {
+        if (config.cipherMode != CipherMode.DarkStar) {
             this.salt = ShadowCipher.createSalt(config)
         }
         Log.i("init", "Encryption cipher created.")
@@ -59,7 +59,7 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         this.host = host
         this.port = port
         if (config.cipherMode == CipherMode.DarkStar) {
-            darkStar = DarkStar(config, host!!, port!!)
+            darkStar = DarkStar(config, host, port)
             this.salt = darkStar!!.createSalt()
             socket = Socket(host, port)
             connectionStatus = true
@@ -349,7 +349,7 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         val saltSize = ShadowCipher.determineSaltSize(config)
         val result = readNBytes(socket.inputStream, saltSize)
         if (result != null && result.size == salt.size) {
-            if (config.cipherMode.equals(CipherMode.DarkStar)) {
+            if (config.cipherMode == CipherMode.DarkStar) {
                 decryptionCipher = darkStar!!.makeDecryptionCipher(result)
                 encryptionCipher = darkStar!!.makeEncryptionCipher()
             } else {

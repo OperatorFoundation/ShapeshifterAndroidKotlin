@@ -3,12 +3,6 @@ package org.operatorfoundation.shapeshifter.shadow.kotlin
 import android.util.Log
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey
 import org.bouncycastle.jce.ECNamedCurveTable
-import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowConfig
-import kotlin.Throws
-import org.operatorfoundation.shapeshifter.shadow.kotlin.DarkStar
-import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowCipher
-import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowDarkStarCipher
-import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.jce.spec.ECParameterSpec
 import org.bouncycastle.jce.spec.ECPublicKeySpec
@@ -18,18 +12,15 @@ import java.nio.ByteBuffer
 import java.security.*
 import java.security.spec.InvalidKeySpecException
 import java.security.spec.PKCS8EncodedKeySpec
-import java.util.*
 import javax.crypto.KeyAgreement
 import javax.crypto.Mac
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
-import kotlin.jvm.JvmOverloads
 
-class DarkStar(var config: ShadowConfig, var host: String, var port: Int) {
-    var sharedKeyClient: SecretKey? = null
-    var decryptKey: SecretKey? = null
-    var clientEphemeralKeyPair: KeyPair? = null
-    var serverPersistentPublicKey: PublicKey? = null
+class DarkStar(var config: ShadowConfig, private var host: String, private var port: Int) {
+    private var sharedKeyClient: SecretKey? = null
+    private var clientEphemeralKeyPair: KeyPair? = null
+    private var serverPersistentPublicKey: PublicKey? = null
     @Throws(
         NoSuchAlgorithmException::class,
         InvalidKeySpecException::class,
@@ -70,10 +61,10 @@ class DarkStar(var config: ShadowConfig, var host: String, var port: Int) {
         return salt
     }
 
-    fun splitSalt(
+    private fun splitSalt(
         salt: ByteArray,
-        ephemeralPublicKeyBuf: ByteArray?,
-        confirmationCodeBuf: ByteArray?,
+        ephemeralPublicKeyBuf: ByteArray,
+        confirmationCodeBuf: ByteArray,
     ) {
         if (salt.size != 64) {
             Log.e("DarkStar", "incorrect salt size")
@@ -109,7 +100,7 @@ class DarkStar(var config: ShadowConfig, var host: String, var port: Int) {
         val clientCopyServerConfirmationCode = generateServerConfirmationCode(
             host, port, serverEphemeralPublicKey, clientEphemeralKeyPair!!.public, sharedKeyClient
         )
-        if (!Arrays.equals(clientCopyServerConfirmationCode, serverConfirmationCode)) {
+        if (!clientCopyServerConfirmationCode.contentEquals(serverConfirmationCode)) {
             throw InvalidKeyException()
         }
         return ShadowDarkStarCipher(sharedKeyClient!!)
@@ -121,12 +112,9 @@ class DarkStar(var config: ShadowConfig, var host: String, var port: Int) {
     }
 
     companion object {
-        var iv = SecureRandom().generateSeed(16)
-        var P256KeySize = 32
-        var ConfirmationSize = 32
-        var darkStarBytes = "DarkStar".toByteArray()
-        var clientStringBytes = "client".toByteArray()
-        var serverStringBytes = "server".toByteArray()
+        private var darkStarBytes = "DarkStar".toByteArray()
+        private var clientStringBytes = "client".toByteArray()
+        private var serverStringBytes = "server".toByteArray()
         fun generateECKeys(): KeyPair? {
             return try {
                 val parameterSpec = ECNamedCurveTable.getParameterSpec("secp256r1")
@@ -162,7 +150,7 @@ class DarkStar(var config: ShadowConfig, var host: String, var port: Int) {
             }
         }
 
-        fun generateSharedSecret(privateKey: PrivateKey?, publicKey: PublicKey?): SecretKey? {
+        private fun generateSharedSecret(privateKey: PrivateKey?, publicKey: PublicKey?): SecretKey? {
             return try {
                 val keyAgreement =
                     KeyAgreement.getInstance("ECDH", BouncyCastleProvider())
@@ -170,7 +158,6 @@ class DarkStar(var config: ShadowConfig, var host: String, var port: Int) {
                 keyAgreement.doPhase(publicKey, true)
                 keyAgreement.generateSecret("secp256r1")
             } catch (e: InvalidKeyException) {
-                // TODO Auto-generated catch block
                 e.printStackTrace()
                 null
             } catch (e: NoSuchAlgorithmException) {
@@ -304,7 +291,7 @@ class DarkStar(var config: ShadowConfig, var host: String, var port: Int) {
         }
 
         @Throws(NoSuchAlgorithmException::class, InvalidKeySpecException::class)
-        fun bytesToPublicKey(bytes: ByteArray?): PublicKey {
+        fun bytesToPublicKey(bytes: ByteArray): PublicKey {
             val keyFactory = KeyFactory.getInstance("EC", BouncyCastleProvider())
             val ecSpec: ECParameterSpec = ECNamedCurveTable.getParameterSpec("secp256r1")
             val encodedPoint = ByteArray(33)
@@ -315,8 +302,7 @@ class DarkStar(var config: ShadowConfig, var host: String, var port: Int) {
             return keyFactory.generatePublic(pubSpec)
         }
 
-        @JvmOverloads
-        fun bytesToHex(data: ByteArray, length: Int = data.size): String {
+        fun bytesToHex(data: ByteArray): String {
             val hexArray = "0123456789ABCDEF".toCharArray()
 
             val hexChars = CharArray(data.size * 2)
