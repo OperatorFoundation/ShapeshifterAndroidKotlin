@@ -24,9 +24,27 @@
 
 package org.operatorfoundation.shapeshifter.shadow.kotlin
 
+import com.google.gson.Gson
 import java.net.InetAddress
 import java.net.Socket
+import java.net.URL
+import java.util.*
 import javax.net.SocketFactory
+
+class JsonConfig {
+    data class ShadowJsonConfig(
+        val version: Int,
+        val servers: Array<ServerConfig>,
+    )
+
+    data class ServerConfig(
+        val id: String,
+        val server: String,
+        val server_port: Int,
+        val password: String,
+        val method: String
+    )
+}
 
 /** A built-in SocketFactory to make it easy for developers to plug this into existing HTTP libraries, such as OkHTTP **/
 class ShadowSocketFactory(
@@ -34,6 +52,24 @@ class ShadowSocketFactory(
     private val shadowHost: String,
     private val shadowPort: Int
 ) : SocketFactory() {
+    companion object {
+        fun factoryFromUrl(url: URL, uuid: UUID): ShadowSocketFactory {
+            require (url.protocol == "https") {
+                "protocol must be https"
+            }
+
+            val jsonText = url.readText()
+            val gson = Gson()
+            val jsonConfig = gson.fromJson(jsonText, JsonConfig.ShadowJsonConfig::class.java)
+            val serverConfig = jsonConfig.servers.first { UUID.fromString(it.id) == uuid }
+
+            val shadowConfig = ShadowConfig(serverConfig.password, serverConfig.method)
+            val host = serverConfig.server
+            val port = serverConfig.server_port
+
+            return ShadowSocketFactory(shadowConfig, host, port)
+        }
+    }
 
     @ExperimentalUnsignedTypes
     override fun createSocket(remoteHost: String?, remotePort: Int): Socket {
