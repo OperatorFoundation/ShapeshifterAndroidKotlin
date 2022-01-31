@@ -25,6 +25,8 @@
 package org.operatorfoundation.shapeshifter.shadow.kotlin
 
 import android.util.Log
+import com.google.common.hash.BloomFilter
+import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -34,6 +36,18 @@ import java.nio.channels.SocketChannel
 // This class implements client sockets (also called just "sockets").
 // A socket is an endpoint for communication between two machines.
 open class ShadowSocket(val config: ShadowConfig) : Socket() {
+    companion object {
+        private val bloom = Bloom() // for java/swift, just make it static class property
+
+        fun saveBloom(fileName: String) {
+           bloom.save(fileName)
+        }
+
+        fun loadBloom(fileName: String) {
+            bloom.load(fileName)
+        }
+    }
+
     // Fields:
     private var socket: Socket = Socket()
     private lateinit var salt: ByteArray
@@ -43,6 +57,8 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     private var darkStar: DarkStar? = null
     private var host: String? = null
     private var port: Int? = null
+    private val hole = Hole()
+    private val holeTimeout = 30
 
     init {
         // Create salt for encryptionCipher.
@@ -63,13 +79,21 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
             this.salt = darkStar!!.createSalt()
             socket = Socket(host, port)
             connectionStatus = true
-            handshake()
+            try {
+                handshake()
+            } catch(error: IOException) {
+                hole.startHole(holeTimeout, socket)
+            }
             encryptionCipher = darkStar!!.makeEncryptionCipher()
         } else {
             encryptionCipher = ShadowCipher.makeShadowCipherWithSalt(config, salt)
             socket = Socket(host, port)
             connectionStatus = true
-            handshake()
+            try {
+                handshake()
+            } catch(error: IOException) {
+                hole.startHole(holeTimeout, socket)
+            }
         }
     }
 
@@ -80,7 +104,11 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     ) : this(config) {
         socket = Socket(host, port, localAddr, localPort)
         connectionStatus = true
-        handshake()
+        try {
+            handshake()
+        } catch(error: IOException) {
+            hole.startHole(holeTimeout, socket)
+        }
     }
 
     // Creates a stream socket and connects it to the specified port number at the specified IP address.
@@ -88,7 +116,11 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     constructor(config: ShadowConfig, address: InetAddress, port: Int) : this(config) {
         socket = Socket(address, port)
         connectionStatus = true
-        handshake()
+        try {
+            handshake()
+        } catch(error: IOException) {
+            hole.startHole(holeTimeout, socket)
+        }
     }
 
     // Creates a socket and connects it to the specified remote address on the specified remote port.
@@ -104,7 +136,11 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     ) {
         socket = Socket(address, port, localAddr, localPort)
         connectionStatus = true
-        handshake()
+        try {
+            handshake()
+        } catch(error: IOException) {
+            hole.startHole(holeTimeout, socket)
+        }
     }
 
     // Creates an unconnected socket, specifying the type of proxy, if any, that should be used regardless of any other settings.
@@ -349,6 +385,10 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         val saltSize = ShadowCipher.determineSaltSize(config)
         val result = readNBytes(socket.inputStream, saltSize)
         if (result != null && result.size == salt.size) {
+            if (bloom.checkInBloom(result)) {
+                Log.e("receiveSalt", "duplicate salt found.")
+                throw IOException()
+            }
             if (config.cipherMode == CipherMode.DarkStar) {
                 decryptionCipher = darkStar!!.makeDecryptionCipher(result)
                 encryptionCipher = darkStar!!.makeEncryptionCipher()

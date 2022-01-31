@@ -272,7 +272,6 @@ internal class ShadowSocketTest {
         thread {
             runTestServer()
         }
-
         val password = "1234"
         val config = ShadowConfig(password, "AES-128-GCM")
         val shadowSocket = ShadowSocket(config, "::1", 2222)
