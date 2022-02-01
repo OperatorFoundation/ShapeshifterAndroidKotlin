@@ -357,5 +357,13 @@ internal class ShadowSocketTest {
         factory.createSocket()
     }
 
+    @Test
+    @ExperimentalUnsignedTypes
+    fun maxLongTest() {
+        // var buffer: ByteBuffer = ByteBuffer.allocate(8)
+        println(ULong.MAX_VALUE)
+        println(ULong.MAX_VALUE.toLong())
+        println((-1).toULong())
+    }
 }
 
