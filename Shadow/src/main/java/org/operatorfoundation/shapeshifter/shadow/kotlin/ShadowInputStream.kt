@@ -117,9 +117,12 @@ class ShadowInputStream(
 
             return resultSize
 
+            // FIXME: this catch should throw 'em in the hole
         } catch (e: Exception) {
             Log.e("read", "Decryption failed on read.")
+
             decryptionFailed = true
+            shadowSocket.hole.startHole(shadowSocket.holeTimeout, shadowSocket)
             shadowSocket.close()
             throw IOException()
         }
