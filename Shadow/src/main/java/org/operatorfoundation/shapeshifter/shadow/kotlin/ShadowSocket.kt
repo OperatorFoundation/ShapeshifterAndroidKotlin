@@ -57,8 +57,8 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     private var darkStar: DarkStar? = null
     private var host: String? = null
     private var port: Int? = null
-    val hole = Hole()
-    val holeTimeout = 30
+    private val hole = Hole()
+    private val holeTimeout = 30
 
     init {
         // Create salt for encryptionCipher.

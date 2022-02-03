@@ -13,12 +13,12 @@ import java.security.*
 import java.security.spec.InvalidKeySpecException
 import java.security.spec.PKCS8EncodedKeySpec
 import javax.crypto.KeyAgreement
+import javax.crypto.Mac
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
 
 class DarkStar(var config: ShadowConfig, private var host: String, private var port: Int) {
     private var sharedKeyClient: SecretKey? = null
-    private var sharedKeyServer: SecretKey? = null
     private var clientEphemeralKeyPair: KeyPair? = null
     private var serverPersistentPublicKey: PublicKey? = null
     @Throws(
@@ -98,11 +98,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
 
         // check confirmationCode
         val clientCopyServerConfirmationCode = generateServerConfirmationCode(
-            host,
-            port,
-            clientEphemeralKeyPair!!.public,
-            clientEphemeralKeyPair!!.private,
-            serverPersistentPublicKey!!
+            host, port, serverEphemeralPublicKey, clientEphemeralKeyPair!!.public, sharedKeyClient
         )
         if (!clientCopyServerConfirmationCode.contentEquals(serverConfirmationCode)) {
             throw InvalidKeyException()
@@ -112,7 +108,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
 
     @Throws(NoSuchAlgorithmException::class)
     fun makeEncryptionCipher(): ShadowCipher {
-        return ShadowDarkStarCipher(sharedKeyServer!!)
+        return ShadowDarkStarCipher(sharedKeyClient!!)
     }
 
     companion object {
@@ -170,6 +166,29 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             }
         }
 
+        // function used for testing only
+        @Throws(UnknownHostException::class, NoSuchAlgorithmException::class)
+        fun generateSharedKeyServer(
+            host: String?,
+            port: Int,
+            serverEphemeral: KeyPair,
+            serverPersistent: KeyPair,
+            clientEphemeralPublicKey: PublicKey?
+        ): SecretKey {
+            val ecdh1 = generateSharedSecret(serverEphemeral.private, clientEphemeralPublicKey)
+            val ecdh2 = generateSharedSecret(serverPersistent.private, clientEphemeralPublicKey)
+            val serverIdentifier = makeServerIdentifier(host, port)
+            val digest = MessageDigest.getInstance("SHA-256")
+            digest.update(ecdh1!!.encoded)
+            digest.update(ecdh2!!.encoded)
+            digest.update(serverIdentifier)
+            digest.update(publicKeyToBytes(clientEphemeralPublicKey))
+            digest.update(publicKeyToBytes(serverEphemeral.public))
+            digest.update(darkStarBytes)
+            val result = digest.digest()
+            return SecretKeySpec(result, 0, result.size, "AES")
+        }
+
         @Throws(UnknownHostException::class, NoSuchAlgorithmException::class)
         fun generateSharedKeyClient(
             host: String?,
@@ -196,38 +215,6 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             digest.update(publicKeyToBytes(clientEphemeral.public))
             digest.update(publicKeyToBytes(serverEphemeralPublicKey))
             digest.update(darkStarBytes)
-            digest.update(clientStringBytes)
-            val result = digest.digest()
-            return SecretKeySpec(result, 0, result.size, "AES")
-        }
-
-        @Throws(UnknownHostException::class, NoSuchAlgorithmException::class)
-        fun generateSharedKeyServer(
-            host: String?,
-            port: Int,
-            clientEphemeral: KeyPair?,
-            serverEphemeralPublicKey: PublicKey?,
-            serverPersistentPublicKey: PublicKey?
-        ): SecretKey {
-            val ecdh1 = generateSharedSecret(
-                clientEphemeral!!.private, serverEphemeralPublicKey
-            )
-            val ecdh2 = generateSharedSecret(
-                clientEphemeral.private, serverPersistentPublicKey
-            )
-            val serverIdentifier = makeServerIdentifier(host, port)
-            val digest = MessageDigest.getInstance("SHA-256")
-            if (ecdh1 != null) {
-                digest.update(ecdh1.encoded)
-            }
-            if (ecdh2 != null) {
-                digest.update(ecdh2.encoded)
-            }
-            digest.update(serverIdentifier)
-            digest.update(publicKeyToBytes(clientEphemeral.public))
-            digest.update(publicKeyToBytes(serverEphemeralPublicKey))
-            digest.update(darkStarBytes)
-            digest.update(serverStringBytes)
             val result = digest.digest()
             return SecretKeySpec(result, 0, result.size, "AES")
         }
@@ -250,25 +237,23 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         fun generateServerConfirmationCode(
             host: String?,
             port: Int,
+            serverEphemeralPublicKey: PublicKey,
             clientEphemeralPublicKey: PublicKey,
-            clientEphemeralPrivateKey: PrivateKey,
-            serverPersistentPublicKey: PublicKey
+            sharedKey: SecretKey?
         ): ByteArray {
+            val secretKeyData = sharedKey!!.encoded
             val serverIdentifier = makeServerIdentifier(host, port)
-            val serverPersistentPublicKeyData = publicKeyToBytes(serverPersistentPublicKey)
+            val serverEphemeralPublicKeyData = publicKeyToBytes(serverEphemeralPublicKey)
             val clientEphemeralPublicKeyData = publicKeyToBytes(clientEphemeralPublicKey)
-            val sharedSecret =
-                generateSharedSecret(clientEphemeralPrivateKey, serverPersistentPublicKey)
-            val digest = MessageDigest.getInstance("SHA-256")
-            if (sharedSecret != null) {
-                digest.update(sharedSecret.encoded)
-            }
-            digest.update(serverIdentifier)
-            digest.update(serverPersistentPublicKeyData)
-            digest.update(clientEphemeralPublicKeyData)
-            digest.update(darkStarBytes)
-            digest.update(serverStringBytes)
-            return digest.digest()
+            val secretKeySpec = SecretKeySpec(secretKeyData, "HmacSHA256")
+            val mac = Mac.getInstance("HmacSHA256")
+            mac.init(secretKeySpec)
+            mac.update(serverIdentifier)
+            mac.update(serverEphemeralPublicKeyData)
+            mac.update(clientEphemeralPublicKeyData)
+            mac.update(darkStarBytes)
+            mac.update(serverStringBytes)
+            return mac.doFinal()
         }
 
         @Throws(NoSuchAlgorithmException::class, UnknownHostException::class)
