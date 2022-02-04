@@ -21,6 +21,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
     private var sharedKeyServer: SecretKey? = null
     private var clientEphemeralKeyPair: KeyPair? = null
     private var serverPersistentPublicKey: PublicKey? = null
+
     @Throws(
         NoSuchAlgorithmException::class,
         InvalidKeySpecException::class,
@@ -154,7 +155,10 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             }
         }
 
-        private fun generateSharedSecret(privateKey: PrivateKey?, publicKey: PublicKey?): SecretKey? {
+        private fun generateSharedSecret(
+            privateKey: PrivateKey?,
+            publicKey: PublicKey?
+        ): SecretKey? {
             return try {
                 val keyAgreement =
                     KeyAgreement.getInstance("ECDH", BouncyCastleProvider())
@@ -171,19 +175,9 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         }
 
         @Throws(UnknownHostException::class, NoSuchAlgorithmException::class)
-        fun generateSharedKeyClient(
-            host: String?,
-            port: Int,
-            clientEphemeral: KeyPair?,
-            serverEphemeralPublicKey: PublicKey?,
-            serverPersistentPublicKey: PublicKey?
-        ): SecretKey {
-            val ecdh1 = generateSharedSecret(
-                clientEphemeral!!.private, serverEphemeralPublicKey
-            )
-            val ecdh2 = generateSharedSecret(
-                clientEphemeral.private, serverPersistentPublicKey
-            )
+        fun generateSharedKeyClient(host: String?, port: Int, clientEphemeral: KeyPair?, serverEphemeralPublicKey: PublicKey?, serverPersistentPublicKey: PublicKey?): SecretKey {
+            val ecdh1 = generateSharedSecret(clientEphemeral!!.private, serverEphemeralPublicKey)
+            val ecdh2 = generateSharedSecret(clientEphemeral.private, serverPersistentPublicKey)
             val serverIdentifier = makeServerIdentifier(host, port)
             val digest = MessageDigest.getInstance("SHA-256")
             if (ecdh1 != null) {
@@ -202,19 +196,9 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         }
 
         @Throws(UnknownHostException::class, NoSuchAlgorithmException::class)
-        fun generateSharedKeyServer(
-            host: String?,
-            port: Int,
-            clientEphemeral: KeyPair?,
-            serverEphemeralPublicKey: PublicKey?,
-            serverPersistentPublicKey: PublicKey?
-        ): SecretKey {
-            val ecdh1 = generateSharedSecret(
-                clientEphemeral!!.private, serverEphemeralPublicKey
-            )
-            val ecdh2 = generateSharedSecret(
-                clientEphemeral.private, serverPersistentPublicKey
-            )
+        fun generateSharedKeyServer(host: String?, port: Int, clientEphemeral: KeyPair?, serverEphemeralPublicKey: PublicKey?, serverPersistentPublicKey: PublicKey?): SecretKey {
+            val ecdh1 = generateSharedSecret(clientEphemeral!!.private, serverEphemeralPublicKey)
+            val ecdh2 = generateSharedSecret(clientEphemeral.private, serverPersistentPublicKey)
             val serverIdentifier = makeServerIdentifier(host, port)
             val digest = MessageDigest.getInstance("SHA-256")
             if (ecdh1 != null) {
@@ -242,23 +226,12 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             return address + portBytes
         }
 
-        @Throws(
-            NoSuchAlgorithmException::class,
-            UnknownHostException::class,
-            InvalidKeyException::class
-        )
-        fun generateServerConfirmationCode(
-            host: String?,
-            port: Int,
-            clientEphemeralPublicKey: PublicKey,
-            clientEphemeralPrivateKey: PrivateKey,
-            serverPersistentPublicKey: PublicKey
-        ): ByteArray {
+        @Throws(NoSuchAlgorithmException::class, UnknownHostException::class, InvalidKeyException::class)
+        fun generateServerConfirmationCode(host: String?, port: Int, clientEphemeralPublicKey: PublicKey, clientEphemeralPrivateKey: PrivateKey, serverPersistentPublicKey: PublicKey): ByteArray {
             val serverIdentifier = makeServerIdentifier(host, port)
             val serverPersistentPublicKeyData = publicKeyToBytes(serverPersistentPublicKey)
             val clientEphemeralPublicKeyData = publicKeyToBytes(clientEphemeralPublicKey)
-            val sharedSecret =
-                generateSharedSecret(clientEphemeralPrivateKey, serverPersistentPublicKey)
+            val sharedSecret = generateSharedSecret(clientEphemeralPrivateKey, serverPersistentPublicKey)
             val digest = MessageDigest.getInstance("SHA-256")
             if (sharedSecret != null) {
                 digest.update(sharedSecret.encoded)
