@@ -61,13 +61,13 @@ internal class ShadowSocketTest {
 
     @ExperimentalUnsignedTypes
     @Test
-    fun shadowSocketConstructor1ReadTestAES128() {
+    fun shadowSocketConstructor1ReadTest() {
         thread {
             runTestServer()
         }
 
         val password = "1234"
-        val config = ShadowConfig(password, "AES-128-GCM")
+        val config = ShadowConfig(password, "DarkStar")
         val shadowSocket = ShadowSocket(config, "127.0.0.1", 2222)
         assertNotEquals(shadowSocket, null)
         val plaintext = "Hi"
@@ -81,14 +81,14 @@ internal class ShadowSocketTest {
 
     @ExperimentalUnsignedTypes
     @Test
-    fun shadowSocketConstructor2ReadTestAES128() {
+    fun shadowSocketConstructor2ReadTest() {
         thread {
             runTestServer()
         }
 
         val password = "1234"
         val address: InetAddress = InetAddress.getByName(null)
-        val config = ShadowConfig(password, "AES-128-GCM")
+        val config = ShadowConfig(password, "DarkStar")
         val shadowSocket = ShadowSocket(config, "127.0.0.1", 2222, address, 0)
         assertNotEquals(shadowSocket, null)
         val plaintext = "Hi"
@@ -103,14 +103,14 @@ internal class ShadowSocketTest {
 
     @ExperimentalUnsignedTypes
     @Test
-    fun shadowSocketConstructor3ReadTestAES128() {
+    fun shadowSocketConstructor3ReadTest() {
         thread {
             runTestServer()
         }
 
         val password = "1234"
         val address: InetAddress = InetAddress.getByName("127.0.0.1")
-        val config = ShadowConfig(password, "AES-128-GCM")
+        val config = ShadowConfig(password, "DarkStar")
         val shadowSocket = ShadowSocket(config, address, 2222)
         assertNotEquals(shadowSocket, null)
         val plaintext = "Hi"
@@ -124,7 +124,7 @@ internal class ShadowSocketTest {
 
     @ExperimentalUnsignedTypes
     @Test
-    fun shadowSocketConstructor4ReadTestAES128() {
+    fun shadowSocketConstructor4ReadTest() {
         thread {
             runTestServer()
         }
@@ -132,7 +132,7 @@ internal class ShadowSocketTest {
         val password = "1234"
         val address: InetAddress = InetAddress.getByName("127.0.0.1")
         val localAddr: InetAddress = InetAddress.getByName(null)
-        val config = ShadowConfig(password, "AES-128-GCM")
+        val config = ShadowConfig(password, "DarkStar")
         val shadowSocket = ShadowSocket(config, address, 2222, localAddr, 0)
         assertNotEquals(shadowSocket, null)
         val plaintext = "Hi"
@@ -146,7 +146,7 @@ internal class ShadowSocketTest {
 
     @ExperimentalUnsignedTypes
     @Test
-    fun shadowSocketConstructor5ReadTestAES128() {
+    fun shadowSocketConstructor5ReadTest() {
         thread {
             runTestServer()
         }
@@ -155,7 +155,7 @@ internal class ShadowSocketTest {
         val socksAddress: SocketAddress = InetSocketAddress("127.0.0.1", 1443)
         val proxyType = Proxy.Type.SOCKS
         val socksProxy = Proxy(proxyType, socksAddress)
-        val config = ShadowConfig(password, "AES-128-GCM")
+        val config = ShadowConfig(password, "DarkStar")
         val shadowSocket = ShadowSocket(config, socksProxy)
         val socketAddress = InetSocketAddress("127.0.0.1", 2222)
         shadowSocket.connect(socketAddress)
@@ -172,13 +172,13 @@ internal class ShadowSocketTest {
 
     @ExperimentalUnsignedTypes
     @Test
-    fun shadowSocketReadTestAES256() {
+    fun shadowSocketReadTest() {
         thread {
             runTestServer()
         }
 
         val password = "1234"
-        val config = ShadowConfig(password, "AES-256-GCM")
+        val config = ShadowConfig(password, "DarkStar")
         val shadowSocket = ShadowSocket(config, "127.0.0.1", 2222)
         assertNotNull(shadowSocket)
         val plaintext = "Hi"
@@ -198,7 +198,7 @@ internal class ShadowSocketTest {
         }
 
         val password = "1234"
-        val config = ShadowConfig(password, "AES-128-GCM")
+        val config = ShadowConfig(password, "DarkStar")
         val shadowSocket = ShadowSocket(config, "127.0.0.1", 2222)
         assertNotNull(shadowSocket)
         val plaintext = "GET / HTTP/1.0\r\n\r\n"
@@ -230,9 +230,9 @@ internal class ShadowSocketTest {
 
     @ExperimentalUnsignedTypes
     @Test
-    fun demoServerAES128Test() {
+    fun demoServerTest() {
         val password = "1234"
-        val config = ShadowConfig(password, "AES-128-GCM")
+        val config = ShadowConfig(password, "DarkStar")
         val shadowSocket = ShadowSocket(config, "", 2346)
         assertNotNull(shadowSocket)
         // Send a request to the server
@@ -243,63 +243,6 @@ internal class ShadowSocketTest {
         shadowSocket.outputStream.flush()
         val buffer = ByteArray(244)
         val response = shadowSocket.inputStream.read(buffer)
-    }
-
-    //IPv6 Tests
-
-    @ExperimentalUnsignedTypes
-    @Test
-    fun shadowSocketIPv6InitTest() {
-        val password = "1234"
-        val config = ShadowConfig(password, "AES-128-GCM")
-        val shadowSocket = ShadowSocket(config, "::1", 2222)
-        assertNotEquals(shadowSocket, null)
-    }
-
-    @ExperimentalUnsignedTypes
-    @Test
-    fun shadowSocketIPv6InitTest2() {
-        val password = "1234"
-        val address: InetAddress = InetAddress.getByName("::1")
-        val config = ShadowConfig(password, "AES-128-GCM")
-        val shadowSocket = ShadowSocket(config, address, 2222)
-        assertNotEquals(shadowSocket, null)
-    }
-
-    @ExperimentalUnsignedTypes
-    @Test
-    fun shadowSocketIPv6WriteTest() {
-        thread {
-            runTestServer()
-        }
-        val password = "1234"
-        val config = ShadowConfig(password, "AES-128-GCM")
-        val shadowSocket = ShadowSocket(config, "::1", 2222)
-        assertNotEquals(shadowSocket, null)
-        val plaintext = "Hi"
-        val textBytes = plaintext.toByteArray()
-        shadowSocket.outputStream.write(textBytes)
-        shadowSocket.outputStream.flush()
-    }
-
-    @ExperimentalUnsignedTypes
-    @Test
-    fun shadowSocketIPv6ReadTest() {
-        thread {
-            runTestServer()
-        }
-
-        val password = "1234"
-        val config = ShadowConfig(password, "AES-128-GCM")
-        val shadowSocket = ShadowSocket(config, "::1", 2222)
-        assertNotNull(shadowSocket)
-        val plaintext = "Hi"
-        val textBytes = plaintext.toByteArray()
-        shadowSocket.outputStream.write(textBytes)
-        shadowSocket.outputStream.flush()
-        val buffer = ByteArray(2)
-        shadowSocket.inputStream.read(buffer)
-        assertEquals(String(buffer), "Yo")
     }
 
     //Bad Arguments Tests
@@ -316,7 +259,7 @@ internal class ShadowSocketTest {
     @Test(expected = IllegalStateException::class)
     fun badKeySize() {
         val password = "1234"
-        val config = ShadowConfig(password, "AES-128-GCM")
+        val config = ShadowConfig(password, "DarkStar")
         ShadowSocket(config, "127.0.0.1", 2222)
     }
 

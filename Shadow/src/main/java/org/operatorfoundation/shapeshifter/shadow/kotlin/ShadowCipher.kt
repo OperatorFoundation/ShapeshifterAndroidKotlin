@@ -25,9 +25,6 @@
 package org.operatorfoundation.shapeshifter.shadow.kotlin
 
 import android.util.Log
-import java.lang.IllegalStateException
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import java.security.InvalidAlgorithmParameterException
 import java.security.InvalidKeyException
 import java.security.NoSuchAlgorithmException
@@ -66,28 +63,8 @@ abstract class ShadowCipher() {
             return salt
         }
 
-        fun makeShadowCipher(config: ShadowConfig): ShadowCipher {
-            return when (config.cipherMode) {
-                CipherMode.AES_128_GCM, CipherMode.AES_256_GCM -> ShadowAESCipher(config)
-                CipherMode.CHACHA20_IETF_POLY1305 -> ShadowChaChaCipher(config)
-                else -> throw IllegalStateException("Unexpected or unsupported Algorithm value")
-            }
-        }
-
-        fun makeShadowCipherWithSalt(config: ShadowConfig, salt: ByteArray): ShadowCipher {
-            return when (config.cipherMode) {
-                CipherMode.AES_128_GCM, CipherMode.AES_256_GCM -> ShadowAESCipher(config, salt)
-                CipherMode.CHACHA20_IETF_POLY1305 -> ShadowChaChaCipher(config, salt)
-                else -> throw IllegalStateException("Unexpected or unsupported Algorithm value")
-            }
-        }
-
-        fun determineSaltSize(config: ShadowConfig): Int {
-            finalSaltSize = when (config.cipherMode) {
-                CipherMode.AES_128_GCM -> 16
-                CipherMode.AES_256_GCM, CipherMode.CHACHA20_IETF_POLY1305 -> 32
-                CipherMode.DarkStar -> 64
-            }
+        fun determineSaltSize(): Int {
+            finalSaltSize = 64
             Log.i("determineSaltSize", "Salt size is $finalSaltSize")
             return finalSaltSize
         }
@@ -135,22 +112,7 @@ abstract class ShadowCipher() {
     abstract fun decrypt(encrypted: ByteArray): ByteArray
 
     // Create a nonce using our counter.
-    open fun nonce(): ByteArray? {
-        // nonce must be 12 bytes
-        val buffer = ByteBuffer.allocate(12)
-        // nonce is little Endian
-        buffer.order(ByteOrder.LITTLE_ENDIAN)
-        // create a byte array from counter
-        buffer.putLong(counter.toLong())
-        buffer.put(0.toByte())
-        buffer.put(0.toByte())
-        buffer.put(0.toByte())
-        buffer.put(0.toByte())
-        Log.i("nonce", "Nonce created. Counter is $counter.")
-
-        counter += 1
-        return buffer.array()
-    }
+    abstract fun nonce(): ByteArray?
 }
 
 // CipherMode establishes what algorithm and version you are using.

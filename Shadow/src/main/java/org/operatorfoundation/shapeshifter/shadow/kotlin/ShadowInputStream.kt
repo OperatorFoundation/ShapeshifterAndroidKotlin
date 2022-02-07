@@ -117,7 +117,6 @@ class ShadowInputStream(
 
             return resultSize
 
-            // FIXME: this catch should throw 'em in the hole
         } catch (e: Exception) {
             Log.e("read", "Decryption failed on read.")
 
