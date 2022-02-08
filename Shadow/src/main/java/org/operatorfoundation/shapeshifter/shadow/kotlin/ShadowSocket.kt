@@ -73,8 +73,6 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         } catch(error: IOException) {
             hole.startHole(holeTimeout, socket)
         }
-        encryptionCipher = darkStar!!.makeEncryptionCipher()
-
     }
 
     // Creates a socket and connects it to the specified remote host on the specified remote port.
@@ -369,8 +367,8 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
                 Log.e("receiveSalt", "duplicate salt found.")
                 throw IOException()
             }
-            decryptionCipher = darkStar!!.makeDecryptionCipher(result)
-            encryptionCipher = darkStar!!.makeEncryptionCipher()
+            decryptionCipher = darkStar!!.makeCipher(true, result)
+            encryptionCipher = darkStar!!.makeCipher(false, result)
             Log.i("receiveSalt", "Salt received.")
         } else {
             Log.e("receiveSalt", "Salt was not received.")

@@ -130,7 +130,7 @@ class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher() {
 
         val buffer = ByteBuffer.allocate(12) // 4 bytes = 32 bits
 
-        // nonce is little Endian
+        // nonce is big Endian
         buffer.order(ByteOrder.BIG_ENDIAN)
         // create a byte array from counter
 

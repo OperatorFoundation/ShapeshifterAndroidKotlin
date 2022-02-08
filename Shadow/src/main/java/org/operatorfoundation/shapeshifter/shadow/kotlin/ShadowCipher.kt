@@ -52,8 +52,6 @@ abstract class ShadowCipher() {
         // Creates a byteArray of a specified length containing random bytes.
         fun createSalt(config: ShadowConfig): ByteArray {
             val saltSize: Int = when (config.cipherMode) {
-                CipherMode.AES_128_GCM -> 16
-                CipherMode.AES_256_GCM, CipherMode.CHACHA20_IETF_POLY1305 -> 32
                 CipherMode.DarkStar -> 32
             }
             val salt = ByteArray(saltSize)
@@ -119,8 +117,5 @@ abstract class ShadowCipher() {
 enum class CipherMode {
     //  AES 196 is not currently supported by go-shadowsocks2.
     //  We are not supporting it at this time either.
-    AES_128_GCM,
-    AES_256_GCM,
-    CHACHA20_IETF_POLY1305,
     DarkStar
 }
