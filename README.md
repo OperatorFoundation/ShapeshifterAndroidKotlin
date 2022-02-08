@@ -23,29 +23,14 @@ dependencies {
         // Later releases of bouncycastle may not work with ShapeshifterAndroidKotlin
         implementation 'org.bouncycastle:bcpkix-jdk15on:1.58'
 
-        // libsodium is only necessary if you plan on using ChaCha20
-        implementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.2'
-        testImplementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.2'
-        androidTestImplementation 'com.github.joshjdevl.libsodiumjni:libsodium-jni-aar:2.0.2'
+        implementation 'com.google.code.gson:gson:2.8.2'
+        implementation 'com.google.guava:guava:31.0.1-android'
+
 }
 ```
 
 3) Make sure the min SDK in your build.gradle is 21 or higher in each project/app related build.gradle
 
-4) If you plan on supporting ChaCha20, add the following to your AndroidManifest.xml:
-```
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-   xmlns:tools="http://schemas.android.com/tools"
-   package="org.YourPackagesName">
-
-   <uses-permission android:name="android.permission.INTERNET" />
-   <application
-       tools:replace="android:allowBackup"
-       ...
-   </application>
-   ...
-</manifest>
-```
 
 ## Using the Library
 1) Create a shadow config, putting the password and cipher name.  If you're using DarkStar, put the Server's Persistent Public Key in place of the password.
