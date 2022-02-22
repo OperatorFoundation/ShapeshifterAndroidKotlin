@@ -13,3 +13,4 @@ github.properties
 /captures
 .externalNativeBuild
 .cxx
+app/build/*
