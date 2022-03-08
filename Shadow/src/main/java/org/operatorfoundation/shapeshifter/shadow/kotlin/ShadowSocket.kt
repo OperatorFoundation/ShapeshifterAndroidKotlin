@@ -25,8 +25,6 @@
 package org.operatorfoundation.shapeshifter.shadow.kotlin
 
 import android.util.Log
-import com.google.common.hash.BloomFilter
-import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -60,40 +58,20 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     val hole = Hole()
     val holeTimeout = 30
 
-    init {
-        // Create salt for encryptionCipher.
-        if (config.cipherMode != CipherMode.DarkStar) {
-            this.salt = ShadowCipher.createSalt(config)
-        }
-        Log.i("init", "Encryption cipher created.")
-    }
-
     // Constructors:
     // Creates a stream socket and connects it to the specified port number on the named host.
     @ExperimentalUnsignedTypes
     constructor(config: ShadowConfig, host: String, port: Int) : this(config) {
         this.host = host
         this.port = port
-        if (config.cipherMode == CipherMode.DarkStar) {
-            darkStar = DarkStar(config, host, port)
-            this.salt = darkStar!!.createSalt()
-            socket = Socket(host, port)
-            connectionStatus = true
-            try {
-                handshake()
-            } catch(error: IOException) {
-                hole.startHole(holeTimeout, socket)
-            }
-            encryptionCipher = darkStar!!.makeEncryptionCipher()
-        } else {
-            encryptionCipher = ShadowCipher.makeShadowCipherWithSalt(config, salt)
-            socket = Socket(host, port)
-            connectionStatus = true
-            try {
-                handshake()
-            } catch(error: IOException) {
-                hole.startHole(holeTimeout, socket)
-            }
+        darkStar = DarkStar(config, host, port)
+        this.salt = darkStar!!.createSalt()
+        socket = Socket(host, port)
+        connectionStatus = true
+        try {
+            handshake()
+        } catch(error: IOException) {
+            hole.startHole(holeTimeout, socket)
         }
     }
 
@@ -382,19 +360,15 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     // Receives the salt through the input stream.
     @ExperimentalUnsignedTypes
     private fun receiveSalt() {
-        val saltSize = ShadowCipher.determineSaltSize(config)
+        val saltSize = ShadowCipher.determineSaltSize()
         val result = readNBytes(socket.inputStream, saltSize)
         if (result != null && result.size == salt.size) {
             if (bloom.checkInBloom(result)) {
                 Log.e("receiveSalt", "duplicate salt found.")
                 throw IOException()
             }
-            if (config.cipherMode == CipherMode.DarkStar) {
-                decryptionCipher = darkStar!!.makeDecryptionCipher(result)
-                encryptionCipher = darkStar!!.makeEncryptionCipher()
-            } else {
-                decryptionCipher = ShadowCipher.makeShadowCipherWithSalt(config, result)
-            }
+            decryptionCipher = darkStar!!.makeCipher(true, result)
+            encryptionCipher = darkStar!!.makeCipher(false, result)
             Log.i("receiveSalt", "Salt received.")
         } else {
             Log.e("receiveSalt", "Salt was not received.")
