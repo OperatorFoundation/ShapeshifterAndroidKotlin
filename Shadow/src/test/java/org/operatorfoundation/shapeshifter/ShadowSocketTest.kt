@@ -68,7 +68,7 @@ internal class ShadowSocketTest {
         NoSuchProviderException::class
     )
 
-    fun shadowDarkStarServerTest() {
+    fun shadowDarkStarClientTest() {
         // generate public key on swift for SPPK
         val config = ShadowConfig(
             "d089c225ef8cda8d477a586f062b31a756270124d94944e458edf1a9e1e41ed6",
