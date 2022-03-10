@@ -19,22 +19,6 @@ import kotlin.concurrent.thread
 internal class ShadowSocketTest {
 
     @ExperimentalUnsignedTypes
-    fun runTestServer() {
-        val testServer = ServerSocket(3333)
-        val socket = testServer.accept()
-        readNBytes(socket.inputStream, 2)
-        socket.outputStream.write("Yo".toByteArray())
-    }
-
-    @ExperimentalUnsignedTypes
-    fun runTestServerVol2() {
-        val testServer = ServerSocket(3333)
-        val socket = testServer.accept()
-        readNBytes(socket.inputStream, 2)
-        socket.outputStream.write("Yeah!".toByteArray())
-    }
-
-    @ExperimentalUnsignedTypes
     fun runJsonTestServer() {
         val testServer = ServerSocket(1234)
         val socket = testServer.accept()
