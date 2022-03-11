@@ -1,15 +1,14 @@
 package org.operatorfoundation.shapeshifter
 
-import org.junit.Assert.*
+import org.junit.Assert.assertNotNull
 import org.junit.Test
-import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowConfig
-import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowSocket
-import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowSocketFactory
-import org.operatorfoundation.shapeshifter.shadow.kotlin.readNBytes
+import org.operatorfoundation.shapeshifter.shadow.kotlin.*
 import java.io.IOException
-import java.net.*
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
+import java.net.ServerSocket
+import java.net.URL
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.security.NoSuchAlgorithmException
 import java.security.NoSuchProviderException
 import java.security.spec.InvalidKeySpecException
@@ -17,22 +16,6 @@ import java.util.*
 import kotlin.concurrent.thread
 
 internal class ShadowSocketTest {
-
-    @ExperimentalUnsignedTypes
-    fun runTestServer() {
-        val testServer = ServerSocket(3333)
-        val socket = testServer.accept()
-        readNBytes(socket.inputStream, 2)
-        socket.outputStream.write("Yo".toByteArray())
-    }
-
-    @ExperimentalUnsignedTypes
-    fun runTestServerVol2() {
-        val testServer = ServerSocket(3333)
-        val socket = testServer.accept()
-        readNBytes(socket.inputStream, 2)
-        socket.outputStream.write("Yeah!".toByteArray())
-    }
 
     @ExperimentalUnsignedTypes
     fun runJsonTestServer() {
@@ -68,10 +51,16 @@ internal class ShadowSocketTest {
         NoSuchProviderException::class
     )
 
-    fun shadowDarkStarServerTest() {
+    fun shadowDarkStarClientTest() {
+        val userHomeDir = System.getProperty("user.home")
+        val bloom = Bloom()
+        bloom.load("$userHomeDir/Desktop/Configs/bloom.txt")
+        val serverPersistentPublicKeyBytes = Files.readAllBytes(Paths.get("$userHomeDir/Desktop/Configs/serverPersistentPublicKey.txt"))
+        val serverPersistentPublicKeyString = String(serverPersistentPublicKeyBytes, StandardCharsets.UTF_8)
+        println(serverPersistentPublicKeyString)
         // generate public key on swift for SPPK
         val config = ShadowConfig(
-            "d089c225ef8cda8d477a586f062b31a756270124d94944e458edf1a9e1e41ed6",
+            serverPersistentPublicKeyString,
             "DarkStar"
         )
         val shadowSocket = ShadowSocket(config, "127.0.0.1", 1234)
@@ -83,6 +72,7 @@ internal class ShadowSocketTest {
         var buffer = ByteArray(5)
         System.out.println("bytes available: " + shadowSocket.inputStream.available())
         shadowSocket.inputStream.read(buffer)
+        bloom.save("$userHomeDir/Desktop/Configs/bloom.txt")
     }
 
     @Test
