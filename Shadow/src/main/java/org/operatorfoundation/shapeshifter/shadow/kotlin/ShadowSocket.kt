@@ -140,7 +140,7 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     }
 
     // Connects this socket to the server and initiates the handshake.
-    @ExperimentalUnsignedTypes
+    //@ExperimentalUnsignedTypes
     override fun connect(endpoint: SocketAddress?) {
         socket.connect(endpoint)
         if (connectionStatus) {
@@ -153,7 +153,7 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     }
 
     // Connects this socket to the server with a specified timeout value and initiates the handshake.
-    @ExperimentalUnsignedTypes
+    //@ExperimentalUnsignedTypes
     override fun connect(endpoint: SocketAddress?, timeout: Int) {
         socket.connect(endpoint, timeout)
         if (connectionStatus) {

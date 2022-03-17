@@ -7,12 +7,11 @@
         <option name="testRunner" value="GRADLE" />
         <option name="distributionType" value="DEFAULT_WRAPPED" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="gradleHome" value="/usr/local/Cellar/gradle/6.6.1/libexec" />
-        <option name="gradleJvm" value="1.8" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/Shadow" />
+            <option value="$PROJECT_DIR$/shadowexampleapp" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

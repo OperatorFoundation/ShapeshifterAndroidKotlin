@@ -1,2 +1,4 @@
 include ':Shadow'
+include ':shadowexampleapp'
 rootProject.name = "ShapeshifterAndroidKotlin"
+

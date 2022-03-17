@@ -6,12 +6,12 @@ import java.net.SocketAddress
 class OKHTTPShadowSocket(config: ShadowConfig, shadowHost: String, shadowPort: Int) :
     ShadowSocket(config, shadowHost, shadowPort) {
 
-    @ExperimentalUnsignedTypes
+    //@ExperimentalUnsignedTypes
     override fun connect(endpoint: SocketAddress?) {
 
     }
 
-    @ExperimentalUnsignedTypes
+   // @ExperimentalUnsignedTypes
     override fun connect(endpoint: SocketAddress?, timeout: Int) {
 
     }

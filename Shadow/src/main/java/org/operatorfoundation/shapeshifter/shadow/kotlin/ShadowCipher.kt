@@ -110,6 +110,7 @@ abstract class ShadowCipher() {
     abstract fun decrypt(encrypted: ByteArray): ByteArray
 
     // Create a nonce using our counter.
+    @ExperimentalUnsignedTypes
     abstract fun nonce(): ByteArray?
 }
 

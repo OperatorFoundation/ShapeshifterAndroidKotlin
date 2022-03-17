@@ -46,7 +46,7 @@ class ShadowInputStream(
     }
 
     // Reads some number of bytes from the input stream and stores them into the buffer array b.
-    @ExperimentalUnsignedTypes
+    //@ExperimentalUnsignedTypes
     override fun read(b: ByteArray): Int {
         if (decryptionFailed) {
             Log.e("read", "Decryption failed on read.")
@@ -127,7 +127,7 @@ class ShadowInputStream(
         }
     }
 
-    @ExperimentalUnsignedTypes
+    //@ExperimentalUnsignedTypes
     override fun read(b: ByteArray?, off: Int, len: Int): Int {
         b?.let {
             val readbuf = ByteArray(len)
@@ -142,7 +142,7 @@ class ShadowInputStream(
     }
 
     // Reads the next byte of data from the input stream.
-    @ExperimentalUnsignedTypes
+    //@ExperimentalUnsignedTypes
     override fun read(): Int {
         val result: ByteArray = byteArrayOf(0)
         // read bytes up to payload length (4)
