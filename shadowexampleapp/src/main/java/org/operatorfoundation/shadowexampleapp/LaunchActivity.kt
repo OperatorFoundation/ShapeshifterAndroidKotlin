@@ -27,9 +27,8 @@ class LaunchActivity : AppCompatActivity()
             externalScope.launch { shadowDarkStarClient() }
         }
     }
-
+    // TODO: Replace this with a good example of how to use our library. What does this library do and how do we use it...
     suspend fun shadowDarkStarClient() {
-
 
         externalScope.launch(defaultDispatcher)
         {
@@ -39,7 +38,8 @@ class LaunchActivity : AppCompatActivity()
                 "d089c225ef8cda8d477a586f062b31a756270124d94944e458edf1a9e1e41ed6",
                 "DarkStar"
             )
-            val shadowSocket = ShadowSocket(config, "164.92.71.230", 1234)
+            // TODO: Use a valid server IP address. You really want the user to provide this information like with MBAK.
+            val shadowSocket = ShadowSocket(config, "0.0.0.0", 1234)
             val httpRequest = "GET / HTTP/1.0\r\n\r\n"
             val textBytes = httpRequest.toByteArray()
             shadowSocket.outputStream.write(textBytes)
@@ -48,6 +48,5 @@ class LaunchActivity : AppCompatActivity()
             System.out.println("bytes available: " + shadowSocket.inputStream.available())
             shadowSocket.inputStream.read(buffer)
         }
-
     }
 }
