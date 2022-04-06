@@ -121,8 +121,7 @@ class ShadowInputStream(
             Log.e("read", "Decryption failed on read.")
 
             decryptionFailed = true
-            shadowSocket.hole.startHole(shadowSocket.holeTimeout, shadowSocket)
-            shadowSocket.close()
+            shadowSocket.redial()
             throw IOException()
         }
     }

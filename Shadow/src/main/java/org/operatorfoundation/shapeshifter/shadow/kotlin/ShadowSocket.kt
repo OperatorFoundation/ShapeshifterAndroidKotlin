@@ -55,6 +55,7 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     private var darkStar: DarkStar? = null
     private var host: String? = null
     private var port: Int? = null
+    private var decryptFailed: Boolean = false
     val hole = Hole()
     val holeTimeout = 30
 
@@ -373,6 +374,23 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         } else {
             Log.e("receiveSalt", "Salt was not received.")
             throw IOException()
+        }
+    }
+
+    @OptIn(ExperimentalUnsignedTypes::class)
+    fun redial() {
+        if (decryptFailed) {
+            close()
+        } else {
+            decryptFailed = true
+            close()
+            if (host != null && port != null) {
+                val socketAddress = InetSocketAddress(host, port!!)
+                connect(socketAddress)
+            } else {
+                Log.e("redial", "host and port not found")
+                throw IOException()
+            }
         }
     }
 }
