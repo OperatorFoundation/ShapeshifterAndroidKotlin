@@ -17,8 +17,8 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
 
 class DarkStar(var config: ShadowConfig, private var host: String, private var port: Int) {
-    private var sharedKeyClient: SecretKey? = null
-    private var sharedKeyServer: SecretKey? = null
+    private var sharedKeyClientToServer: SecretKey? = null
+    private var sharedKeyServerToClient: SecretKey? = null
     private var clientEphemeralKeyPair: KeyPair? = null
     private var serverPersistentPublicKey: PublicKey? = null
 
@@ -80,7 +80,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         UnknownHostException::class,
         InvalidKeyException::class
     )
-    fun makeCipher(isClient: Boolean, salt: ByteArray): ShadowCipher {
+    fun makeCipher(isClientToServer: Boolean, salt: ByteArray): ShadowCipher {
         val serverEphemeralPublicKeyData = ByteArray(32)
         val serverConfirmationCode = ByteArray(32)
         splitSalt(salt, serverEphemeralPublicKeyData, serverConfirmationCode)
@@ -90,7 +90,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
 
         // derive shared keys
         val sharedKey = generateSharedKey(
-            isClient,
+            isClientToServer,
             host,
             port,
             clientEphemeralKeyPair,
@@ -98,10 +98,10 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             serverPersistentPublicKey
         )
 
-        if (isClient) {
-            sharedKeyClient = sharedKey
+        if (isClientToServer) {
+            sharedKeyClientToServer = sharedKey
         } else {
-            sharedKeyServer = sharedKey
+            sharedKeyServerToClient = sharedKey
         }
 
         // check confirmationCode
@@ -115,7 +115,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         if (!clientCopyServerConfirmationCode.contentEquals(serverConfirmationCode)) {
             throw InvalidKeyException()
         }
-        return ShadowDarkStarCipher(sharedKeyClient!!)
+        return ShadowDarkStarCipher(sharedKeyClientToServer!!)
     }
 
     companion object {
@@ -177,7 +177,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         }
 
         @Throws(UnknownHostException::class, NoSuchAlgorithmException::class)
-        fun generateSharedKey(isClient: Boolean, host: String?, port: Int, clientEphemeral: KeyPair?, serverEphemeralPublicKey: PublicKey?, serverPersistentPublicKey: PublicKey?): SecretKey {
+        fun generateSharedKey(isClientToServer: Boolean, host: String?, port: Int, clientEphemeral: KeyPair?, serverEphemeralPublicKey: PublicKey?, serverPersistentPublicKey: PublicKey?): SecretKey {
             val ecdh1 = generateSharedSecret(clientEphemeral!!.private, serverEphemeralPublicKey)
             val ecdh2 = generateSharedSecret(clientEphemeral.private, serverPersistentPublicKey)
             val serverIdentifier = makeServerIdentifier(host, port)
@@ -198,13 +198,16 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             println("darkStarBytes: ${darkStarBytes.toHexString()}")
             digest.update(darkStarBytes)
 
-            if (isClient) {
-                println("clientStringBytes: ${clientStringBytes.toHexString()}")
-                digest.update(clientStringBytes)
-            }
-            else {
+            if (isClientToServer)
+            {
                 println("serverStringBytes: ${serverStringBytes.toHexString()}")
                 digest.update(serverStringBytes)
+            }
+            else
+            {
+                println("clientStringBytes: ${clientStringBytes.toHexString()}")
+                digest.update(clientStringBytes)
+
             }
 
             val result = digest.digest()
