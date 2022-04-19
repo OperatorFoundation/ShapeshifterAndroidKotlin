@@ -393,6 +393,7 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
             close()
             if (host != null && port != null) {
                 val socketAddress = InetSocketAddress(host, port!!)
+                socket = Socket(host, port!!)
                 connect(socketAddress)
             } else {
                 Log.e("redial", "host and port not found")

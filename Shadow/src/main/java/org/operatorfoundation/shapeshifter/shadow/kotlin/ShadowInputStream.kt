@@ -101,7 +101,6 @@ class ShadowInputStream(
                 return -1
             }
 
-
             val payload = decryptionCipher.decrypt(encryptedPayload)
             Log.i("read", "Payload decrypted.")
             // put payload into buffer
