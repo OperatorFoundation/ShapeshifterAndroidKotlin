@@ -70,8 +70,22 @@ class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher() {
         val ivSpec: AlgorithmParameterSpec
         val nonce = nonce()
         ivSpec = GCMParameterSpec(tagSizeBits, nonce)
+
         cipher.init(Cipher.ENCRYPT_MODE, key, ivSpec)
-        return cipher.doFinal(plaintext)
+        val ciphertext = cipher.doFinal(plaintext)
+
+        print("\nEnrypting some bytes:")
+
+        val keyHex = key!!.encoded.toHexString()
+        println("key: $keyHex")
+
+        val nonceHex = nonce!!.toHexString()
+        println("nonce: $nonceHex")
+
+        val cipherHex = ciphertext.toHexString()
+        println("encrypted: $cipherHex")
+
+        return ciphertext
     }
 
     // Decrypts data and increments the nonce counter.

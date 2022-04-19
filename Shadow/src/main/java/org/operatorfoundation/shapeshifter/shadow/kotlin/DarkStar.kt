@@ -188,17 +188,29 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             if (ecdh2 != null) {
                 digest.update(ecdh2.encoded)
             }
+            println("Generating a key:")
+            println("Server Identifier: ${serverIdentifier.toHexString()}")
             digest.update(serverIdentifier)
+            println("Client Ephemeral Key: ${publicKeyToBytes(clientEphemeral.public).toHexString()}")
             digest.update(publicKeyToBytes(clientEphemeral.public))
+            println("Server Ephemeral Key: ${publicKeyToBytes(serverEphemeralPublicKey).toHexString()}")
             digest.update(publicKeyToBytes(serverEphemeralPublicKey))
+            println("darkStarBytes: ${darkStarBytes.toHexString()}")
             digest.update(darkStarBytes)
+
             if (isClient) {
+                println("clientStringBytes: ${clientStringBytes.toHexString()}")
                 digest.update(clientStringBytes)
-            } else {
+            }
+            else {
+                println("serverStringBytes: ${serverStringBytes.toHexString()}")
                 digest.update(serverStringBytes)
             }
 
             val result = digest.digest()
+
+            println("result: ${result.toHexString()}")
+
             return SecretKeySpec(result, 0, result.size, "AES")
         }
 
