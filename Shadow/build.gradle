@@ -58,10 +58,6 @@ publishing {
         maven {
             name = 'ShapeshifterJava'
             url = uri('https://maven.pkg.github.com/OperatorFoundation/ShapeshifterAndroidKotlin')
-            credentials {
-                username = 'Bluesaxorcist'
-                password = 'ac6130b37bb8694cfaeab6b9c697a8127998f05c'
-            }
         }
     }
 }

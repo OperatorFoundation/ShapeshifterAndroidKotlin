@@ -48,7 +48,7 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
 
     // Fields:
     private var socket: Socket = Socket()
-    private lateinit var salt: ByteArray
+    private lateinit var handshakeBytes: ByteArray
     private lateinit var encryptionCipher: ShadowCipher
     private var decryptionCipher: ShadowCipher? = null
     private var connectionStatus: Boolean = false
@@ -66,14 +66,19 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         this.host = host
         this.port = port
         darkStar = DarkStar(config, host, port)
-        this.salt = darkStar!!.createSalt()
+        this.handshakeBytes = darkStar!!.createSalt()
         socket = Socket(host, port)
         connectionStatus = true
-        try {
-            handshake()
-        } catch(error: IOException) {
-            hole.startHole(holeTimeout, socket)
-        }
+
+        handshake()
+//        try
+//        {
+//            handshake()
+//        }
+//        catch(error: IOException)
+//        {
+//            hole.startHole(holeTimeout, socket)
+//        }
     }
 
     // Creates a socket and connects it to the specified remote host on the specified remote port.
@@ -347,23 +352,25 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     // Exchanges the salt.
     @ExperimentalUnsignedTypes
     private fun handshake() {
-        sendSalt()
-        receiveSalt()
+        sendHandshake()
+        receiveHandshake()
         Log.i("handshake", "handshake completed")
     }
 
     // Sends the salt through the output stream.
-    private fun sendSalt() {
-        socket.outputStream.write(salt)
-        Log.i("sendSalt", "Salt sent.")
+    private fun sendHandshake() {
+        socket.outputStream.write(handshakeBytes)
+        Log.i("sendHandshake", "Handshake sent.")
     }
 
     // Receives the salt through the input stream.
     @ExperimentalUnsignedTypes
-    private fun receiveSalt() {
+    private fun receiveHandshake()
+    {
         val saltSize = ShadowCipher.determineSaltSize()
         val result = readNBytes(socket.inputStream, saltSize)
-        if (result != null && result.size == salt.size) {
+
+        if (result != null && result.size == handshakeBytes.size) {
             if (bloom.checkInBloom(result)) {
                 Log.e("receiveSalt", "duplicate salt found.")
                 throw IOException()
