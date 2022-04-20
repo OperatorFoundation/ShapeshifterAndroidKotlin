@@ -33,12 +33,12 @@ class LaunchActivity : AppCompatActivity()
         externalScope.launch(defaultDispatcher)
         {
 
-            // generate public key on swift for SPPK
+            // TODO: Make sure password matches the servers public key.
             val config = ShadowConfig(
                 "d089c225ef8cda8d477a586f062b31a756270124d94944e458edf1a9e1e41ed6",
                 "DarkStar"
             )
-            // TODO: Use a valid server IP address. You really want the user to provide this information like with MBAK.
+            // TODO: Use a valid server IP address.
             val shadowSocket = ShadowSocket(config, "0.0.0.0", 1234)
             val httpRequest = "GET / HTTP/1.0\r\n\r\n"
             val textBytes = httpRequest.toByteArray()
