@@ -375,8 +375,8 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
                 Log.e("receiveSalt", "duplicate salt found.")
                 throw IOException()
             }
-            decryptionCipher = darkStar!!.makeCipher(true, result)
-            encryptionCipher = darkStar!!.makeCipher(false, result)
+            decryptionCipher = darkStar!!.makeCipher(false, result)
+            encryptionCipher = darkStar!!.makeCipher(true, result)
             Log.i("receiveSalt", "Salt received.")
         } else {
             Log.e("receiveSalt", "Salt was not received.")

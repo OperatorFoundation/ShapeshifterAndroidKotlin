@@ -97,10 +97,18 @@ class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher() {
         CounterOverFlowException::class
     )
     override fun decrypt(encrypted: ByteArray): ByteArray {
+        print("\nDecrypting some bytes:")
         val ivSpec: AlgorithmParameterSpec
         val nonce = nonce()
         ivSpec = GCMParameterSpec(tagSizeBits, nonce)
         cipher.init(Cipher.DECRYPT_MODE, key, ivSpec)
+
+        val keyHex = key!!.encoded.toHexString()
+        println("key: $keyHex")
+        val nonceHex = nonce!!.toHexString()
+        println("nonce: $nonceHex")
+        println("ciphertext: ${encrypted.toHexString()}")
+
         return cipher.doFinal(encrypted)
     }
 

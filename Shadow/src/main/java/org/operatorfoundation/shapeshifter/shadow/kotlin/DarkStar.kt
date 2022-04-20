@@ -115,7 +115,15 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         if (!clientCopyServerConfirmationCode.contentEquals(serverConfirmationCode)) {
             throw InvalidKeyException()
         }
-        return ShadowDarkStarCipher(sharedKeyClientToServer!!)
+
+        if (isClientToServer)
+        {
+            return ShadowDarkStarCipher(sharedKeyClientToServer!!)
+        }
+        else
+        {
+            return  ShadowDarkStarCipher(sharedKeyServerToClient)
+        }
     }
 
     companion object {
