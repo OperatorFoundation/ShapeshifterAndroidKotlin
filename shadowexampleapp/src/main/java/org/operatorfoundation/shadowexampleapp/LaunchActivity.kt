@@ -35,7 +35,7 @@ class LaunchActivity : AppCompatActivity()
 
             // TODO: Make sure password matches the servers public key.
             val config = ShadowConfig(
-                "d089c225ef8cda8d477a586f062b31a756270124d94944e458edf1a9e1e41ed6",
+                "9caa4132c724f137c67928e9338c72cfe37e0dd28b298d14d5b5981effa038c9",
                 "DarkStar"
             )
             // TODO: Use a valid server IP address.
@@ -43,10 +43,13 @@ class LaunchActivity : AppCompatActivity()
             val httpRequest = "GET / HTTP/1.0\r\n\r\n"
             val textBytes = httpRequest.toByteArray()
             shadowSocket.outputStream.write(textBytes)
+            println("Wrote some bytes.")
             shadowSocket.outputStream.flush()
+            println("Flushed the output stream.")
             var buffer = ByteArray(5)
             System.out.println("bytes available: " + shadowSocket.inputStream.available())
             shadowSocket.inputStream.read(buffer)
+            println("Read some bytes, test complete.")
         }
     }
 }

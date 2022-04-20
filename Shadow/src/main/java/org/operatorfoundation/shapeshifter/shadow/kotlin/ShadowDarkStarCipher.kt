@@ -1,6 +1,7 @@
 package org.operatorfoundation.shapeshifter.shadow.kotlin
 
 import android.util.Log
+import org.bouncycastle.jcajce.spec.AEADParameterSpec
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.InvalidAlgorithmParameterException
@@ -69,7 +70,7 @@ class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher() {
     override fun encrypt(plaintext: ByteArray): ByteArray {
         val ivSpec: AlgorithmParameterSpec
         val nonce = nonce()
-        ivSpec = GCMParameterSpec(tagSizeBits, nonce)
+        ivSpec = AEADParameterSpec(nonce, tagSizeBits)
 
         cipher.init(Cipher.ENCRYPT_MODE, key, ivSpec)
         val ciphertext = cipher.doFinal(plaintext)
@@ -100,7 +101,7 @@ class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher() {
         print("\nDecrypting some bytes:")
         val ivSpec: AlgorithmParameterSpec
         val nonce = nonce()
-        ivSpec = GCMParameterSpec(tagSizeBits, nonce)
+        ivSpec = AEADParameterSpec(nonce, tagSizeBits)
         cipher.init(Cipher.DECRYPT_MODE, key, ivSpec)
 
         val keyHex = key!!.encoded.toHexString()
@@ -189,7 +190,7 @@ class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher() {
     // ShadowCipher contains the encryption and decryption methods.
     init {
         try {
-            cipher = Cipher.getInstance("AES_256/GCM/NoPadding")
+            cipher = Cipher.getInstance("AES/GCM/NoPadding", "BC")
         } catch (e: NoSuchPaddingException) {
             e.printStackTrace()
         }

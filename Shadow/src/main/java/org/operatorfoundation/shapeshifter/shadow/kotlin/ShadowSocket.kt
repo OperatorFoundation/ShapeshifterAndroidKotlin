@@ -372,14 +372,14 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
 
         if (result != null && result.size == handshakeBytes.size) {
             if (bloom.checkInBloom(result)) {
-                Log.e("receiveSalt", "duplicate salt found.")
+                Log.e("receiveHandshake", "duplicate handshake found.")
                 throw IOException()
             }
             decryptionCipher = darkStar!!.makeCipher(false, result)
             encryptionCipher = darkStar!!.makeCipher(true, result)
-            Log.i("receiveSalt", "Salt received.")
+            Log.i("receiveHandshake", "Handshake received.")
         } else {
-            Log.e("receiveSalt", "Salt was not received.")
+            Log.e("receiveHandshake", "Handshake was not received.")
             throw IOException()
         }
     }
