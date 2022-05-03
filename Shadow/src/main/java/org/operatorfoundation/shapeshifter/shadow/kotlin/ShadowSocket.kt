@@ -67,7 +67,9 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         this.port = port
         darkStar = DarkStar(config, host, port)
         this.handshakeBytes = darkStar!!.createSalt()
+        println("ShapeshifterKotlin.ShadowSocket.constructor: darkstar salt created, creating a java socket...")
         socket = Socket(host, port)
+        println("ShapeshifterKotlin.ShadowSocket.constructor: java socket created.")
         connectionStatus = true
 
         handshake()
@@ -352,21 +354,26 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     // Exchanges the salt.
     @ExperimentalUnsignedTypes
     private fun handshake() {
+        println("ShapeshifterKotlin.ShadowSocket.handshake() called.")
         sendHandshake()
         receiveHandshake()
         Log.i("handshake", "handshake completed")
+        println("ShapeshifterKotlin.ShadowSocket.handshake() complete.")
     }
 
     // Sends the salt through the output stream.
     private fun sendHandshake() {
+        println("ShapeshifterKotlin.ShadowSocket.sendHandshake() called.")
         socket.outputStream.write(handshakeBytes)
         Log.i("sendHandshake", "Handshake sent.")
+        println("ShapeshifterKotlin.ShadowSocket.sendHandshake() complete.")
     }
 
     // Receives the salt through the input stream.
     @ExperimentalUnsignedTypes
     private fun receiveHandshake()
     {
+        println("ShapeshifterKotlin.ShadowSocket.receiveHandshake() called.")
         val saltSize = ShadowCipher.determineSaltSize()
         val result = readNBytes(socket.inputStream, saltSize)
 
@@ -382,6 +389,8 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
             Log.e("receiveHandshake", "Handshake was not received.")
             throw IOException()
         }
+
+        println("ShapeshifterKotlin.ShadowSocket.receiveHandshake() complete.")
     }
 
     @OptIn(ExperimentalUnsignedTypes::class)

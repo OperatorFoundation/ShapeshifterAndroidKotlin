@@ -58,7 +58,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         )
         salt += clientConfirmationCode
 
-        println("salt: " + bytesToHex(salt))
+        println("ShapeshifterKotlin.DarkStar: salt created - " + bytesToHex(salt))
         return salt
     }
 
@@ -196,7 +196,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             if (ecdh2 != null) {
                 digest.update(ecdh2.encoded)
             }
-            println("Generating a key:")
+            println("ShapeshifterKotlin.DarkStar.generateSharedKey() called")
             println("Server Identifier: ${serverIdentifier.toHexString()}")
             digest.update(serverIdentifier)
             println("Client Ephemeral Key: ${publicKeyToBytes(clientEphemeral.public).toHexString()}")
@@ -208,19 +208,18 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
 
             if (isClientToServer)
             {
-                println("serverStringBytes: ${serverStringBytes.toHexString()}")
+                println("ShapeshifterKotlin.DarkStar.generateSharedKey: isClientToServer(true) - serverStringBytes: ${serverStringBytes.toHexString()}")
                 digest.update(serverStringBytes)
             }
             else
             {
-                println("clientStringBytes: ${clientStringBytes.toHexString()}")
+                println("ShapeshifterKotlin.DarkStar.generateSharedKey: isClientToServer(false) - clientStringBytes: ${clientStringBytes.toHexString()}")
                 digest.update(clientStringBytes)
-
             }
 
             val result = digest.digest()
 
-            println("result: ${result.toHexString()}")
+            println("ShapeshifterKotlin.DarkStar.generateSharedKey: result: ${result.toHexString()}")
 
             return SecretKeySpec(result, 0, result.size, "AES")
         }
