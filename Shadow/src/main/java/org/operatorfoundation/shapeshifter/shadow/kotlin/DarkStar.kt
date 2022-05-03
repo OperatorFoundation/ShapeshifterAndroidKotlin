@@ -58,7 +58,6 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         )
         salt += clientConfirmationCode
 
-        println("ShapeshifterKotlin.DarkStar: salt created - " + bytesToHex(salt))
         return salt
     }
 

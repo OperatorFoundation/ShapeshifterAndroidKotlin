@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowConfig
 import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowSocket
 import org.operatorfoundation.shapeshifter.shadow.kotlin.toHexString
+import kotlin.concurrent.thread
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -25,13 +26,13 @@ class LaunchActivity : AppCompatActivity()
         setContentView(R.layout.activity_launch)
 
         run_button.setOnClickListener {
-            externalScope.launch { shadowDarkStarClient() }
+            shadowDarkStarClient()
         }
     }
-    // TODO: Replace this with a good example of how to use our library. What does this library do and how do we use it...
-    suspend fun shadowDarkStarClient()
+
+    fun shadowDarkStarClient()
     {
-        externalScope.launch(defaultDispatcher)
+        thread(start = true)
         {
             // TODO: Make sure password matches the servers public key.
             val config = ShadowConfig(
@@ -40,7 +41,7 @@ class LaunchActivity : AppCompatActivity()
             )
 
             // TODO: Use a valid server IP address.
-            val shadowSocket = ShadowSocket(config, "0.0.0.0", 1234)
+            val shadowSocket = ShadowSocket(config, "", 1234)
             val httpRequest = "GET / HTTP/1.0\r\n\r\n"
             val textBytes = httpRequest.toByteArray()
 

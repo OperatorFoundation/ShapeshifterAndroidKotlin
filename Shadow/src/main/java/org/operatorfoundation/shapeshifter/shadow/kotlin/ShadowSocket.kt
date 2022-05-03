@@ -28,6 +28,7 @@ import android.util.Log
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.lang.Exception
 import java.net.*
 import java.nio.channels.SocketChannel
 
@@ -67,20 +68,26 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         this.port = port
         darkStar = DarkStar(config, host, port)
         this.handshakeBytes = darkStar!!.createSalt()
-        println("ShapeshifterKotlin.ShadowSocket.constructor: darkstar salt created, creating a java socket...")
-        socket = Socket(host, port)
-        println("ShapeshifterKotlin.ShadowSocket.constructor: java socket created.")
-        connectionStatus = true
+        println("ShapeshifterKotlin.ShadowSocket.constructor: darkstar handshake bytes created, creating a java socket with ip $host and port $port.")
 
-        handshake()
-//        try
-//        {
-//            handshake()
-//        }
-//        catch(error: IOException)
-//        {
-//            hole.startHole(holeTimeout, socket)
-//        }
+        try {
+            val socketAddress = InetSocketAddress(host, port)
+            this.socket = Socket()
+            println("ShapeshifterKotlin.ShadowSocket.constructor: java socket created. Connecting...")
+            this.socket.connect(socketAddress)
+            println("ShapeshifterKotlin.ShadowSocket.constructor: connected to socket.")
+            connectionStatus = true
+            handshake()
+            //socket = Socket(host, port)
+
+        }
+        catch (socketError: Exception)
+        {
+            println("ShapeshifterKotlin.ShadowSocket.constructor: received an error while attempting to create a java socket:")
+            println(socketError.message)
+            connectionStatus = false
+            throw socketError
+        }
     }
 
     // Creates a socket and connects it to the specified remote host on the specified remote port.
@@ -361,7 +368,7 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         println("ShapeshifterKotlin.ShadowSocket.handshake() complete.")
     }
 
-    // Sends the salt through the output stream.
+    // Sends the handshake bytes through the output stream.
     private fun sendHandshake() {
         println("ShapeshifterKotlin.ShadowSocket.sendHandshake() called.")
         socket.outputStream.write(handshakeBytes)

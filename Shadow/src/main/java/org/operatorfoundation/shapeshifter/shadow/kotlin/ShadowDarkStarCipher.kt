@@ -1,5 +1,6 @@
 package org.operatorfoundation.shapeshifter.shadow.kotlin
 
+import android.os.Build
 import android.util.Log
 import org.bouncycastle.jcajce.spec.AEADParameterSpec
 import java.nio.ByteBuffer
@@ -190,7 +191,15 @@ class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher() {
     // ShadowCipher contains the encryption and decryption methods.
     init {
         try {
-            cipher = Cipher.getInstance("AES/GCM/NoPadding", "BC")
+            if (Build.VERSION.SDK_INT < 28)
+            {
+                cipher = Cipher.getInstance("AES/GCM/NoPadding", "BC")
+            }
+            else
+            {
+                cipher = Cipher.getInstance("AES/GCM/NoPadding")
+            }
+
         } catch (e: NoSuchPaddingException) {
             e.printStackTrace()
         }
