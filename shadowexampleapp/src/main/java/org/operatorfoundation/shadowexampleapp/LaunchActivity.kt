@@ -59,6 +59,10 @@ class LaunchActivity : AppCompatActivity()
                 println("Read $numberOfBytesRead bytes.")
                 println("Read some data: " + buffer.toHexString())
             }
+            else if (numberOfBytesRead == -1)
+            {
+                println("Attempted to read from the network but received EOF.")
+            }
 
             println("Test complete")
         }
