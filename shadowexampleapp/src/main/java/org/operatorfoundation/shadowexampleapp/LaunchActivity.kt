@@ -52,10 +52,14 @@ class LaunchActivity : AppCompatActivity()
             println("Flushed the output stream.")
             
             var buffer = ByteArray(5)
-            System.out.println("bytes available: " + shadowSocket.inputStream.available())
             val numberOfBytesRead = shadowSocket.inputStream.read(buffer)
-            println("Read $numberOfBytesRead bytes.")
-            println("Read some data: " + buffer.toHexString())
+
+            if (numberOfBytesRead > 0)
+            {
+                println("Read $numberOfBytesRead bytes.")
+                println("Read some data: " + buffer.toHexString())
+            }
+
             println("Test complete")
         }
     }
