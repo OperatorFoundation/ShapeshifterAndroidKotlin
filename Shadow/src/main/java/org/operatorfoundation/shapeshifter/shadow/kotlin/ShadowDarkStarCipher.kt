@@ -191,7 +191,7 @@ class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher() {
     // ShadowCipher contains the encryption and decryption methods.
     init {
         try {
-            if (Build.VERSION.SDK_INT < 28)
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P)
             {
                 cipher = Cipher.getInstance("AES/GCM/NoPadding", "BC")
             }
