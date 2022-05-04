@@ -71,7 +71,15 @@ class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher() {
     override fun encrypt(plaintext: ByteArray): ByteArray {
         val ivSpec: AlgorithmParameterSpec
         val nonce = nonce()
-        ivSpec = AEADParameterSpec(nonce, tagSizeBits)
+
+        ivSpec = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P)
+        {
+            AEADParameterSpec(nonce, tagSizeBits)
+        }
+        else
+        {
+            GCMParameterSpec(tagSizeBits, nonce)
+        }
 
         cipher.init(Cipher.ENCRYPT_MODE, key, ivSpec)
         val ciphertext = cipher.doFinal(plaintext)
@@ -102,7 +110,16 @@ class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher() {
         print("\nDecrypting some bytes:")
         val ivSpec: AlgorithmParameterSpec
         val nonce = nonce()
-        ivSpec = AEADParameterSpec(nonce, tagSizeBits)
+
+        ivSpec = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P)
+        {
+            AEADParameterSpec(nonce, tagSizeBits)
+        }
+        else
+        {
+            GCMParameterSpec(tagSizeBits, nonce)
+        }
+
         cipher.init(Cipher.DECRYPT_MODE, key, ivSpec)
 
         val keyHex = key!!.encoded.toHexString()
@@ -191,13 +208,13 @@ class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher() {
     // ShadowCipher contains the encryption and decryption methods.
     init {
         try {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P)
+            cipher = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P)
             {
-                cipher = Cipher.getInstance("AES/GCM/NoPadding", "BC")
+                Cipher.getInstance("AES/GCM/NoPadding", "BC")
             }
             else
             {
-                cipher = Cipher.getInstance("AES/GCM/NoPadding")
+                Cipher.getInstance("AES/GCM/NoPadding")
             }
 
         } catch (e: NoSuchPaddingException) {
