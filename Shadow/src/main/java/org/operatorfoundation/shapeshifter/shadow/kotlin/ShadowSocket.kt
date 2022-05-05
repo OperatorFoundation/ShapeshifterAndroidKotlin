@@ -405,7 +405,7 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         }
     }
 
-    //@OptIn(ExperimentalUnsignedTypes::class)
+    /// This should be called only if decryption has failed
     fun redial()
     {
         if (decryptFailed)
