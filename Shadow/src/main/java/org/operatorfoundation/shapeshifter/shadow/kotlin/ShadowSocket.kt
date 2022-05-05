@@ -36,7 +36,7 @@ import java.nio.channels.SocketChannel
 // A socket is an endpoint for communication between two machines.
 open class ShadowSocket(val config: ShadowConfig) : Socket() {
     companion object {
-        private val bloom = Bloom() // for java/swift, just make it static class property
+        private val bloom = Bloom()
 
         fun saveBloom(fileName: String) {
            bloom.save(fileName)
@@ -62,28 +62,25 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
 
     // Constructors:
     // Creates a stream socket and connects it to the specified port number on the named host.
-    @ExperimentalUnsignedTypes
-    constructor(config: ShadowConfig, host: String, port: Int) : this(config) {
+    //@ExperimentalUnsignedTypes
+    constructor(config: ShadowConfig, host: String, port: Int) : this(config)
+    {
         this.host = host
         this.port = port
         darkStar = DarkStar(config, host, port)
         this.handshakeBytes = darkStar!!.createSalt()
-        println("ShapeshifterKotlin.ShadowSocket.constructor: darkstar handshake bytes created, creating a java socket with ip $host and port $port.")
 
-        try {
+        try
+        {
             val socketAddress = InetSocketAddress(host, port)
             this.socket = Socket()
-            println("ShapeshifterKotlin.ShadowSocket.constructor: java socket created. Connecting...")
             this.socket.connect(socketAddress)
-            println("ShapeshifterKotlin.ShadowSocket.constructor: connected to socket.")
             connectionStatus = true
             handshake()
-            //socket = Socket(host, port)
-
         }
         catch (socketError: Exception)
         {
-            println("ShapeshifterKotlin.ShadowSocket.constructor: received an error while attempting to create a java socket:")
+            println("ShapeshifterKotlin.ShadowSocket.constructor: received an error while attempting to create a java socket: ")
             println(socketError.message)
             connectionStatus = false
             throw socketError
@@ -94,7 +91,8 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     @ExperimentalUnsignedTypes
     constructor(
         config: ShadowConfig, host: String, port: Int, localAddr: InetAddress, localPort: Int
-    ) : this(config) {
+    ) : this(config)
+    {
         socket = Socket(host, port, localAddr, localPort)
         connectionStatus = true
         try {
@@ -106,7 +104,8 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
 
     // Creates a stream socket and connects it to the specified port number at the specified IP address.
     @ExperimentalUnsignedTypes
-    constructor(config: ShadowConfig, address: InetAddress, port: Int) : this(config) {
+    constructor(config: ShadowConfig, address: InetAddress, port: Int) : this(config)
+    {
         socket = Socket(address, port)
         connectionStatus = true
         try {
@@ -126,7 +125,8 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         localPort: Int
     ) : this(
         config
-    ) {
+    )
+    {
         socket = Socket(address, port, localAddr, localPort)
         connectionStatus = true
         try {
@@ -150,33 +150,44 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
 
     // Closes this socket.
     override fun close() {
-        Log.i("close", "Socket closed.")
+        Log.i("ShadowSocket", "Socket closed.")
         socket.close()
     }
 
     // Connects this socket to the server and initiates the handshake.
     //@ExperimentalUnsignedTypes
-    override fun connect(endpoint: SocketAddress?) {
+    override fun connect(endpoint: SocketAddress?)
+    {
         socket.connect(endpoint)
-        if (connectionStatus) {
-            Log.e("connect", "Already connected.")
+
+        if (connectionStatus)
+        {
+            Log.e("ShadowSocket.connect", "Already connected.")
             throw IOException()
         }
-        connectionStatus = true
-        handshake()
-        Log.i("connect", "Connect succeeded.")
+        else
+        {
+            connectionStatus = true
+            handshake()
+            Log.i("ShadowSocket.connect", "Connection succeeded.")
+        }
     }
 
     // Connects this socket to the server with a specified timeout value and initiates the handshake.
     //@ExperimentalUnsignedTypes
-    override fun connect(endpoint: SocketAddress?, timeout: Int) {
+    override fun connect(endpoint: SocketAddress?, timeout: Int)
+    {
         socket.connect(endpoint, timeout)
-        if (connectionStatus) {
-            Log.e("connect", "Already connected.")
+
+        if (connectionStatus)
+        {
+            Log.e("ShadowSocket.connect", "Already connected.")
             throw IOException()
         }
-        handshake()
-        Log.i("connect", "Connect succeeded. Timeout is $timeout.")
+        else
+        {
+            handshake()
+        }
     }
 
     // Returns the unique SocketChannel object associated with this socket, if any.
@@ -193,7 +204,6 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     override fun getInputStream(): InputStream {
         val cipher = decryptionCipher
         cipher?.let {
-            Log.i("getInputStream", "Decryption cipher created.")
             return ShadowInputStream(socket.inputStream, cipher, this)
         }
         Log.e("getInputStream", "Decryption cipher was not created.")
@@ -359,60 +369,63 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
 
     // Private functions:
     // Exchanges the salt.
-    @ExperimentalUnsignedTypes
+    //@ExperimentalUnsignedTypes
     private fun handshake() {
-        println("ShapeshifterKotlin.ShadowSocket.handshake() called.")
         sendHandshake()
         receiveHandshake()
-        Log.i("handshake", "handshake completed")
-        println("ShapeshifterKotlin.ShadowSocket.handshake() complete.")
     }
 
     // Sends the handshake bytes through the output stream.
     private fun sendHandshake() {
-        println("ShapeshifterKotlin.ShadowSocket.sendHandshake() called.")
         socket.outputStream.write(handshakeBytes)
-        Log.i("sendHandshake", "Handshake sent.")
-        println("ShapeshifterKotlin.ShadowSocket.sendHandshake() complete.")
     }
 
     // Receives the salt through the input stream.
-    @ExperimentalUnsignedTypes
+    //@ExperimentalUnsignedTypes
     private fun receiveHandshake()
     {
-        println("ShapeshifterKotlin.ShadowSocket.receiveHandshake() called.")
-        val saltSize = ShadowCipher.determineSaltSize()
-        val result = readNBytes(socket.inputStream, saltSize)
+        val handshakeSize = ShadowCipher.determineSaltSize()
+        val result = readNBytes(socket.inputStream, handshakeSize)
 
-        if (result != null && result.size == handshakeBytes.size) {
-            if (bloom.checkInBloom(result)) {
+        if (result != null && result.size == handshakeBytes.size)
+        {
+            if (bloom.checkInBloom(result))
+            {
                 Log.e("receiveHandshake", "duplicate handshake found.")
                 throw IOException()
             }
+
             decryptionCipher = darkStar!!.makeCipher(false, result)
             encryptionCipher = darkStar!!.makeCipher(true, result)
-            Log.i("receiveHandshake", "Handshake received.")
-        } else {
+        }
+        else
+        {
             Log.e("receiveHandshake", "Handshake was not received.")
             throw IOException()
         }
-
-        println("ShapeshifterKotlin.ShadowSocket.receiveHandshake() complete.")
     }
 
-    @OptIn(ExperimentalUnsignedTypes::class)
-    fun redial() {
-        if (decryptFailed) {
+    //@OptIn(ExperimentalUnsignedTypes::class)
+    fun redial()
+    {
+        if (decryptFailed)
+        {
             close()
-        } else {
+        }
+        else
+        {
             decryptFailed = true
             close()
-            if (host != null && port != null) {
+
+            if (host != null && port != null)
+            {
                 val socketAddress = InetSocketAddress(host, port!!)
                 socket = Socket(host, port!!)
                 connect(socketAddress)
-            } else {
-                Log.e("redial", "host and port not found")
+            }
+            else
+            {
+                Log.e("ShadowSocket.redial", "host and port not found")
                 throw IOException()
             }
         }

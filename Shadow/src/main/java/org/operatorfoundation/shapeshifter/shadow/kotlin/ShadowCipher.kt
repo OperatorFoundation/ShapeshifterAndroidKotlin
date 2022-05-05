@@ -24,7 +24,6 @@
 
 package org.operatorfoundation.shapeshifter.shadow.kotlin
 
-import android.util.Log
 import java.security.InvalidAlgorithmParameterException
 import java.security.InvalidKeyException
 import java.security.NoSuchAlgorithmException
@@ -34,7 +33,8 @@ import javax.crypto.IllegalBlockSizeException
 import javax.crypto.SecretKey
 
 // ShadowCipher contains the encryption and decryption methods.
-abstract class ShadowCipher() {
+abstract class ShadowCipher
+{
     lateinit var config: ShadowConfig
     lateinit var salt: ByteArray
     lateinit var cipher: Cipher
@@ -43,27 +43,31 @@ abstract class ShadowCipher() {
     open var key: SecretKey? = null
     var counter = 0
 
-    companion object {
+    companion object
+    {
         var finalSaltSize = 0
         var tagSize = 16
         var lengthWithTagSize = 2 + 16
         var maxPayloadSize = 16417
 
         // Creates a byteArray of a specified length containing random bytes.
-        fun createSalt(config: ShadowConfig): ByteArray {
-            val saltSize: Int = when (config.cipherMode) {
+        fun createSalt(config: ShadowConfig): ByteArray
+        {
+            val saltSize: Int = when (config.cipherMode)
+            {
                 CipherMode.DarkStar -> 32
             }
+
             val salt = ByteArray(saltSize)
             val random = java.security.SecureRandom()
             random.nextBytes(salt)
-            Log.i("createSalt", "Salt created.")
+
             return salt
         }
 
-        fun determineSaltSize(): Int {
+        fun determineSaltSize(): Int
+        {
             finalSaltSize = 64
-            Log.i("determineSaltSize", "Salt size is $finalSaltSize")
             return finalSaltSize
         }
     }
@@ -110,12 +114,13 @@ abstract class ShadowCipher() {
     abstract fun decrypt(encrypted: ByteArray): ByteArray
 
     // Create a nonce using our counter.
-    @ExperimentalUnsignedTypes
+    //@ExperimentalUnsignedTypes
     abstract fun nonce(): ByteArray?
 }
 
 // CipherMode establishes what algorithm and version you are using.
-enum class CipherMode {
+enum class CipherMode
+{
     //  AES 196 is not currently supported by go-shadowsocks2.
     //  We are not supporting it at this time either.
     DarkStar

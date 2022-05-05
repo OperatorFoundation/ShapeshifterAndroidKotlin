@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit
 
 class Hole {
     fun startHole(timeoutDelay: Int, socket: Socket) {
-        var currentTimeInSeconds = Calendar.getInstance().timeInMillis / 1000
+        val currentTimeInSeconds = Calendar.getInstance().timeInMillis / 1000
         val endTime = currentTimeInSeconds + timeoutDelay
         val scheduler = Executors.newScheduledThreadPool(1)
 
@@ -21,9 +21,10 @@ class Hole {
         val packetTimerMin = 1
         val packetSizeMax = 1440 - 16 // max TCP size without encryption overhead
         val packetSizeMin = 1
-        var countdownStarter = betweenRNG(packetTimerMax, packetTimerMin)
+        val countdownStarter = betweenRNG(packetTimerMax, packetTimerMin)
 
-        if (mainTimer - currentTimeInSeconds > 0) {
+        if (mainTimer - currentTimeInSeconds > 0)
+        {
             val runnable = Runnable() {
                 fun run() {
                     val packetSize = betweenRNG(packetSizeMax, packetSizeMin)
@@ -35,17 +36,11 @@ class Hole {
                 }
             }
             scheduler.schedule(runnable, countdownStarter.toLong(), TimeUnit.SECONDS)
-        } else {
+        }
+        else
+        {
             scheduler.shutdown()
             socket.close()
         }
-    }
-
-    // generate a random number between the two numbers
-    fun betweenRNG(maxNumber: Int, minNumber: Int): Int {
-        // if we want maxNumber to be inclusive, add one
-        // minNumber is inclusive
-        val r = java.security.SecureRandom()
-        return r.nextInt(maxNumber - minNumber) + minNumber
     }
 }

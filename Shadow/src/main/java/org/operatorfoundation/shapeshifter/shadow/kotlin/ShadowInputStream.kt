@@ -27,7 +27,6 @@ package org.operatorfoundation.shapeshifter.shadow.kotlin
 import android.util.Log
 import java.io.IOException
 import java.io.InputStream
-import java.lang.Integer.min
 
 // This abstract class is the superclass of all classes representing an input stream of bytes.
 class ShadowInputStream(
@@ -85,7 +84,6 @@ class ShadowInputStream(
 
             // decrypt encrypted length to find out payload length
             val lengthData = decryptionCipher.decrypt(encryptedLengthData)
-            Log.i("ShapeshifterKotlin", "ShadowInputStream $lengthData bytes decrypted.")
 
             // change lengthData from BigEndian representation to int length
             val leftByte = lengthData[0].toUByte()
@@ -95,7 +93,6 @@ class ShadowInputStream(
             val payloadLength = (leftInt * 256) + rightInt
 
             // read and decrypt payload with the resulting length
-            // TODO: This should likely fail as we received length information but failed to read anything further
             val encryptedPayload =
                 readNBytes(networkInputStream, payloadLength + ShadowCipher.tagSize)
             if (encryptedPayload == null) {
@@ -104,11 +101,13 @@ class ShadowInputStream(
             }
 
             val payload = decryptionCipher.decrypt(encryptedPayload)
-            Log.i("ShapeshifterKotlin", "ShadowInputStream payload decrypted.")
+
             // put payload into buffer
             buffer += payload
             var resultSize = b.size
-            if (buffer.size < resultSize) {
+
+            if (buffer.size < resultSize)
+            {
                 resultSize = buffer.size
             }
             buffer.copyInto(b, 0, 0, resultSize)
@@ -120,9 +119,8 @@ class ShadowInputStream(
         }
         catch (e: Exception)
         {
-            Log.e("ShapeshifterKotlin", "ShadowInputStream decryption failed on read.")
+            Log.e("ShapeshifterKotlin", "ShadowInputStream failed on read: " + e.message)
 
-            decryptionFailed = true
             shadowSocket.redial()
             throw IOException()
         }

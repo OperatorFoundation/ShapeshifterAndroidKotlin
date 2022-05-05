@@ -14,13 +14,9 @@ import java.net.Socket
 import java.nio.charset.Charset
 import java.util.concurrent.ScheduledExecutorService
 
-class Bloom {
-    // Question for Brandon: where do we use this?  i know you said on decrypt fail, but if theyre using a repeat salt,
-    // wouldnt the decrypt succeed since theyre using a valid salt?
-
+class Bloom
+{
     // Create a Bloom Filter instance
-    // FIXME: how many expected insertions
-    // FIXME: how do i keep the data from previous sessions
     var saltHistory = BloomFilter.create(
         Funnels.byteArrayFunnel(),
         10000

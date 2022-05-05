@@ -28,20 +28,24 @@ import android.util.Log
 import java.lang.IllegalArgumentException
 
 // ShadowConfig is a class that implements the arguments necessary for a Shadowsocks connection.
-class ShadowConfig(val password: String, val cipherName: String) {
+class ShadowConfig(val password: String, val cipherName: String)
+{
     val cipherMode: CipherMode
 
     init {
         var maybeMode: CipherMode? = null
 
-        try {
-            maybeMode = when (cipherName) {
+        try
+        {
+            maybeMode = when (cipherName)
+            {
                 "DarkStar" -> CipherMode.DarkStar
                 else -> null
             }
-        } catch (error: IllegalArgumentException) {
+        }
+        catch (error: IllegalArgumentException)
+        {
             Log.e("ShadowConfig", "Invalid cipherMode in the config: $cipherName")
-
         }
 
         requireNotNull(maybeMode)

@@ -24,6 +24,7 @@
 
 package org.operatorfoundation.shapeshifter.shadow.kotlin
 
+import android.os.Build
 import android.util.Log
 import java.io.OutputStream
 import java.lang.Integer.min
@@ -60,8 +61,10 @@ class ShadowOutputStream(
 
    // @ExperimentalUnsignedTypes
     // Writes b.length bytes from the specified byte array to this output stream.
-    override fun write(b: ByteArray) {
-        if (b.isEmpty()) {
+    override fun write(b: ByteArray)
+    {
+        if (b.isEmpty())
+        {
             Log.e("write", "Write function was given an empty byte array.")
             return
         }
@@ -70,8 +73,17 @@ class ShadowOutputStream(
         buffer += b
 
         // keep writing until the buffer is empty in case user exceeds maximum
-        while (buffer.isNotEmpty()) {
-            val numBytesToSend = min(ShadowCipher.maxPayloadSize, buffer.size)
+        while (buffer.isNotEmpty())
+        {
+
+            val numBytesToSend: Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+            {
+                min(ShadowCipher.maxPayloadSize, buffer.size)
+            }
+            else
+            {
+                org.operatorfoundation.shapeshifter.shadow.kotlin.min(ShadowCipher.maxPayloadSize, buffer.size)
+            }
 
             // make a copy of the buffer
             val bytesToSend = buffer.copyOfRange(0, numBytesToSend)
@@ -82,7 +94,6 @@ class ShadowOutputStream(
             val cipherText = encryptionCipher.pack(bytesToSend)
 
             outputStream.write(cipherText)
-            Log.i("write", "Write successful.")
         }
     }
 

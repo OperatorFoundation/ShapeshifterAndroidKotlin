@@ -3,23 +3,13 @@ package org.operatorfoundation.shadowexampleapp
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import kotlinx.android.synthetic.main.activity_launch.*
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowConfig
 import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowSocket
-import org.operatorfoundation.shapeshifter.shadow.kotlin.toHexString
+import java.nio.charset.Charset
 import kotlin.concurrent.thread
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 
 class LaunchActivity : AppCompatActivity()
 {
-    val coroutineContext: CoroutineContext = EmptyCoroutineContext
-    val externalScope: CoroutineScope = CoroutineScope(coroutineContext)
-    val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
-
     override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)
@@ -42,7 +32,8 @@ class LaunchActivity : AppCompatActivity()
 
             // TODO: Use a valid server IP address.
             val shadowSocket = ShadowSocket(config, "", 1234)
-            val httpRequest = "GET / HTTP/1.0\r\n\r\n"
+
+            val httpRequest = "GET / HTTP/1.0\r\nConnection: close\r\n\r\n"
             val textBytes = httpRequest.toByteArray()
 
             shadowSocket.outputStream.write(textBytes)
@@ -51,20 +42,33 @@ class LaunchActivity : AppCompatActivity()
             shadowSocket.outputStream.flush()
             println("Flushed the output stream.")
             
-            var buffer = ByteArray(5)
+            val buffer = ByteArray(235)
             val numberOfBytesRead = shadowSocket.inputStream.read(buffer)
 
             if (numberOfBytesRead > 0)
             {
                 println("Read $numberOfBytesRead bytes.")
-                println("Read some data: " + buffer.toHexString())
+
+                val responseString = buffer.toString(Charset.defaultCharset())
+                println("Read some data: " + responseString)
+
+                if (responseString.contains("Yeah!"))
+                {
+                    println("The test succeeded!")
+                }
+                else
+                {
+                    println("Test failed: We did not get the response we were expecting.")
+                }
             }
             else if (numberOfBytesRead == -1)
             {
-                println("Attempted to read from the network but received EOF.")
+                println("Test failed: Attempted to read from the network but received EOF.")
             }
-
-            println("Test complete")
+            else
+            {
+                println("Test failed, we got an empty response from the server.")
+            }
         }
     }
 }

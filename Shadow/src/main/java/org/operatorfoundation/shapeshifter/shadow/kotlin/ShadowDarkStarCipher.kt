@@ -1,7 +1,6 @@
 package org.operatorfoundation.shapeshifter.shadow.kotlin
 
 import android.os.Build
-import android.util.Log
 import org.bouncycastle.jcajce.spec.AEADParameterSpec
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -72,30 +71,15 @@ class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher() {
         val ivSpec: AlgorithmParameterSpec
         val nonce = nonce()
 
-        ivSpec = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P)
-        {
+        ivSpec = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
             AEADParameterSpec(nonce, tagSizeBits)
-        }
-        else
-        {
+        } else {
             GCMParameterSpec(tagSizeBits, nonce)
         }
 
         cipher.init(Cipher.ENCRYPT_MODE, key, ivSpec)
-        val ciphertext = cipher.doFinal(plaintext)
 
-        print("\nEnrypting some bytes:")
-
-        val keyHex = key!!.encoded.toHexString()
-        println("key: $keyHex")
-
-        val nonceHex = nonce!!.toHexString()
-        println("nonce: $nonceHex")
-
-        val cipherHex = ciphertext.toHexString()
-        println("encrypted: $cipherHex")
-
-        return ciphertext
+        return cipher.doFinal(plaintext)
     }
 
     // Decrypts data and increments the nonce counter.
@@ -107,7 +91,6 @@ class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher() {
         CounterOverFlowException::class
     )
     override fun decrypt(encrypted: ByteArray): ByteArray {
-        print("\nDecrypting some bytes:")
         val ivSpec: AlgorithmParameterSpec
         val nonce = nonce()
 
@@ -122,17 +105,11 @@ class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher() {
 
         cipher.init(Cipher.DECRYPT_MODE, key, ivSpec)
 
-        val keyHex = key!!.encoded.toHexString()
-        println("key: $keyHex")
-        val nonceHex = nonce!!.toHexString()
-        println("nonce: $nonceHex")
-        println("ciphertext: ${encrypted.toHexString()}")
-
         return cipher.doFinal(encrypted)
     }
 
     // Create a nonce using our counter.
-    @ExperimentalUnsignedTypes
+    //@ExperimentalUnsignedTypes
     @Throws(CounterOverFlowException::class)
     override fun nonce(): ByteArray? {
         // NIST Special Publication 800-38D - Recommendation for Block Cipher Modes of Operation: Galois/Counter Mode (GCM) and GMAC
@@ -195,11 +172,11 @@ class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher() {
         */
 
         buffer.putLong(longCounter.toLong())
-        Log.i("nonce", "Nonce created. Counter is $longCounter.")
+
         if (longCounter < ULong.MAX_VALUE) {
             longCounter += 1u
         } else {
-            throw CounterOverFlowException("64 bit nonce counter overflow")
+            throw CounterOverFlowException("nonce counter overflow")
         }
 
         return buffer.array()
