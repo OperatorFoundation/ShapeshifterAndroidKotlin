@@ -47,37 +47,47 @@ class ShadowInputStream(
     // Reads some number of bytes from the input stream and stores them into the buffer array b.
     // Returns a -1 if we are at end of stream
     //@ExperimentalUnsignedTypes
-    override fun read(b: ByteArray): Int {
-        if (decryptionFailed) {
+    override fun read(b: ByteArray): Int
+    {
+        if (decryptionFailed)
+        {
             Log.e("ShapeshifterKotlin", "ShadowInputStream Decryption failed on read.")
             shadowSocket.close()
             throw IOException()
         }
 
-        if (b.isEmpty()) {
+        if (b.isEmpty())
+        {
             Log.e("ShapeshifterKotlin", "ShadowInputStream read was given an empty byte array.")
             return 0
         }
 
         // puts the bytes in a buffer.
-        if (b.size <= buffer.size) {
+        if (b.size <= buffer.size)
+        {
             var resultSize = b.size
-            if (buffer.size < resultSize) {
+
+            // FIXME: Always false
+            if (buffer.size < resultSize)
+            {
                 resultSize = buffer.size
             }
+
             buffer.copyInto(b, 0, 0, resultSize)
             buffer = buffer.sliceArray(resultSize until buffer.size)
 
             return resultSize
         }
 
-        try {
+        try
+        {
             // get encrypted length
             val lengthDataSize = ShadowCipher.lengthWithTagSize
 
             // read bytes up to size of encrypted lengthSize into a byte buffer
             val encryptedLengthData = readNBytes(networkInputStream, lengthDataSize)
-            if (encryptedLengthData == null) {
+            if (encryptedLengthData == null)
+            {
                 Log.d("ShapeshifterKotlin", "ShadowInputStream could not read length data.")
                 return -1
             }
@@ -95,7 +105,8 @@ class ShadowInputStream(
             // read and decrypt payload with the resulting length
             val encryptedPayload =
                 readNBytes(networkInputStream, payloadLength + ShadowCipher.tagSize)
-            if (encryptedPayload == null) {
+            if (encryptedPayload == null)
+            {
                 Log.e("ShapeshifterKotlin", "ShadowInputStream could not read encrypted length data.")
                 return -1
             }
