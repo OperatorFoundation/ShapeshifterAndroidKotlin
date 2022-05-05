@@ -191,7 +191,7 @@ class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher() {
             }
             else
             {
-                Cipher.getInstance("AES/GCM/NoPadding")
+                Cipher.getInstance("AES_256/GCM/NoPadding")
             }
 
         } catch (e: NoSuchPaddingException) {
