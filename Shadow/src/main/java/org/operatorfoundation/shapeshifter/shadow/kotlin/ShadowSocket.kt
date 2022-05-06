@@ -57,8 +57,6 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     private var host: String? = null
     private var port: Int? = null
     private var decryptFailed: Boolean = false
-    val hole = Hole()
-    val holeTimeout = 30
 
     // Constructors:
 
@@ -102,8 +100,8 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         }
         catch(error: Exception)
         {
-            //hole.startHole(holeTimeout, socket)
             Log.e("ShadowSocket.init", "Handshake failed.")
+            socket.close()
             connectionStatus = false
             throw error
         }
@@ -122,8 +120,8 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         }
         catch(error: IOException)
         {
-            //hole.startHole(holeTimeout, socket)
-            Log.e("ShadowSocket.init", "Handshake failed.")
+            Log.e("ShadowSocket.init", "Handshake failed, closing connection.")
+            socket.close()
             connectionStatus = false
             throw error
         }
@@ -142,11 +140,18 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     )
     {
         socket = Socket(address, port, localAddr, localPort)
-        connectionStatus = true
-        try {
+
+        try
+        {
             handshake()
-        } catch(error: IOException) {
-            hole.startHole(holeTimeout, socket)
+            connectionStatus = true
+        }
+        catch(error: Exception)
+        {
+            Log.e("ShadowSocket.init", "Handshake failed, closing connection.")
+            socket.close()
+            connectionStatus = false
+            throw error
         }
     }
 
@@ -181,8 +186,8 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         }
         else
         {
-            connectionStatus = true
             handshake()
+            connectionStatus = true
             Log.i("ShadowSocket.connect", "Connection succeeded.")
         }
     }
@@ -201,6 +206,8 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         else
         {
             handshake()
+            connectionStatus = true
+            Log.i("ShadowSocket.connect", "Connection succeeded.")
         }
     }
 

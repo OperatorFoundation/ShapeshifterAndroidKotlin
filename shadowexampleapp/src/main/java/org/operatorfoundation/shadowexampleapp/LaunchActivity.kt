@@ -31,6 +31,8 @@ class LaunchActivity : AppCompatActivity()
             )
 
             // TODO: Use a valid server IP address.
+            // This initializer throws if the connection is refused
+            // In a real application the exception should be handled so that the application does not crash when a connection is refused
             val shadowSocket = ShadowSocket(config, "", 1234)
 
             val httpRequest = "GET / HTTP/1.0\r\nConnection: close\r\n\r\n"

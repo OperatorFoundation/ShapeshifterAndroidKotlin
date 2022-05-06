@@ -65,7 +65,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         return handshakeData
     }
 
-    private fun splitHandshake(handshakeData: ByteArray, ephemeralPublicKeyBuf: ByteArray, confirmationCodeBuf: ByteArray, )
+    private fun splitHandshake(handshakeData: ByteArray, ephemeralPublicKeyBuf: ByteArray, confirmationCodeBuf: ByteArray)
     {
         if (handshakeData.size != 64)
         {

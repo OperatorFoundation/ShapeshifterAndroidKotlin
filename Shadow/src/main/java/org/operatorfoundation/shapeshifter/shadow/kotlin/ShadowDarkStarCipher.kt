@@ -11,7 +11,8 @@ import java.security.spec.AlgorithmParameterSpec
 import javax.crypto.*
 import javax.crypto.spec.GCMParameterSpec
 
-class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher() {
+class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher()
+{
     var longCounter: ULong = 0u
 
     // Create a secret key using the two key derivation functions.
