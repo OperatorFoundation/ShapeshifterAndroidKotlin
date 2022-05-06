@@ -16,7 +16,8 @@ import javax.crypto.KeyAgreement
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
 
-class DarkStar(var config: ShadowConfig, private var host: String, private var port: Int) {
+class DarkStar(var config: ShadowConfig, private var host: String, private var port: Int)
+{
     private var sharedKeyClientToServer: SecretKey? = null
     private var sharedKeyServerToClient: SecretKey? = null
     private var clientEphemeralKeyPair: KeyPair? = null
@@ -28,25 +29,28 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         UnknownHostException::class,
         NoSuchProviderException::class
     )
-    fun createSalt(): ByteArray {
+    fun createHandshake(): ByteArray
+    {
         // take ServerPersistentPublicKey out of password string
         val serverPersistentPublicKeyData = hexToBytes(config.password)
-        serverPersistentPublicKey = bytesToPublicKey(serverPersistentPublicKeyData)
+        this.serverPersistentPublicKey = bytesToPublicKey(serverPersistentPublicKeyData)
 
         // generate an ephemeral keypair
-        clientEphemeralKeyPair = generateECKeys()
+        this.clientEphemeralKeyPair = generateECKeys()
 
         // get the client private and public key
         var clientEphemeralPrivateKey: PrivateKey? = null
         var clientEphemeralPublicKey: PublicKey? = null
-        if (clientEphemeralKeyPair != null) {
-            clientEphemeralPrivateKey = clientEphemeralKeyPair!!.private
-            clientEphemeralPublicKey = clientEphemeralKeyPair!!.public
+
+        if (this.clientEphemeralKeyPair != null)
+        {
+            clientEphemeralPrivateKey = this.clientEphemeralKeyPair!!.private
+            clientEphemeralPublicKey = this.clientEphemeralKeyPair!!.public
         }
 
-        // convert the public key into data to be sent to the server
+        // convert the ephemeral public key into data and save it to the handshakeData array.
         val clientEphemeralPublicKeyData = publicKeyToBytes(clientEphemeralPublicKey)
-        var salt = clientEphemeralPublicKeyData
+        var handshakeData = clientEphemeralPublicKeyData
 
         // Generate client confirmation code
         val clientConfirmationCode = generateClientConfirmationCode(
@@ -56,21 +60,20 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             clientEphemeralPublicKey,
             clientEphemeralPrivateKey
         )
-        salt += clientConfirmationCode
+        handshakeData += clientConfirmationCode
 
-        return salt
+        return handshakeData
     }
 
-    private fun splitSalt(
-        salt: ByteArray,
-        ephemeralPublicKeyBuf: ByteArray,
-        confirmationCodeBuf: ByteArray,
-    ) {
-        if (salt.size != 64) {
-            Log.e("DarkStar", "incorrect salt size")
+    private fun splitHandshake(handshakeData: ByteArray, ephemeralPublicKeyBuf: ByteArray, confirmationCodeBuf: ByteArray, )
+    {
+        if (handshakeData.size != 64)
+        {
+            Log.e("DarkStar", "incorrect handshake size")
         }
-        System.arraycopy(salt, 0, ephemeralPublicKeyBuf, 0, 32)
-        System.arraycopy(salt, 32, confirmationCodeBuf, 0, 32)
+
+        System.arraycopy(handshakeData, 0, ephemeralPublicKeyBuf, 0, 32)
+        System.arraycopy(handshakeData, 32, confirmationCodeBuf, 0, 32)
     }
 
     @Throws(
@@ -79,10 +82,11 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         UnknownHostException::class,
         InvalidKeyException::class
     )
-    fun makeCipher(isClientToServer: Boolean, salt: ByteArray): ShadowCipher {
+    fun makeCipher(isClientToServer: Boolean, handshakeBytes: ByteArray): ShadowCipher
+    {
         val serverEphemeralPublicKeyData = ByteArray(32)
         val serverConfirmationCode = ByteArray(32)
-        splitSalt(salt, serverEphemeralPublicKeyData, serverConfirmationCode)
+        splitHandshake(handshakeBytes, serverEphemeralPublicKeyData, serverConfirmationCode)
 
         // turn the server's public key data back to a public key type
         val serverEphemeralPublicKey = bytesToPublicKey(serverEphemeralPublicKeyData)
@@ -97,9 +101,12 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             serverPersistentPublicKey
         )
 
-        if (isClientToServer) {
+        if (isClientToServer)
+        {
             sharedKeyClientToServer = sharedKey
-        } else {
+        }
+        else
+        {
             sharedKeyServerToClient = sharedKey
         }
 
@@ -111,7 +118,8 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             clientEphemeralKeyPair!!.private,
             serverPersistentPublicKey!!
         )
-        if (!clientCopyServerConfirmationCode.contentEquals(serverConfirmationCode)) {
+        if (!clientCopyServerConfirmationCode.contentEquals(serverConfirmationCode))
+        {
             throw InvalidKeyException()
         }
 
@@ -125,22 +133,28 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         }
     }
 
-    companion object {
+    companion object
+    {
         private var darkStarBytes = "DarkStar".toByteArray()
         private var clientStringBytes = "client".toByteArray()
         private var serverStringBytes = "server".toByteArray()
-        fun generateECKeys(): KeyPair? {
-            return try {
+
+        fun generateECKeys(): KeyPair?
+        {
+            return try
+            {
                 val parameterSpec = ECNamedCurveTable.getParameterSpec("secp256r1")
-                val keyPairGenerator = KeyPairGenerator.getInstance(
-                    "EC", BouncyCastleProvider()
-                )
+                val keyPairGenerator = KeyPairGenerator.getInstance("EC", BouncyCastleProvider())
                 keyPairGenerator.initialize(parameterSpec)
                 keyPairGenerator.generateKeyPair()
-            } catch (e: NoSuchAlgorithmException) {
+            }
+            catch (e: NoSuchAlgorithmException)
+            {
                 e.printStackTrace()
                 null
-            } catch (e: InvalidAlgorithmParameterException) {
+            }
+            catch (e: InvalidAlgorithmParameterException)
+            {
                 e.printStackTrace()
                 null
             }
@@ -164,20 +178,23 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             }
         }
 
-        private fun generateSharedSecret(
-            privateKey: PrivateKey?,
-            publicKey: PublicKey?
-        ): SecretKey? {
-            return try {
+        private fun generateSharedSecret(privateKey: PrivateKey?, publicKey: PublicKey?): SecretKey?
+        {
+            return try
+            {
                 val keyAgreement =
                     KeyAgreement.getInstance("ECDH", BouncyCastleProvider())
                 keyAgreement.init(privateKey)
                 keyAgreement.doPhase(publicKey, true)
                 keyAgreement.generateSecret("secp256r1")
-            } catch (e: InvalidKeyException) {
+            }
+            catch (e: InvalidKeyException)
+            {
                 e.printStackTrace()
                 null
-            } catch (e: NoSuchAlgorithmException) {
+            }
+            catch (e: NoSuchAlgorithmException)
+            {
                 e.printStackTrace()
                 null
             }

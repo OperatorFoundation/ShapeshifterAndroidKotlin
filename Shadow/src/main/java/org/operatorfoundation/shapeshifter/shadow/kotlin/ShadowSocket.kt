@@ -61,44 +61,51 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     val holeTimeout = 30
 
     // Constructors:
+
     // Creates a stream socket and connects it to the specified port number on the named host.
     //@ExperimentalUnsignedTypes
     constructor(config: ShadowConfig, host: String, port: Int) : this(config)
     {
+        val socketAddress = InetSocketAddress(host, port)
         this.host = host
         this.port = port
-        darkStar = DarkStar(config, host, port)
-        this.handshakeBytes = darkStar!!.createSalt()
+        this.socket = Socket()
+        this.socket.connect(socketAddress)
 
         try
         {
-            val socketAddress = InetSocketAddress(host, port)
-            this.socket = Socket()
-            this.socket.connect(socketAddress)
-            connectionStatus = true
+            this.darkStar = DarkStar(config, host, port)
+            this.handshakeBytes = darkStar!!.createHandshake()
             handshake()
+            connectionStatus = true
         }
-        catch (socketError: Exception)
+        catch (handshakeError: Exception)
         {
-            println("ShapeshifterKotlin.ShadowSocket.constructor: received an error while attempting to create a java socket: ")
-            println(socketError.message)
+            Log.e("ShadowSocket.init", "Handshake failed.")
+            println(handshakeError.message)
             connectionStatus = false
-            throw socketError
+
+            throw handshakeError
         }
     }
 
     // Creates a socket and connects it to the specified remote host on the specified remote port.
     @ExperimentalUnsignedTypes
-    constructor(
-        config: ShadowConfig, host: String, port: Int, localAddr: InetAddress, localPort: Int
-    ) : this(config)
+    constructor(config: ShadowConfig, host: String, port: Int, localAddr: InetAddress, localPort: Int) : this(config)
     {
         socket = Socket(host, port, localAddr, localPort)
-        connectionStatus = true
-        try {
+
+        try
+        {
             handshake()
-        } catch(error: IOException) {
-            hole.startHole(holeTimeout, socket)
+            connectionStatus = true
+        }
+        catch(error: Exception)
+        {
+            //hole.startHole(holeTimeout, socket)
+            Log.e("ShadowSocket.init", "Handshake failed.")
+            connectionStatus = false
+            throw error
         }
     }
 
@@ -107,11 +114,18 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     constructor(config: ShadowConfig, address: InetAddress, port: Int) : this(config)
     {
         socket = Socket(address, port)
-        connectionStatus = true
-        try {
+
+        try
+        {
             handshake()
-        } catch(error: IOException) {
-            hole.startHole(holeTimeout, socket)
+            connectionStatus = true
+        }
+        catch(error: IOException)
+        {
+            //hole.startHole(holeTimeout, socket)
+            Log.e("ShadowSocket.init", "Handshake failed.")
+            connectionStatus = false
+            throw error
         }
     }
 

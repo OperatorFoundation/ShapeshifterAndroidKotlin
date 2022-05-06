@@ -8,7 +8,8 @@ import java.nio.channels.SocketChannel
 
 //@kotlin.ExperimentalUnsignedTypes
 // Reads up to a specific number of bytes in a byte array.
-fun readNBytes(input: InputStream, numBytes: Int): ByteArray? {
+fun readNBytes(input: InputStream, numBytes: Int): ByteArray?
+{
     try
     {
         val buffer = ByteArray(numBytes)
@@ -37,7 +38,8 @@ fun readNBytes(input: InputStream, numBytes: Int): ByteArray? {
 }
 
 // Reads up to a specific number of bytes in a byte buffer.
-fun readNBytes(input: SocketChannel, numBytes: Int): ByteBuffer {
+fun readNBytes(input: SocketChannel, numBytes: Int): ByteBuffer
+{
     val buffer = ByteBuffer.allocate(numBytes)
     val bufferArray = arrayOf((buffer))
     var offset = input.read(buffer)
@@ -64,7 +66,8 @@ fun min(firstNumber: Int, secondNumber: Int): Int
     }
 }
 
-fun bytesToHex(data: ByteArray): String {
+fun bytesToHex(data: ByteArray): String
+{
     val hexArray = "0123456789ABCDEF".toCharArray()
 
     val hexChars = CharArray(data.size * 2)
@@ -77,7 +80,8 @@ fun bytesToHex(data: ByteArray): String {
     return String(hexChars)
 }
 
-fun hexToBytes(string: String): ByteArray {
+fun hexToBytes(string: String): ByteArray
+{
     val length = string.length
     val data = ByteArray(length / 2)
     var i = 0
@@ -90,9 +94,21 @@ fun hexToBytes(string: String): ByteArray {
 }
 
 // generate a random number between the two numbers
-fun betweenRNG(maxNumber: Int, minNumber: Int): Int {
+fun betweenRNG(maxNumber: Int, minNumber: Int): Int
+{
     // if we want maxNumber to be inclusive, add one
     // minNumber is inclusive
     val r = java.security.SecureRandom()
     return r.nextInt(maxNumber - minNumber) + minNumber
+}
+
+// changes data (bigEData) from BigEndian representation to an int
+fun getIntFromBigEndian(bigEData: ByteArray): Int
+{
+    val leftByte = bigEData[0].toUByte()
+    val rightByte = bigEData[1].toUByte()
+    val rightInt = rightByte.toInt()
+    val leftInt = leftByte.toInt()
+    val payloadLength = (leftInt * 256) + rightInt
+    return payloadLength
 }

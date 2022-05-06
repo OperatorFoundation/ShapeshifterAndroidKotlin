@@ -146,16 +146,6 @@ class ShadowInputStream(
         }
     }
 
-    /// changes data (bigEData) from BigEndian representation to an int
-    private fun getIntFromBigEndian(bigEData: ByteArray): Int {
-        val leftByte = bigEData[0].toUByte()
-        val rightByte = bigEData[1].toUByte()
-        val rightInt = rightByte.toInt()
-        val leftInt = leftByte.toInt()
-        val payloadLength = (leftInt * 256) + rightInt
-        return payloadLength
-    }
-
     //@ExperimentalUnsignedTypes
     override fun read(b: ByteArray?, off: Int, len: Int): Int {
         b?.let {
