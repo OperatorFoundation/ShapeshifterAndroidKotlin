@@ -30,46 +30,51 @@ class LaunchActivity : AppCompatActivity()
                 "DarkStar"
             )
 
-            // TODO: Use a valid server IP address.
-            // This initializer throws if the connection is refused
-            // In a real application the exception should be handled so that the application does not crash when a connection is refused
-            val shadowSocket = ShadowSocket(config, "", 1234)
-
-            val httpRequest = "GET / HTTP/1.0\r\nConnection: close\r\n\r\n"
-            val textBytes = httpRequest.toByteArray()
-
-            shadowSocket.outputStream.write(textBytes)
-            println("Wrote some bytes.")
-
-            shadowSocket.outputStream.flush()
-            println("Flushed the output stream.")
-            
-            val buffer = ByteArray(235)
-            val numberOfBytesRead = shadowSocket.inputStream.read(buffer)
-
-            if (numberOfBytesRead > 0)
+            try
             {
-                println("Read $numberOfBytesRead bytes.")
+                // TODO: Use a valid server IP address.
+                val shadowSocket = ShadowSocket(config, "", 1234)
+                val httpRequest = "GET / HTTP/1.0\r\nConnection: close\r\n\r\n"
+                val textBytes = httpRequest.toByteArray()
 
-                val responseString = buffer.toString(Charset.defaultCharset())
-                println("Read some data: " + responseString)
+                shadowSocket.outputStream.write(textBytes)
+                println("Wrote some bytes.")
 
-                if (responseString.contains("Yeah!"))
+                shadowSocket.outputStream.flush()
+                println("Flushed the output stream.")
+
+                val buffer = ByteArray(235)
+                val numberOfBytesRead = shadowSocket.inputStream.read(buffer)
+
+                if (numberOfBytesRead > 0)
                 {
-                    println("The test succeeded!")
+                    println("Read $numberOfBytesRead bytes.")
+
+                    val responseString = buffer.toString(Charset.defaultCharset())
+                    println("Read some data: " + responseString)
+
+                    if (responseString.contains("Yeah!"))
+                    {
+                        println("The test succeeded!")
+                    }
+                    else
+                    {
+                        println("Test failed: We did not get the response we were expecting.")
+                    }
+                }
+                else if (numberOfBytesRead == -1)
+                {
+                    println("Test failed: Attempted to read from the network but received EOF.")
                 }
                 else
                 {
-                    println("Test failed: We did not get the response we were expecting.")
+                    println("Test failed, we got an empty response from the server.")
                 }
             }
-            else if (numberOfBytesRead == -1)
+            catch (error: Exception )
             {
-                println("Test failed: Attempted to read from the network but received EOF.")
-            }
-            else
-            {
-                println("Test failed, we got an empty response from the server.")
+                println("--> Received an error while attempting to create a connection: $error")
+                println("--> Check your server credentials.")
             }
         }
     }
