@@ -2,6 +2,7 @@ package org.operatorfoundation.shadowexampleapp
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.TextView
 import kotlinx.android.synthetic.main.activity_launch.*
 import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowConfig
 import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowSocket
@@ -10,71 +11,115 @@ import kotlin.concurrent.thread
 
 class LaunchActivity : AppCompatActivity()
 {
+
+    lateinit var resultText: TextView
+
     override fun onCreate(savedInstanceState: Bundle?)
     {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_launch)
+            println("*******ENTERED onCreate FUNCTION")
+            super.onCreate(savedInstanceState)
+            setContentView(R.layout.activity_launch)
 
-        run_button.setOnClickListener {
-            shadowDarkStarClient()
-        }
+            println("*******ABOUT TO CALL shadowDarkStarClient()")
+            run_button.setOnClickListener {
+                shadowDarkStarClient()
+            }
+
+            resultText = findViewById(R.id.resultText)
     }
 
     fun shadowDarkStarClient()
     {
+        println("*******ENTERED SHADOWDARKSTARCLIENT FUNCTION")
         thread(start = true)
         {
+            println("*******ENTERED thread")
             // TODO: Make sure password matches the servers public key.
             val config = ShadowConfig(
                 "9caa4132c724f137c67928e9338c72cfe37e0dd28b298d14d5b5981effa038c9",
                 "DarkStar"
             )
-
+            
             try
             {
                 // TODO: Use a valid server IP address.
                 val shadowSocket = ShadowSocket(config, "", 1234)
                 val httpRequest = "GET / HTTP/1.0\r\nConnection: close\r\n\r\n"
                 val textBytes = httpRequest.toByteArray()
+                val wroteBytesMessage = "Wrote some bytes."
+                val flushedOutputMessage = "Flushed the output stream."
 
                 shadowSocket.outputStream.write(textBytes)
-                println("Wrote some bytes.")
+                runOnUiThread {
+                println(wroteBytesMessage)
+                resultText.text = wroteBytesMessage}
 
                 shadowSocket.outputStream.flush()
-                println("Flushed the output stream.")
+                runOnUiThread {
+                println(flushedOutputMessage)
+                resultText.text = flushedOutputMessage}
 
                 val buffer = ByteArray(235)
                 val numberOfBytesRead = shadowSocket.inputStream.read(buffer)
+                val readBytesMessage = "Read $numberOfBytesRead bytes."
 
                 if (numberOfBytesRead > 0)
                 {
-                    println("Read $numberOfBytesRead bytes.")
+                    runOnUiThread {
+                    println(readBytesMessage)
+                    resultText.text = readBytesMessage}
 
                     val responseString = buffer.toString(Charset.defaultCharset())
-                    println("Read some data: " + responseString)
+                    val readDataMessage = ("Read some data: " + responseString)
+                    val testSuccessMessage = "The test succeeded!"
+                    val testFailedMessage =
+                        "Test failed: We did not get the response we were expecting."
+                    runOnUiThread {
+                    println(readDataMessage)
+                    resultText.text = readDataMessage}
 
                     if (responseString.contains("Yeah!"))
                     {
-                        println("The test succeeded!")
+                        runOnUiThread {
+                        println(testSuccessMessage)
+                        resultText.text = testSuccessMessage}
                     }
                     else
                     {
-                        println("Test failed: We did not get the response we were expecting.")
+                        runOnUiThread {
+                        println(testFailedMessage)
+                        resultText.text = testFailedMessage}
                     }
                 }
                 else if (numberOfBytesRead == -1)
                 {
-                    println("Test failed: Attempted to read from the network but received EOF.")
+                    val testFailedEOFMessage =
+                        "Test failed: Attempted to read from the network but received EOF."
+                    runOnUiThread {
+                    println(testFailedEOFMessage)
+                    resultText.text = testFailedEOFMessage}
                 }
                 else
                 {
-                    println("Test failed, we got an empty response from the server.")
+                    val testEmptyResponseFailMessage =
+                        "Test failed, we got an empty response from the server."
+                    runOnUiThread {
+                    println(testEmptyResponseFailMessage)
+                    resultText.text = testEmptyResponseFailMessage}
                 }
             }
-            catch (error: Exception )
+            catch (error: Exception)
             {
-                println("--> Received an error while attempting to create a connection: $error")
-                println("--> Check your server credentials.")
+                val receivedErrorMessage =
+                    "--> Received an error while attempting to create a connection: $error"
+                runOnUiThread {
+                println(receivedErrorMessage)
+                resultText.text = receivedErrorMessage}
+
+                val checkCredentialsMessage = "--> Check your server credentials."
+                runOnUiThread {
+                println(checkCredentialsMessage)
+                resultText.text = checkCredentialsMessage}
             }
         }
     }
