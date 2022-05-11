@@ -69,13 +69,13 @@ class ShadowOutputStream(
             return
         }
 
-        // put into buffer
+        // appends b to buffer
         buffer += b
 
-        // keep writing until the buffer is empty in case user exceeds maximum
+        // keep writing until the buffer is empty
         while (buffer.isNotEmpty())
         {
-
+            // Don't send more than max payload size.
             val numBytesToSend: Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
             {
                 min(ShadowCipher.maxPayloadSize, buffer.size)
@@ -85,14 +85,15 @@ class ShadowOutputStream(
                 org.operatorfoundation.shapeshifter.shadow.kotlin.min(ShadowCipher.maxPayloadSize, buffer.size)
             }
 
-            // make a copy of the buffer
+            // copy the first numBytesToSend bytes into a new byte array.
             val bytesToSend = buffer.copyOfRange(0, numBytesToSend)
 
-            // take bytes out of buffer
+            // remove the first numBytesToSend bytes from the buffer.
             buffer = buffer.sliceArray(numBytesToSend until buffer.size)
 
             val cipherText = encryptionCipher.pack(bytesToSend)
 
+            println("ShadowOutputStream wrote ${cipherText.size} bytes.")
             outputStream.write(cipherText)
         }
     }

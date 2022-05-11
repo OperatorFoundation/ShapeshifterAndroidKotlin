@@ -36,7 +36,7 @@ class LaunchActivity : AppCompatActivity()
             println("*******ENTERED thread")
             // TODO: Make sure password matches the servers public key.
             val config = ShadowConfig(
-                "9caa4132c724f137c67928e9338c72cfe37e0dd28b298d14d5b5981effa038c9",
+                "",
                 "DarkStar"
             )
             
@@ -46,10 +46,12 @@ class LaunchActivity : AppCompatActivity()
                 val shadowSocket = ShadowSocket(config, "", 1234)
                 val httpRequest = "GET / HTTP/1.0\r\nConnection: close\r\n\r\n"
                 val textBytes = httpRequest.toByteArray()
-                val wroteBytesMessage = "Wrote some bytes."
+                val wroteBytesMessage = "Wrote ${textBytes.size} bytes."
                 val flushedOutputMessage = "Flushed the output stream."
+                val shadowOutputStream = shadowSocket.outputStream
 
-                shadowSocket.outputStream.write(textBytes)
+                shadowOutputStream.write(textBytes)
+
                 runOnUiThread {
                 println(wroteBytesMessage)
                 resultText.text = wroteBytesMessage}

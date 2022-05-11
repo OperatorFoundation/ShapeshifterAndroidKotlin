@@ -135,6 +135,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
 
     companion object
     {
+        private const val keySize = 32
         private var darkStarBytes = "DarkStar".toByteArray()
         private var clientStringBytes = "client".toByteArray()
         private var serverStringBytes = "server".toByteArray()
@@ -306,20 +307,28 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             val bcecPublicKey = pubKey as BCECPublicKey
             val point = bcecPublicKey.q
             val encodedPoint = point.getEncoded(true)
-            val result = ByteArray(32)
-            System.arraycopy(encodedPoint, 1, result, 0, 32)
+            val result = ByteArray(keySize)
+            System.arraycopy(encodedPoint, 1, result, 0, keySize)
+
             return result
         }
 
         @Throws(NoSuchAlgorithmException::class, InvalidKeySpecException::class)
-        fun bytesToPublicKey(bytes: ByteArray): PublicKey {
+        fun bytesToPublicKey(bytes: ByteArray): PublicKey
+        {
+            if (bytes.size != keySize)
+            {
+                throw InvalidKeySpecException()
+            }
+
             val keyFactory = KeyFactory.getInstance("EC", BouncyCastleProvider())
             val ecSpec: ECParameterSpec = ECNamedCurveTable.getParameterSpec("secp256r1")
             val encodedPoint = ByteArray(33)
-            System.arraycopy(bytes, 0, encodedPoint, 1, 32)
+            System.arraycopy(bytes, 0, encodedPoint, 1, keySize)
             encodedPoint[0] = 3
             val point = ecSpec.curve.decodePoint(encodedPoint)
             val pubSpec = ECPublicKeySpec(point, ecSpec)
+
             return keyFactory.generatePublic(pubSpec)
         }
     }

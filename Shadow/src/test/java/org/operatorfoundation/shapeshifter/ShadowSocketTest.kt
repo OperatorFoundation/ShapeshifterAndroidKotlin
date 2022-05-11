@@ -15,10 +15,12 @@ import java.security.spec.InvalidKeySpecException
 import java.util.*
 import kotlin.concurrent.thread
 
-internal class ShadowSocketTest {
+internal class ShadowSocketTest
+{
 
     @ExperimentalUnsignedTypes
-    fun runJsonTestServer() {
+    fun runJsonTestServer()
+    {
         val testServer = ServerSocket(1234)
         val socket = testServer.accept()
         readNBytes(socket.inputStream, 2)
@@ -28,56 +30,27 @@ internal class ShadowSocketTest {
     //Bad Arguments Tests
 
     @ExperimentalUnsignedTypes
-    @Test(expected = IllegalStateException::class)
-    fun checkBadCipher() {
+    @Test(expected = IllegalArgumentException::class)
+    fun checkBadCipher()
+    {
         val password = "1234"
-        val config = ShadowConfig(password, "cipherNoCiphing")
-        ShadowSocket(config, "127.0.0.1", 2222)
+        ShadowConfig(password, "cipherNoCiphing")
     }
 
     @ExperimentalUnsignedTypes
-    @Test(expected = IllegalStateException::class)
-    fun badKeySize() {
+    @Test(expected = InvalidKeySpecException::class)
+    fun badKeySize()
+    {
         val password = "1234"
         val config = ShadowConfig(password, "DarkStar")
-        ShadowSocket(config, "127.0.0.1", 2222)
-    }
-
-    @Test
-    @Throws(
-        IOException::class,
-        NoSuchAlgorithmException::class,
-        InvalidKeySpecException::class,
-        NoSuchProviderException::class
-    )
-
-    fun shadowDarkStarClientTest() {
-        val userHomeDir = System.getProperty("user.home")
-        val bloom = Bloom()
-        bloom.load("$userHomeDir/Desktop/Configs/bloom.txt")
-        val serverPersistentPublicKeyBytes = Files.readAllBytes(Paths.get("$userHomeDir/Desktop/Configs/serverPersistentPublicKey.txt"))
-        val serverPersistentPublicKeyString = String(serverPersistentPublicKeyBytes, StandardCharsets.UTF_8)
-        println(serverPersistentPublicKeyString)
-        // generate public key on swift for SPPK
-        val config = ShadowConfig(
-            serverPersistentPublicKeyString,
-            "DarkStar"
-        )
-        val shadowSocket = ShadowSocket(config, "127.0.0.1", 1234)
-        assertNotNull(shadowSocket)
-        val httpRequest = "GET / HTTP/1.0\r\n\r\n"
-        val textBytes = httpRequest.toByteArray()
-        shadowSocket.outputStream.write(textBytes)
-        shadowSocket.outputStream.flush()
-        var buffer = ByteArray(5)
-        System.out.println("bytes available: " + shadowSocket.inputStream.available())
-        shadowSocket.inputStream.read(buffer)
-        bloom.save("$userHomeDir/Desktop/Configs/bloom.txt")
+        val darkStar = DarkStar(config, "127.0.0.1", 2222)
+        darkStar.createHandshake()
     }
 
     @Test
     @ExperimentalUnsignedTypes
-    fun sipTest() {
+    fun sipTest()
+    {
         thread {
             runJsonTestServer()
         }
@@ -89,10 +62,17 @@ internal class ShadowSocketTest {
 
     @Test
     @ExperimentalUnsignedTypes
-    fun maxLongTest() {
-        // var buffer: ByteBuffer = ByteBuffer.allocate(8)
-        println(ULong.MAX_VALUE)
-        println(ULong.MAX_VALUE.toLong())
-        println((-1).toULong())
+    fun maxLongTest()
+    {
+        val uLongNumber = ULong.MAX_VALUE
+        println("uLongNumber: $uLongNumber")
+
+        val longNumber = uLongNumber.toLong()
+        println("longNumber: $longNumber")
+
+        val backToULongNumber = longNumber.toULong()
+        println("backToULongNumber: $backToULongNumber")
+
+        assert(uLongNumber == backToULongNumber)
     }
 }
