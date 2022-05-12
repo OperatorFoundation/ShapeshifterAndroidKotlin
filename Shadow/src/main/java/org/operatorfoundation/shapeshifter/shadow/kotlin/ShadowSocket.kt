@@ -25,6 +25,7 @@
 package org.operatorfoundation.shapeshifter.shadow.kotlin
 
 import android.util.Log
+import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowCipher.Companion.handshakeSize
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -405,7 +406,7 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     //@ExperimentalUnsignedTypes
     private fun receiveHandshake()
     {
-        val handshakeSize = ShadowCipher.determineSaltSize()
+        val handshakeSize = handshakeSize
         val result = readNBytes(socket.inputStream, handshakeSize)
 
         if (result != null && result.size == handshakeBytes.size)

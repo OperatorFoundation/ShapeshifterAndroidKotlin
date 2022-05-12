@@ -15,21 +15,6 @@ class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher()
 {
     var longCounter: ULong = 0u
 
-    // Create a secret key using the two key derivation functions.
-    @Throws(NoSuchAlgorithmException::class)
-    override fun createSecretKey(config: ShadowConfig, salt: ByteArray): SecretKey {
-        return KeyGenerator.getInstance("AES").generateKey()
-    }
-
-    override fun hkdfSha1(config: ShadowConfig, salt: ByteArray, psk: ByteArray): SecretKey {
-        return KeyGenerator.getInstance("AES").generateKey()
-    }
-
-    @Throws(NoSuchAlgorithmException::class)
-    override fun kdf(config: ShadowConfig): ByteArray {
-        return ByteArray(0)
-    }
-
     // [encrypted payload length][length tag] + [encrypted payload][payload tag]
     // Pack takes the data above and packs them into a singular byte array.
     @Throws(
