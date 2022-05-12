@@ -49,6 +49,7 @@ class LaunchActivity : AppCompatActivity()
                 val wroteBytesMessage = "Wrote ${textBytes.size} bytes."
                 val flushedOutputMessage = "Flushed the output stream."
                 val shadowOutputStream = shadowSocket.outputStream
+                val shadowInputStream = shadowSocket.inputStream
 
                 shadowOutputStream.write(textBytes)
 
@@ -56,13 +57,13 @@ class LaunchActivity : AppCompatActivity()
                 println(wroteBytesMessage)
                 resultText.text = wroteBytesMessage}
 
-                shadowSocket.outputStream.flush()
+                shadowOutputStream.flush()
                 runOnUiThread {
                 println(flushedOutputMessage)
                 resultText.text = flushedOutputMessage}
 
                 val buffer = ByteArray(235)
-                val numberOfBytesRead = shadowSocket.inputStream.read(buffer)
+                val numberOfBytesRead = shadowInputStream.read(buffer)
                 val readBytesMessage = "Read $numberOfBytesRead bytes."
 
                 if (numberOfBytesRead > 0)
