@@ -14,3 +14,6 @@ github.properties
 .externalNativeBuild
 .cxx
 app/build/*
+.idea/deploymentTargetDropDown.xml
+.idea/gradle.xml
+.idea/misc.xml
