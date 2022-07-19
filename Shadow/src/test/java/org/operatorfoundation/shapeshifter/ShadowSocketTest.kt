@@ -2,15 +2,13 @@ package org.operatorfoundation.shapeshifter
 
 import org.junit.Assert.assertNotNull
 import org.junit.Test
-import org.operatorfoundation.shapeshifter.shadow.kotlin.*
+import org.operatorfoundation.shapeshifter.shadow.kotlin.DarkStar
+import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowConfig
+import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowSocketFactory
+import org.operatorfoundation.shapeshifter.shadow.kotlin.readNBytes
 import java.io.IOException
 import java.net.ServerSocket
 import java.net.URL
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.security.NoSuchAlgorithmException
-import java.security.NoSuchProviderException
 import java.security.spec.InvalidKeySpecException
 import java.util.*
 import kotlin.concurrent.thread
@@ -74,5 +72,15 @@ internal class ShadowSocketTest
         println("backToULongNumber: $backToULongNumber")
 
         assert(uLongNumber == backToULongNumber)
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun createFactoryTest() {
+        val url =
+            URL("https://raw.githubusercontent.com/OperatorFoundation/ShadowSwift/main/Tests/ShadowSwiftTests/testsip008.json")
+        val uuid = UUID.fromString("27b8a625-4f4b-4428-9f0f-8a2317db7c79")
+        val factory = ShadowSocketFactory.factoryFromUrl(url, uuid)
+        assertNotNull(factory)
     }
 }
