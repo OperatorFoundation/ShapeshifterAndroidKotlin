@@ -1,6 +1,9 @@
 package org.operatorfoundation.shapeshifter
 
-import org.junit.Assert.assertNotNull
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import org.junit.Assert.*
 import org.junit.Test
 import org.operatorfoundation.shapeshifter.shadow.kotlin.DarkStar
 import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowConfig
@@ -82,5 +85,16 @@ internal class ShadowSocketTest
         val uuid = UUID.fromString("27b8a625-4f4b-4428-9f0f-8a2317db7c79")
         val factory = ShadowSocketFactory.factoryFromUrl(url, uuid)
         assertNotNull(factory)
+    }
+
+    @Test
+    fun configSerialization()
+    {
+        val config = ShadowConfig("password", "DarkStar")
+        val configString = Json.encodeToString(config)
+        println(configString)
+
+        val decodedConfig: ShadowConfig = Json.decodeFromString(configString)
+        assert(config.password == decodedConfig.password)
     }
 }

@@ -46,8 +46,10 @@ class LaunchActivity : AppCompatActivity()
                 val shadowSocket = ShadowSocket(config, "", 1234)
                 val httpRequest = "GET / HTTP/1.0\r\nConnection: close\r\n\r\n"
                 val textBytes = httpRequest.toByteArray()
+
                 val wroteBytesMessage = "Wrote ${textBytes.size} bytes."
                 val flushedOutputMessage = "Flushed the output stream."
+
                 val shadowOutputStream = shadowSocket.outputStream
                 val shadowInputStream = shadowSocket.inputStream
 
