@@ -2,10 +2,11 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'org.jetbrains.kotlin.plugin.serialization'
 apply plugin: 'maven-publish'
-group = 'com.github.operatorfoundation'
+//group = 'com.github.operatorfoundation'
 
 android {
     compileSdkVersion 30
+    namespace = "org.operatorfoundation.shapeshifter.shadow"
 
     defaultConfig {
         minSdkVersion 16
@@ -15,6 +16,11 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
+
+        aarMetadata {
+            minCompileSdk = 16
+        }
+
     }
 
     buildTypes {
@@ -44,18 +50,18 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 }
 
-publishing {
-    publications {
-        maven(MavenPublication) {
-            groupId = 'org.operatorfoundation.shapeshifter'
-            artifactId = 'Shadow'
-            version = '0.2.2'
-        }
-    }
-    repositories {
-        maven {
-            name = 'ShapeshifterJava'
-            url = uri('https://maven.pkg.github.com/OperatorFoundation/ShapeshifterAndroidKotlin')
-        }
-    }
-}
+//publishing {
+//    publications {
+//        maven(MavenPublication) {
+//            groupId = 'org.operatorfoundation.shapeshifter'
+//            artifactId = 'Shadow'
+//            version = '0.2.2'
+//        }
+//    }
+//    repositories {
+//        maven {
+//            name = 'ShapeshifterJava'
+//            url = uri('https://maven.pkg.github.com/OperatorFoundation/ShapeshifterAndroidKotlin')
+//        }
+//    }
+//}
