@@ -1,4 +1,4 @@
-package org.operatorfoundation.shapeshifter.shadow.kotlin
+package org.operatorfoundation.shadowkotlin
 
 import android.util.Log
 import java.io.InputStream

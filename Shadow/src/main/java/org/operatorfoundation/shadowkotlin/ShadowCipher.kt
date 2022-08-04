@@ -22,8 +22,9 @@
 	SOFTWARE.
 */
 
-package org.operatorfoundation.shapeshifter.shadow.kotlin
+package org.operatorfoundation.shadowkotlin
 
+import org.operatorfoundation.shadowkotlin.ShadowConfig
 import java.security.InvalidAlgorithmParameterException
 import java.security.InvalidKeyException
 import javax.crypto.BadPaddingException

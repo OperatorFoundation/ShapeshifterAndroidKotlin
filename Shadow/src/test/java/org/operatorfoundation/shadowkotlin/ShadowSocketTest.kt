@@ -18,7 +18,6 @@ import kotlin.concurrent.thread
 
 internal class ShadowSocketTest
 {
-
     @ExperimentalUnsignedTypes
     fun runJsonTestServer()
     {

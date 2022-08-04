@@ -22,10 +22,11 @@
 	SOFTWARE.
 */
 
-package org.operatorfoundation.shapeshifter.shadow.kotlin
+package org.operatorfoundation.shadowkotlin
 
 import android.util.Log
-import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowCipher.Companion.handshakeSize
+import org.operatorfoundation.shadowkotlin.ShadowCipher.Companion.handshakeSize
+import org.operatorfoundation.shadowkotlin.readNBytes
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream

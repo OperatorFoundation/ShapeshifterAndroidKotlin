@@ -1,5 +1,7 @@
-package org.operatorfoundation.shapeshifter.shadow.kotlin
+package org.operatorfoundation.shadowkotlin
 
+import org.operatorfoundation.shadowkotlin.ShadowConfig
+import org.operatorfoundation.shadowkotlin.ShadowSocket
 import java.net.SocketAddress
 
 //@ExperimentalUnsignedTypes

@@ -1,4 +1,4 @@
-package org.operatorfoundation.shapeshifter.shadow.kotlin
+package org.operatorfoundation.shadowkotlin
 
 import android.util.Log
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey
@@ -6,6 +6,10 @@ import org.bouncycastle.jce.ECNamedCurveTable
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.jce.spec.ECParameterSpec
 import org.bouncycastle.jce.spec.ECPublicKeySpec
+import org.operatorfoundation.shadowkotlin.ShadowCipher
+import org.operatorfoundation.shadowkotlin.ShadowConfig
+import org.operatorfoundation.shadowkotlin.ShadowDarkStarCipher
+import org.operatorfoundation.shadowkotlin.hexToBytes
 import java.net.InetAddress
 import java.net.UnknownHostException
 import java.nio.ByteBuffer

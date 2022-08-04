@@ -4,8 +4,8 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.TextView
 import kotlinx.android.synthetic.main.activity_launch.*
-import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowConfig
-import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowSocket
+import org.operatorfoundation.shadowkotlin.ShadowConfig
+import org.operatorfoundation.shadowkotlin.ShadowSocket
 import java.nio.charset.Charset
 import kotlin.concurrent.thread
 

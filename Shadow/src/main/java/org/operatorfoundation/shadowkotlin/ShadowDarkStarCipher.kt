@@ -1,4 +1,4 @@
-package org.operatorfoundation.shapeshifter.shadow.kotlin
+package org.operatorfoundation.shadowkotlin
 
 import android.os.Build
 import org.bouncycastle.jcajce.spec.AEADParameterSpec

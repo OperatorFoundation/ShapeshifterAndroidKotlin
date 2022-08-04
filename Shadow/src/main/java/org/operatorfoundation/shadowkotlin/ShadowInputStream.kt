@@ -22,9 +22,12 @@
 	SOFTWARE.
 */
 
-package org.operatorfoundation.shapeshifter.shadow.kotlin
+package org.operatorfoundation.shadowkotlin
 
 import android.util.Log
+import org.operatorfoundation.shadowkotlin.ShadowSocket
+import org.operatorfoundation.shadowkotlin.getIntFromBigEndian
+import org.operatorfoundation.shadowkotlin.readNBytes
 import java.io.IOException
 import java.io.InputStream
 

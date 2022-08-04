@@ -22,7 +22,7 @@
 	SOFTWARE.
 */
 
-package org.operatorfoundation.shapeshifter.shadow.kotlin
+package org.operatorfoundation.shadowkotlin
 
 import com.google.gson.Gson
 import java.net.InetAddress
