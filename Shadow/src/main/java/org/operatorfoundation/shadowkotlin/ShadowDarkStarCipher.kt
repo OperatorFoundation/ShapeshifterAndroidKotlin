@@ -2,6 +2,7 @@ package org.operatorfoundation.shadowkotlin
 
 import android.os.Build
 import org.bouncycastle.jcajce.spec.AEADParameterSpec
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.InvalidAlgorithmParameterException
@@ -173,7 +174,7 @@ class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher()
         try {
             cipher = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P)
             {
-                Cipher.getInstance("AES/GCM/NoPadding", "BC")
+                Cipher.getInstance("AES/GCM/NoPadding", BouncyCastleProvider())
             }
             else
             {

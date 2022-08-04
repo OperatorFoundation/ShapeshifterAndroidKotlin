@@ -1,6 +1,8 @@
 package org.operatorfoundation.shapeshifter
 
+import android.icu.util.TimeUnit
 import java.io.IOException
+
 import java.net.ServerSocket
 import java.net.URL
 import java.security.spec.InvalidKeySpecException
@@ -9,6 +11,8 @@ import kotlin.concurrent.thread
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -17,12 +21,32 @@ import org.operatorfoundation.shadowkotlin.ShadowConfig
 import org.operatorfoundation.shadowkotlin.ShadowSocketFactory
 import org.operatorfoundation.shadowkotlin.readNBytes
 
-
-import kotlin.concurrent.thread
-
-
 internal class ShadowSocketTest
 {
+    @Test
+    fun okhttpTestServer() {
+        val config = ShadowConfig("", "DarkStar")
+        val client: OkHttpClient.Builder = OkHttpClient.Builder()
+            .connectTimeout(15000, java.util.concurrent.TimeUnit.MILLISECONDS)
+            .readTimeout(15000, java.util.concurrent.TimeUnit.MILLISECONDS)
+            .writeTimeout(15000, java.util.concurrent.TimeUnit.MILLISECONDS)
+        val okHttpClient = client.socketFactory(ShadowSocketFactory(config, "", 1234)).build()
+
+        val request = Request.Builder()
+            .url("https://")
+            .build()
+
+        okHttpClient.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw IOException("Unexpected code $response")
+
+            for ((name, value) in response.headers) {
+                println("$name: $value")
+            }
+            val body = response.body!!.string().trim()
+            println(body)
+        }
+    }
+
     @ExperimentalUnsignedTypes
     fun runJsonTestServer()
     {
