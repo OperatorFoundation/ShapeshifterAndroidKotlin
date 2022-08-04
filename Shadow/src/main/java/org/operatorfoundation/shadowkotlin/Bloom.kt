@@ -1,18 +1,9 @@
 package org.operatorfoundation.shadowkotlin
 
-import java.util.*
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 import com.google.common.hash.Funnels
-import java.util.Calendar
-
 import com.google.common.hash.BloomFilter
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import java.io.OutputStream
-import java.net.Socket
-import java.nio.charset.Charset
-import java.util.concurrent.ScheduledExecutorService
 
 class Bloom
 {

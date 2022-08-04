@@ -1,20 +1,25 @@
 package org.operatorfoundation.shapeshifter
 
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import org.junit.Assert.*
-import org.junit.Test
-import org.operatorfoundation.shapeshifter.shadow.kotlin.DarkStar
-import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowConfig
-import org.operatorfoundation.shapeshifter.shadow.kotlin.ShadowSocketFactory
-import org.operatorfoundation.shapeshifter.shadow.kotlin.readNBytes
 import java.io.IOException
 import java.net.ServerSocket
 import java.net.URL
 import java.security.spec.InvalidKeySpecException
 import java.util.*
 import kotlin.concurrent.thread
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import org.junit.Assert.*
+import org.junit.Test
+
+import org.operatorfoundation.shadowkotlin.DarkStar
+import org.operatorfoundation.shadowkotlin.ShadowConfig
+import org.operatorfoundation.shadowkotlin.ShadowSocketFactory
+import org.operatorfoundation.shadowkotlin.readNBytes
+
+
+import kotlin.concurrent.thread
+
 
 internal class ShadowSocketTest
 {
