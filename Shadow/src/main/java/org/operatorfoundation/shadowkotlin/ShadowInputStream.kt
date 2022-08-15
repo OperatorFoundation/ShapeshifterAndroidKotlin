@@ -25,9 +25,6 @@
 package org.operatorfoundation.shadowkotlin
 
 import android.util.Log
-import org.operatorfoundation.shadowkotlin.ShadowSocket
-import org.operatorfoundation.shadowkotlin.getIntFromBigEndian
-import org.operatorfoundation.shadowkotlin.readNBytes
 import java.io.IOException
 import java.io.InputStream
 
@@ -154,6 +151,14 @@ class ShadowInputStream(
         b?.let {
             val readbuf = ByteArray(len)
             val buflen = read(readbuf)
+            if (buflen == -1) {
+                return -1
+            }
+
+            if (buflen == 0) {
+                return 0
+            }
+
             readbuf.copyInto(b, off, 0, buflen)
             return buflen
         }
@@ -168,7 +173,10 @@ class ShadowInputStream(
     override fun read(): Int {
         val result: ByteArray = byteArrayOf(0)
         // read bytes up to payload length (4)
-        read(result)
+        val lengthRead = read(result)
+        if (lengthRead == -1) {
+            return -1
+        }
         return result[0].toInt()
     }
 
