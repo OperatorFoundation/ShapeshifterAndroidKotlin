@@ -2,24 +2,27 @@ package org.operatorfoundation.shadowkotlin
 
 import org.operatorfoundation.shadowkotlin.ShadowConfig
 import org.operatorfoundation.shadowkotlin.ShadowSocket
+import java.net.InetSocketAddress
+import java.net.Socket
 import java.net.SocketAddress
 
 //@ExperimentalUnsignedTypes
-class OKHTTPShadowSocket(config: ShadowConfig, shadowHost: String, shadowPort: Int) :
-    ShadowSocket(config, shadowHost, shadowPort) {
+class OKHTTPShadowSocket(val shadowHost: String, val shadowPort: Int): Socket() {
 
     //@ExperimentalUnsignedTypes
     override fun connect(endpoint: SocketAddress?) {
-
+        val address = InetSocketAddress(shadowHost, shadowPort)
+        super.connect(address)
     }
 
    // @ExperimentalUnsignedTypes
     override fun connect(endpoint: SocketAddress?, timeout: Int) {
-
+       val address = InetSocketAddress(shadowHost, shadowPort)
+       super.connect(address, timeout)
     }
 
     // Converts this socket to a String.
     override fun toString(): String {
-        return "OKHTTPShadowSocket[" + "password = " + config.password + ", cipherName = " + config.cipherName + "]"
+        return "OKHTTPShadowSocket"
     }
 }

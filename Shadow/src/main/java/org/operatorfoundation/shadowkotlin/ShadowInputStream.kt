@@ -177,6 +177,9 @@ class ShadowInputStream(
         if (lengthRead == -1) {
             return -1
         }
+        if (lengthRead < -1 || lengthRead > 255) {
+            print("bad read")
+        }
         return result[0].toInt()
     }
 

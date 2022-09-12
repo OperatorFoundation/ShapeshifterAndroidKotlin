@@ -39,6 +39,9 @@ dependencies {
     implementation 'com.google.android.material:material:1.6.1'
 
     implementation project(path: ':Shadow')
+    implementation 'com.github.operatorfoundation:locketkotlin:1.0.18'
+    implementation 'com.squareup.okhttp3:okhttp:4.9.0'
+    implementation 'androidx.test:monitor:1.4.0'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

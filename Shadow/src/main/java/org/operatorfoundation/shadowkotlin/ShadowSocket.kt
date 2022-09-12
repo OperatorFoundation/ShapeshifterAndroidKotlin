@@ -78,6 +78,7 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
             this.handshakeBytes = darkStar!!.createHandshake()
             handshake()
             connectionStatus = true
+            println("handshake was successful")
         }
         catch (handshakeError: Exception)
         {

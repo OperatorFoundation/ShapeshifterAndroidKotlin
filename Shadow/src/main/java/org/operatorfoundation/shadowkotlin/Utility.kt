@@ -1,7 +1,9 @@
 package org.operatorfoundation.shadowkotlin
 
 import android.util.Log
+import java.io.IOException
 import java.io.InputStream
+import java.io.OutputStream
 import java.lang.Exception
 import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
@@ -111,4 +113,27 @@ fun getIntFromBigEndian(bigEData: ByteArray): Int
     val leftInt = leftByte.toInt()
     val payloadLength = (leftInt * 256) + rightInt
     return payloadLength
+}
+
+fun InputStream.transferTo(out: OutputStream): Long {
+    var bytesRead: Long = 0
+
+    while (true) {
+        try {
+            val maybeByte = this.read()
+            if (maybeByte < -1) {
+                print("maybeByte less than zero")
+            }
+            if (maybeByte == -1) {
+                return bytesRead
+            } else {
+                out.write(maybeByte)
+                bytesRead += 1
+            }
+        } catch(exception: IOException) {
+            this.close()
+            out.close()
+            return bytesRead
+        }
+    }
 }

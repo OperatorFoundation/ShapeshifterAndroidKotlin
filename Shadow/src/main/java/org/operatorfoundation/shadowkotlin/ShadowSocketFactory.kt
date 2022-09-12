@@ -73,7 +73,6 @@ class ShadowSocketFactory(
 
     //@ExperimentalUnsignedTypes
     override fun createSocket(remoteHost: String?, remotePort: Int): Socket {
-
         return ShadowSocket(shadowConfig, shadowHost, shadowPort)
     }
 
@@ -97,6 +96,6 @@ class ShadowSocketFactory(
 
     //@ExperimentalUnsignedTypes
     override fun createSocket(): Socket {
-        return OKHTTPShadowSocket(shadowConfig, shadowHost, shadowPort)
+        return ShadowSocket(shadowConfig, shadowHost, shadowPort)
     }
 }
