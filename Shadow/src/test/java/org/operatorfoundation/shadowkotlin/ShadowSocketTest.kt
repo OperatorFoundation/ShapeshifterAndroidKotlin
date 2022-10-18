@@ -1,25 +1,23 @@
 package org.operatorfoundation.shapeshifter
 
-import android.icu.util.TimeUnit
-import java.io.IOException
-
-import java.net.ServerSocket
-import java.net.URL
-import java.security.spec.InvalidKeySpecException
-import java.util.*
-import kotlin.concurrent.thread
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.junit.Assert.*
+import org.junit.Assert.assertNotNull
 import org.junit.Test
-
+import org.operatorfoundation.locketkotlin.LocketFactory
 import org.operatorfoundation.shadowkotlin.DarkStar
 import org.operatorfoundation.shadowkotlin.ShadowConfig
 import org.operatorfoundation.shadowkotlin.ShadowSocketFactory
 import org.operatorfoundation.shadowkotlin.readNBytes
+import java.io.IOException
+import java.net.ServerSocket
+import java.net.URL
+import java.security.spec.InvalidKeySpecException
+import java.util.*
+import kotlin.concurrent.thread
 
 internal class ShadowSocketTest
 {
@@ -34,6 +32,32 @@ internal class ShadowSocketTest
 
         val request = Request.Builder()
             .url("https://")
+            .build()
+
+        okHttpClient.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw IOException("Unexpected code $response")
+
+            for ((name, value) in response.headers) {
+                println("$name: $value")
+            }
+            val body = response.body!!.string().trim()
+            println(body)
+        }
+    }
+
+    @Test
+    fun okhttpTestServerLocket() {
+        val config = ShadowConfig("", "DarkStar")
+        val client: OkHttpClient.Builder = OkHttpClient.Builder()
+            .connectTimeout(15000, java.util.concurrent.TimeUnit.MILLISECONDS)
+            .readTimeout(15000, java.util.concurrent.TimeUnit.MILLISECONDS)
+            .writeTimeout(15000, java.util.concurrent.TimeUnit.MILLISECONDS)
+        val shadowSocketFactory = ShadowSocketFactory(config, "", 2222)
+        val locketFactory = LocketFactory(null, "", shadowSocketFactory, "ShadowClient")
+        val okHttpClient = client.socketFactory(locketFactory).build()
+
+        val request = Request.Builder()
+            .url("https://www.google.com")
             .build()
 
         okHttpClient.newCall(request).execute().use { response ->
