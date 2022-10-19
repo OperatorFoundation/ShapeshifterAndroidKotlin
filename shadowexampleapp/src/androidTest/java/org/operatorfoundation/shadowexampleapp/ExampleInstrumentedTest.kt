@@ -14,6 +14,7 @@ import org.operatorfoundation.locketkotlin.LocketFactory
 import org.operatorfoundation.shadowkotlin.*
 import java.io.IOException
 import java.net.*
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
 /**
@@ -42,6 +43,60 @@ class ExampleInstrumentedTest {
         val address =InetSocketAddress("127.0.0.1", serverSocket.localPort)
         socket.connect(address)
         socket.getInputStream()
+    }
+
+    @Test
+    fun restCall()
+    {
+        val sConfig = ShadowConfig("", CipherMode.DarkStar.toString())
+
+        val client: OkHttpClient.Builder = OkHttpClient
+            .Builder()
+            .connectTimeout(30000, TimeUnit.MILLISECONDS)
+            .readTimeout(30000, TimeUnit.MILLISECONDS)
+            .writeTimeout(30000, TimeUnit.MILLISECONDS)
+
+        val okhttpShadowSocketFactory = OKHTTPShadowSocketFactory(
+            sConfig,
+            "",
+            111)
+
+        val okHttpClient = client.socketFactory(
+            okhttpShadowSocketFactory
+        ).build()
+
+        val request = Request.Builder()
+            .url("")
+            .build()
+
+        try
+        {
+            okHttpClient.newCall(request).execute().use { response ->
+                println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+                println("Received a response to our okHTTPClient request: $response")
+                println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+
+                assert(response.isSuccessful)
+
+                if (!response.isSuccessful) {
+                    println("okHttpClient request was unsuccessful")
+                    //throw IOException("Unexpected code $response")
+                } else {
+                    println("okHttpClient request was successful")
+
+                    for ((name, value) in response.headers) {
+                        println("okHttpClient request $name: $value")
+                    }
+                    val body = response.body!!.string().trim()
+                    println(body)
+                }
+            }
+        }
+        catch (ex:Exception)
+        {
+            println("okHttpClient request was unsuccessful, stack trace: " + ex.stackTrace.toString())
+            println("okHttpClient request was unsuccessful, error message: " + ex.message)
+        }
     }
 
     @Test

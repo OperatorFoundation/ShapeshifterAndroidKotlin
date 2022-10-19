@@ -13,9 +13,9 @@ class OKHTTPShadowSocketFactory(
     private val shadowConfig: ShadowConfig,
     private val host: String,
     private val port: Int,
-    private val context: Context?,
-    private val nonAppDirectory: String?,
-    private val logFileName: String?
+    private val context: Context? = null,
+    private val nonAppDirectory: String? = null,
+    private val logFileName: String? = null
     ): SocketFactory() {
     private fun connect(): Socket {
         val shadowSocket = ShadowSocket(shadowConfig, host, port)
@@ -47,7 +47,7 @@ class OKHTTPShadowSocketFactory(
         }
 
         val okhttpSocket = OKHTTPShadowSocket("127.0.0.1", serverSocket.localPort)
-        print("server socket localPort: ${serverSocket.localPort}")
+        println("server socket localPort: ${serverSocket.localPort}")
         return okhttpSocket
     }
 

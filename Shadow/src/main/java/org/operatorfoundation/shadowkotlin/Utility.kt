@@ -122,7 +122,7 @@ fun InputStream.transferTo(out: OutputStream): Long {
         try {
             val maybeByte = this.read()
             if (maybeByte < -1) {
-                print("maybeByte less than zero")
+                println("maybeByte less than zero")
             }
             if (maybeByte == -1) {
                 return bytesRead
