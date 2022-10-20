@@ -3,7 +3,7 @@ package org.operatorfoundation.shadowexampleapp
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.TextView
-import kotlinx.android.synthetic.main.activity_launch.*
+import org.operatorfoundation.shadowexampleapp.databinding.ActivityLaunchBinding
 import org.operatorfoundation.shadowkotlin.ShadowConfig
 import org.operatorfoundation.shadowkotlin.ShadowSocket
 import java.nio.charset.Charset
@@ -11,21 +11,23 @@ import kotlin.concurrent.thread
 
 class LaunchActivity : AppCompatActivity()
 {
+    private lateinit var binding: ActivityLaunchBinding
 
-    lateinit var resultText: TextView
+    lateinit var resultTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
-            println("*******ENTERED onCreate FUNCTION")
-            super.onCreate(savedInstanceState)
-            setContentView(R.layout.activity_launch)
 
-            println("*******ABOUT TO CALL shadowDarkStarClient()")
-            run_button.setOnClickListener {
-                shadowDarkStarClient()
-            }
+        super.onCreate(savedInstanceState)
+        binding = ActivityLaunchBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)
 
-            resultText = findViewById(R.id.resultText)
+        binding.runButton.setOnClickListener {
+            shadowDarkStarClient()
+        }
+
+        resultTextView = binding.resultText
     }
 
     fun shadowDarkStarClient()
@@ -57,12 +59,12 @@ class LaunchActivity : AppCompatActivity()
 
                 runOnUiThread {
                 println(wroteBytesMessage)
-                resultText.text = wroteBytesMessage}
+                resultTextView.text = wroteBytesMessage}
 
                 shadowOutputStream.flush()
                 runOnUiThread {
                 println(flushedOutputMessage)
-                resultText.text = flushedOutputMessage}
+                resultTextView.text = flushedOutputMessage}
 
                 val buffer = ByteArray(235)
                 val numberOfBytesRead = shadowInputStream.read(buffer)
@@ -72,7 +74,7 @@ class LaunchActivity : AppCompatActivity()
                 {
                     runOnUiThread {
                     println(readBytesMessage)
-                    resultText.text = readBytesMessage}
+                    resultTextView.text = readBytesMessage}
 
                     val responseString = buffer.toString(Charset.defaultCharset())
                     val readDataMessage = ("Read some data: " + responseString)
@@ -81,19 +83,19 @@ class LaunchActivity : AppCompatActivity()
                         "Test failed: We did not get the response we were expecting."
                     runOnUiThread {
                     println(readDataMessage)
-                    resultText.text = readDataMessage}
+                    resultTextView.text = readDataMessage}
 
                     if (responseString.contains("Yeah!"))
                     {
                         runOnUiThread {
                         println(testSuccessMessage)
-                        resultText.text = testSuccessMessage}
+                        resultTextView.text = testSuccessMessage}
                     }
                     else
                     {
                         runOnUiThread {
                         println(testFailedMessage)
-                        resultText.text = testFailedMessage}
+                        resultTextView.text = testFailedMessage}
                     }
                 }
                 else if (numberOfBytesRead == -1)
@@ -102,7 +104,7 @@ class LaunchActivity : AppCompatActivity()
                         "Test failed: Attempted to read from the network but received EOF."
                     runOnUiThread {
                     println(testFailedEOFMessage)
-                    resultText.text = testFailedEOFMessage}
+                    resultTextView.text = testFailedEOFMessage}
                 }
                 else
                 {
@@ -110,7 +112,7 @@ class LaunchActivity : AppCompatActivity()
                         "Test failed, we got an empty response from the server."
                     runOnUiThread {
                     println(testEmptyResponseFailMessage)
-                    resultText.text = testEmptyResponseFailMessage}
+                    resultTextView.text = testEmptyResponseFailMessage}
                 }
             }
             catch (error: Exception)
@@ -119,12 +121,12 @@ class LaunchActivity : AppCompatActivity()
                     "--> Received an error while attempting to create a connection: $error"
                 runOnUiThread {
                 println(receivedErrorMessage)
-                resultText.text = receivedErrorMessage}
+                resultTextView.text = receivedErrorMessage}
 
                 val checkCredentialsMessage = "--> Check your server credentials."
                 runOnUiThread {
                 println(checkCredentialsMessage)
-                resultText.text = checkCredentialsMessage}
+                resultTextView.text = checkCredentialsMessage}
             }
         }
     }
