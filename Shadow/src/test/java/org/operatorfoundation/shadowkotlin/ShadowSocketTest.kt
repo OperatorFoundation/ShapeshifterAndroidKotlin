@@ -1,4 +1,4 @@
-package org.operatorfoundation.shapeshifter
+package org.operatorfoundation.shadowkotlin
 
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -8,10 +8,6 @@ import okhttp3.Request
 import org.junit.Assert.assertNotNull
 import org.junit.Test
 import org.operatorfoundation.locketkotlin.LocketFactory
-import org.operatorfoundation.shadowkotlin.DarkStar
-import org.operatorfoundation.shadowkotlin.ShadowConfig
-import org.operatorfoundation.shadowkotlin.ShadowSocketFactory
-import org.operatorfoundation.shadowkotlin.readNBytes
 import java.io.IOException
 import java.net.ServerSocket
 import java.net.URL
@@ -140,11 +136,24 @@ internal class ShadowSocketTest
     }
 
     @Test
-    fun configSerialization()
+    fun configSerializationNoHost()
     {
         val config = ShadowConfig("password", "DarkStar")
         val configString = Json.encodeToString(config)
-        println(configString)
+
+        println("\n--> Shadow Config as Json: \n$configString")
+
+        val decodedConfig: ShadowConfig = Json.decodeFromString(configString)
+        assert(config.password == decodedConfig.password)
+    }
+
+    @Test
+    fun configSerializationWithHost()
+    {
+        val config = ShadowConfig("password", "DarkStar", "0.0.0.0", 0)
+        val configString = Json.encodeToString(config)
+
+        println("\n--> Shadow Config as Json: \n$configString")
 
         val decodedConfig: ShadowConfig = Json.decodeFromString(configString)
         assert(config.password == decodedConfig.password)

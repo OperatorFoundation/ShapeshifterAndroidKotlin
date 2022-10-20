@@ -26,13 +26,19 @@ package org.operatorfoundation.shadowkotlin
 
 import kotlinx.serialization.Serializable
 import android.util.Log
+import kotlinx.serialization.Transient
 import java.lang.IllegalArgumentException
 
 // ShadowConfig is a class that implements the arguments necessary for a Shadowsocks connection.
 @Serializable
-class ShadowConfig(val password: String, val cipherName: String)
+class ShadowConfig(val password: String, val cipherName: String, val serverIP: String? = null, val port: Int? = null)
 {
-    val cipherMode: CipherMode
+    /**
+     * serverIP and port properties were added so that JSON config files can be brought into line with iOS, macOS, and Linux (Swift)
+     * These are being left as optionals defaulting to null to minimize any impact this change will have until we are able to work on normalizing configs across all platforms
+     */
+
+    @Transient lateinit var cipherMode: CipherMode
 
     init {
         var maybeMode: CipherMode? = null
