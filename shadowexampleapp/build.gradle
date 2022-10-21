@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'maven-publish'
 }
 
 android {
@@ -10,6 +11,7 @@ android {
         applicationId "org.operatorfoundation.shadowexampleapp"
         minSdkVersion 16
         targetSdkVersion 32
+        versionCode = 1
 
         multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
