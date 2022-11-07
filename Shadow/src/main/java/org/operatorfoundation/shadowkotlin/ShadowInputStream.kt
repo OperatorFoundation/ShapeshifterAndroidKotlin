@@ -169,7 +169,6 @@ class ShadowInputStream(
     }
 
     // Reads the next byte of data from the input stream.
-    //@ExperimentalUnsignedTypes
     override fun read(): Int {
         val result: ByteArray = byteArrayOf(0)
         // read bytes up to payload length (4)
@@ -177,10 +176,12 @@ class ShadowInputStream(
         if (lengthRead == -1) {
             return -1
         }
-        if (lengthRead < -1 || lengthRead > 255) {
-            print("bad read")
-        }
-        return result[0].toInt()
-    }
 
+        if (lengthRead != 1) {
+            print("bad read")
+            return -1
+        }
+
+        return result[0].toUByte().toInt()
+    }
 }

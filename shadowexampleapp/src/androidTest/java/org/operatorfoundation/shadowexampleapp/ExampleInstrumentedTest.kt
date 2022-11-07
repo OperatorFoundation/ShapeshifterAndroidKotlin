@@ -14,6 +14,7 @@ import org.operatorfoundation.locketkotlin.LocketFactory
 import org.operatorfoundation.shadowkotlin.*
 import java.io.IOException
 import java.net.*
+import java.security.PrivateKey
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
@@ -59,18 +60,18 @@ class ExampleInstrumentedTest {
         val okhttpShadowSocketFactory = OKHTTPShadowSocketFactory(
             sConfig,
             "",
-            111)
+            443)
 
         val okHttpClient = client.socketFactory(
             okhttpShadowSocketFactory
         ).build()
 
         val request = Request.Builder()
-            .url("https://www.google.com")
+            .url("")
             .build()
 
-        try
-        {
+//        try
+//        {
             okHttpClient.newCall(request).execute().use { response ->
                 println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
                 println("Received a response to our okHTTPClient request: $response")
@@ -80,7 +81,6 @@ class ExampleInstrumentedTest {
 
                 if (!response.isSuccessful) {
                     println("okHttpClient request was unsuccessful")
-                    //throw IOException("Unexpected code $response")
                 } else {
                     println("okHttpClient request was successful")
 
@@ -91,12 +91,22 @@ class ExampleInstrumentedTest {
                     println(body)
                 }
             }
-        }
-        catch (ex:Exception)
-        {
-            println("okHttpClient request was unsuccessful, stack trace: " + ex.stackTrace.toString())
-            println("okHttpClient request was unsuccessful, error message: " + ex.message)
-        }
+        //}
+//        catch (ex:Exception)
+//        {
+//            println("okHttpClient request was unsuccessful, stack trace: " + ex.stackTrace.toString())
+//            println("okHttpClient request was unsuccessful, error message: " + ex.message)
+//            fail()
+//        }
+    }
+
+    @Test
+    fun basicTest() {
+        val shadowConfig = ShadowConfig("", CipherMode.DarkStar.toString())
+        val shadowSocket = ShadowSocket(shadowConfig, "", 443)
+        shadowSocket.outputStream.write("GET / HTTP/1.0\\r\\nConnection: close\\r\\n\\r\\n".toByteArray())
+        val readBuffer = ByteArray(10)
+        shadowSocket.inputStream.read(readBuffer)
     }
 
 //    @Test
