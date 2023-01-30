@@ -14,7 +14,9 @@ import org.operatorfoundation.locketkotlin.LocketFactory
 import org.operatorfoundation.shadowkotlin.*
 import java.io.IOException
 import java.net.*
+import java.security.KeyFactory
 import java.security.PrivateKey
+import java.security.spec.PKCS8EncodedKeySpec
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
@@ -49,7 +51,7 @@ class ExampleInstrumentedTest {
     @Test
     fun restCall()
     {
-        val sConfig = ShadowConfig("", CipherMode.DarkStar.toString())
+        val sConfig = ShadowConfig("0a24ee71ff31fe0882ff3ec362d8eb47d1976d948f3d069193481cbb5be5858c", CipherMode.DarkStar.toString())
 
         val client: OkHttpClient.Builder = OkHttpClient
             .Builder()
@@ -59,7 +61,7 @@ class ExampleInstrumentedTest {
 
         val okhttpShadowSocketFactory = OKHTTPShadowSocketFactory(
             sConfig,
-            "",
+            "178.128.240.180",
             443)
 
         val okHttpClient = client.socketFactory(
@@ -67,7 +69,7 @@ class ExampleInstrumentedTest {
         ).build()
 
         val request = Request.Builder()
-            .url("")
+            .url("https://gershaad.com/api/external/v1/reports?east=-79.55436241330129&south=43.62876045419779&north=43.71869245326986&west=-79.67870102128103&cluster=false")
             .build()
 
 //        try
@@ -102,8 +104,8 @@ class ExampleInstrumentedTest {
 
     @Test
     fun basicTest() {
-        val shadowConfig = ShadowConfig("", CipherMode.DarkStar.toString())
-        val shadowSocket = ShadowSocket(shadowConfig, "", 443)
+        val shadowConfig = ShadowConfig("0a24ee71ff31fe0882ff3ec362d8eb47d1976d948f3d069193481cbb5be5858c", CipherMode.DarkStar.toString())
+        val shadowSocket = ShadowSocket(shadowConfig, "178.128.240.180", 443)
         shadowSocket.outputStream.write("GET / HTTP/1.0\\r\\nConnection: close\\r\\n\\r\\n".toByteArray())
         val readBuffer = ByteArray(10)
         shadowSocket.inputStream.read(readBuffer)
