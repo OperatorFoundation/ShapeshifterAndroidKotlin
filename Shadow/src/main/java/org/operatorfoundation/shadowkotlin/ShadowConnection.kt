@@ -27,7 +27,9 @@ package org.operatorfoundation.shadowkotlin
 import android.util.Log
 import org.operatorfoundation.shadowkotlin.ShadowCipher.Companion.handshakeSize
 import org.operatorfoundation.transmission.Connection
+import org.operatorfoundation.transmission.ConnectionType
 import org.operatorfoundation.transmission.Transmission
+import org.operatorfoundation.transmission.TransmissionConnection
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -35,6 +37,7 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Proxy
 import java.net.Socket
+import java.util.logging.Logger
 
 // This class implements client sockets (also called just "sockets").
 // A socket is an endpoint for communication between two machines.
@@ -54,7 +57,6 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
     // Fields:
     private lateinit var inputStream: InputStream
     private lateinit var outputStream: OutputStream
-    private var socket: Socket = Socket()
     private lateinit var handshakeBytes: ByteArray
     private lateinit var encryptionCipher: ShadowCipher
     private var decryptionCipher: ShadowCipher? = null
@@ -63,19 +65,66 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
     private var host: String? = null
     private var port: Int? = null
     private var decryptFailed: Boolean = false
+    private lateinit var connection: Connection
+    private var logger: Logger? = null
 
     // Constructors:
 
-    // Creates a stream socket and connects it to the specified port number on the named host.
-    //@ExperimentalUnsignedTypes
-    constructor(config: ShadowConfig, host: String, port: Int) : this(config)
-    {
-        val socketAddress = InetSocketAddress(host, port)
+    constructor(connection: Connection, config: ShadowConfig, logger: Logger?): this(config) {
+        this.connection = connection
+        this.logger = logger
+        val host = config.serverIP
+        if (host == null) {
+            throw Exception("no host found")
+        }
+
+        val port = config.port
+        if (port == null) {
+            throw Exception("no port found")
+        }
+
         this.host = host
         this.port = port
-        this.socket = Socket()
-        this.socket.connect(socketAddress)
+        try
+        {
+            this.darkStar = DarkStar(config, host, port)
+            this.handshakeBytes = darkStar!!.createHandshake()
+            handshake()
+            connectionStatus = true
+            println("handshake was successful")
+            this.inputStream = getInputStream()
+            this.outputStream = getOutputStream()
+        }
+        catch (handshakeError: Exception)
+        {
+            Log.e("ShadowSocket.init", "Handshake failed.")
+            println(handshakeError.message)
+            connectionStatus = false
 
+            throw handshakeError
+        }
+
+    }
+
+    // Creates a stream socket and connects it to the specified port number on the named host.
+    //@ExperimentalUnsignedTypes
+    constructor(config: ShadowConfig, logger: Logger?) : this(config)
+    {
+        val host = config.serverIP
+        if (host == null) {
+            throw Exception("no host found")
+        }
+
+        val port = config.port
+        if (port == null) {
+            throw Exception("no port found")
+        }
+
+        this.host = host
+        this.port = port
+
+        this.connection = TransmissionConnection(host, port, ConnectionType.TCP, logger)
+        this.logger = logger
         try
         {
             this.darkStar = DarkStar(config, host, port)
@@ -96,92 +145,10 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
         }
     }
 
-    // Creates a socket and connects it to the specified remote host on the specified remote port.
-    @ExperimentalUnsignedTypes
-    constructor(config: ShadowConfig, host: String, port: Int, localAddr: InetAddress, localPort: Int) : this(config)
-    {
-        socket = Socket(host, port, localAddr, localPort)
-
-        try
-        {
-            handshake()
-            connectionStatus = true
-            this.inputStream = getInputStream()
-            this.outputStream = getOutputStream()
-        }
-        catch(error: Exception)
-        {
-            Log.e("ShadowSocket.init", "Handshake failed.")
-            socket.close()
-            connectionStatus = false
-            throw error
-        }
-    }
-
-    // Creates a stream socket and connects it to the specified port number at the specified IP address.
-    @ExperimentalUnsignedTypes
-    constructor(config: ShadowConfig, address: InetAddress, port: Int) : this(config)
-    {
-        socket = Socket(address, port)
-
-        try
-        {
-            handshake()
-            connectionStatus = true
-            this.inputStream = getInputStream()
-            this.outputStream = getOutputStream()
-        }
-        catch(error: IOException)
-        {
-            Log.e("ShadowSocket.init", "Handshake failed, closing connection.")
-            socket.close()
-            connectionStatus = false
-            throw error
-        }
-    }
-
-    // Creates a socket and connects it to the specified remote address on the specified remote port.
-    @ExperimentalUnsignedTypes
-    constructor(
-        config: ShadowConfig,
-        address: InetAddress,
-        port: Int,
-        localAddr: InetAddress,
-        localPort: Int
-    ) : this(
-        config
-    )
-    {
-        socket = Socket(address, port, localAddr, localPort)
-
-        try
-        {
-            handshake()
-            connectionStatus = true
-            this.inputStream = getInputStream()
-            this.outputStream = getOutputStream()
-        }
-        catch(error: Exception)
-        {
-            Log.e("ShadowSocket.init", "Handshake failed, closing connection.")
-            socket.close()
-            connectionStatus = false
-            throw error
-        }
-    }
-
-    // Creates an unconnected socket, specifying the type of proxy, if any, that should be used regardless of any other settings.
-    @ExperimentalUnsignedTypes
-    constructor(config: ShadowConfig, proxy: Proxy) : this(config) {
-        socket = Socket(proxy)
-        this.inputStream = getInputStream()
-        this.outputStream = getOutputStream()
-    }
-
     // Public functions:
     @Synchronized override fun close() {
-        Log.i("ShadowSocket", "Socket closed.")
-        socket.close()
+        Log.i("ShadowConnection", "Connection closed.")
+        this.connection.close()
     }
 
     @Synchronized override fun read(size: Int): ByteArray? {
@@ -243,18 +210,20 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
 
     // Private functions:
     // Returns an input stream and the decryption cipher for this socket.
-    private fun getInputStream(): InputStream {
+    fun getInputStream(): InputStream {
+        val connectionInputStream = ConnectionInputStream(this.connection)
         val cipher = decryptionCipher
         cipher?.let {
-            return ShadowConnectionInputStream(socket.inputStream, cipher)
+            return ShadowConnectionInputStream(connectionInputStream, cipher)
         }
         Log.e("getInputStream", "Decryption cipher was not created.")
         throw IOException()
     }
 
     // Returns an output stream and the encryption cipher for this socket.
-    private fun getOutputStream(): OutputStream {
-        return ShadowOutputStream(socket.outputStream, encryptionCipher)
+    fun getOutputStream(): OutputStream {
+        val connectionOutputStream = ConnectionOutputStream(this.connection)
+        return ShadowOutputStream(connectionOutputStream, encryptionCipher)
     }
 
     // Exchanges the salt.
@@ -266,7 +235,8 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
 
     // Sends the handshake bytes through the output stream.
     private fun sendHandshake() {
-        socket.outputStream.write(handshakeBytes)
+        val connectionOutputStream = ConnectionOutputStream(this.connection)
+        connectionOutputStream.write(handshakeBytes)
     }
 
     // Receives the salt through the input stream.
@@ -274,7 +244,8 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
     private fun receiveHandshake()
     {
         val handshakeSize = handshakeSize
-        val result = readNBytes(socket.inputStream, handshakeSize)
+        val connectionInputStream = ConnectionInputStream(this.connection)
+        val result = readNBytes(connectionInputStream, handshakeSize)
 
         if (result != null && result.size == handshakeBytes.size)
         {
