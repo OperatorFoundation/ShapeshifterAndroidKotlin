@@ -396,7 +396,9 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     //@ExperimentalUnsignedTypes
     private fun handshake() {
         sendHandshake()
+        print("cryptographic handshake sent")
         receiveHandshake()
+        print("cryptographic handshake received")
     }
 
     // Sends the handshake bytes through the output stream.

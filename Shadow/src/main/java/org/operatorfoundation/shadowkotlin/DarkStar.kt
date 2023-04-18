@@ -1,5 +1,6 @@
 package org.operatorfoundation.shadowkotlin
 
+import android.util.Base64
 import android.util.Log
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey
 import org.bouncycastle.jce.ECNamedCurveTable
@@ -16,6 +17,7 @@ import java.nio.ByteBuffer
 import java.security.*
 import java.security.spec.InvalidKeySpecException
 import java.security.spec.PKCS8EncodedKeySpec
+import java.util.Base64.getDecoder
 import javax.crypto.KeyAgreement
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
@@ -36,7 +38,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
     fun createHandshake(): ByteArray
     {
         // take ServerPersistentPublicKey out of password string
-        val serverPersistentPublicKeyData = hexToBytes(config.password)
+        val serverPersistentPublicKeyData = Base64.decode(config.password, Base64.DEFAULT)
         this.serverPersistentPublicKey = bytesToPublicKey(serverPersistentPublicKeyData)
 
         // generate an ephemeral keypair

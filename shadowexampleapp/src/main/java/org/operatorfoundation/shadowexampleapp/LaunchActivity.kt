@@ -3,10 +3,15 @@ package org.operatorfoundation.shadowexampleapp
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.TextView
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.operatorfoundation.shadowexampleapp.databinding.ActivityLaunchBinding
+import org.operatorfoundation.shadowkotlin.CipherMode
+import org.operatorfoundation.shadowkotlin.OKHTTPShadowSocketFactory
 import org.operatorfoundation.shadowkotlin.ShadowConfig
 import org.operatorfoundation.shadowkotlin.ShadowSocket
 import java.nio.charset.Charset
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
 class LaunchActivity : AppCompatActivity()
@@ -25,6 +30,10 @@ class LaunchActivity : AppCompatActivity()
 
         binding.runButton.setOnClickListener {
             shadowDarkStarClient()
+//            thread(start = true)
+//            {
+//                restCall()
+//            }
         }
 
         resultTextView = binding.resultText
@@ -128,6 +137,56 @@ class LaunchActivity : AppCompatActivity()
                 println(checkCredentialsMessage)
                 resultTextView.text = checkCredentialsMessage}
             }
+        }
+    }
+
+    fun restCall()
+    {
+        val sConfig = ShadowConfig("", CipherMode.DarkStar.toString())
+        println("config created")
+        val client: OkHttpClient.Builder = OkHttpClient
+            .Builder()
+            .connectTimeout(30000, TimeUnit.MILLISECONDS)
+            .readTimeout(30000, TimeUnit.MILLISECONDS)
+            .writeTimeout(30000, TimeUnit.MILLISECONDS)
+        println("builder created")
+        val okhttpShadowSocketFactory = OKHTTPShadowSocketFactory(
+            sConfig,
+            "",
+            0)
+        println("factory created")
+        val okHttpClient = client.socketFactory(
+            okhttpShadowSocketFactory
+        ).build()
+        println("client finished building")
+        val request = Request.Builder()
+            .url("")
+            .build()
+        println("request created")
+        try
+        {
+        okHttpClient.newCall(request).execute().use { response ->
+            println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+            println("Received a response to our okHTTPClient request: $response")
+            println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+
+            if (!response.isSuccessful) {
+                println("okHttpClient request was unsuccessful")
+            } else {
+                println("okHttpClient request was successful")
+
+                for ((name, value) in response.headers) {
+                    println("okHttpClient request $name: $value")
+                }
+                val body = response.body!!.string().trim()
+                println(body)
+            }
+        }
+        }
+        catch (ex:Exception)
+        {
+            println("okHttpClient request was unsuccessful, stack trace: " + ex.stackTrace.toString())
+            println("okHttpClient request was unsuccessful, error message: " + ex)
         }
     }
 }
