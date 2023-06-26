@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId "org.operatorfoundation.shadowexampleapp"
-        minSdkVersion 16
+        minSdkVersion 17
         targetSdkVersion 32
         versionCode = 1
 
