@@ -7,12 +7,12 @@ plugins {
 }
 
 android {
-    compileSdkVersion 32
+    compileSdkVersion 33
     namespace = "org.operatorfoundation.shadowkotlin"
 
     defaultConfig {
         minSdkVersion 17
-        targetSdkVersion 32
+        targetSdkVersion 33
         versionCode = 1
 
         multiDexEnabled true

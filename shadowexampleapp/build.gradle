@@ -5,12 +5,12 @@ plugins {
 }
 
 android {
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         applicationId "org.operatorfoundation.shadowexampleapp"
         minSdkVersion 17
-        targetSdkVersion 32
+        targetSdkVersion 33
         versionCode = 1
 
         multiDexEnabled true
