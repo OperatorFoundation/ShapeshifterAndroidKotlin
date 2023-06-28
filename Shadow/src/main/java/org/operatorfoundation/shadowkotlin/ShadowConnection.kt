@@ -33,10 +33,6 @@ import org.operatorfoundation.transmission.TransmissionConnection
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.net.InetAddress
-import java.net.InetSocketAddress
-import java.net.Proxy
-import java.net.Socket
 import java.util.logging.Logger
 
 // This class implements client sockets (also called just "sockets").
