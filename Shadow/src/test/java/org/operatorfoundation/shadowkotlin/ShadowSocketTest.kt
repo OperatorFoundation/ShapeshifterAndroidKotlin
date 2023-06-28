@@ -21,12 +21,12 @@ internal class ShadowSocketTest
     fun okhttpTest()
     {
         try {
-            val config = ShadowConfig("", "DarkStar")
+            val config = ShadowConfig("+vsJrpo0GPcVdpquE4hwz2tPrr4itCzzXiGNaU0Iw1I=", "DarkStar")
             val client: OkHttpClient.Builder = OkHttpClient.Builder()
                 .connectTimeout(15000, java.util.concurrent.TimeUnit.MILLISECONDS)
                 .readTimeout(15000, java.util.concurrent.TimeUnit.MILLISECONDS)
                 .writeTimeout(15000, java.util.concurrent.TimeUnit.MILLISECONDS)
-            val okHttpClient = client.socketFactory(ShadowSocketFactory(config, "", 1234)).build()
+            val okHttpClient = client.socketFactory(ShadowSocketFactory(config, "127.0.0.1", 1234)).build()
 
             val request = Request.Builder()
                 .url("https://www.google.com")
@@ -165,4 +165,13 @@ internal class ShadowSocketTest
         val decodedConfig: ShadowConfig = Json.decodeFromString(configString)
         assert(config.password == decodedConfig.password)
     }
+
+//    @Test
+//    fun testKeyGen()
+//    {
+//        val keyPair = DarkStar.generateECKeys()
+//        val privateKey = keyPair?.private
+//        val publicKey = keyPair?.public
+//        print("finished!")
+//    }
 }

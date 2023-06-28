@@ -2,61 +2,39 @@ package org.operatorfoundation.shadowkotlin
 
 import android.util.Base64
 import android.util.Log
-import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey
-import org.bouncycastle.jce.ECNamedCurveTable
-import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.bouncycastle.jce.spec.ECParameterSpec
-import org.bouncycastle.jce.spec.ECPublicKeySpec
-import org.operatorfoundation.shadowkotlin.ShadowCipher
-import org.operatorfoundation.shadowkotlin.ShadowConfig
-import org.operatorfoundation.shadowkotlin.ShadowDarkStarCipher
-import org.operatorfoundation.shadowkotlin.hexToBytes
+import org.operatorfoundation.keychainandroid.*
 import java.net.InetAddress
 import java.net.UnknownHostException
 import java.nio.ByteBuffer
-import java.security.*
-import java.security.spec.InvalidKeySpecException
-import java.security.spec.PKCS8EncodedKeySpec
-import java.util.Base64.getDecoder
-import javax.crypto.KeyAgreement
-import javax.crypto.SecretKey
-import javax.crypto.spec.SecretKeySpec
+import java.security.InvalidKeyException
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
 
 class DarkStar(var config: ShadowConfig, private var host: String, private var port: Int)
 {
-    private var sharedKeyClientToServer: SecretKey? = null
-    private var sharedKeyServerToClient: SecretKey? = null
+    private var sharedKeyClientToServer: SymmetricKey? = null
+    private var sharedKeyServerToClient: SymmetricKey? = null
     private var clientEphemeralKeyPair: KeyPair? = null
     private var serverPersistentPublicKey: PublicKey? = null
 
     @Throws(
-        NoSuchAlgorithmException::class,
-        InvalidKeySpecException::class,
         UnknownHostException::class,
-        NoSuchProviderException::class
     )
     fun createHandshake(): ByteArray
     {
         // take ServerPersistentPublicKey out of password string
         val serverPersistentPublicKeyData = Base64.decode(config.password, Base64.DEFAULT)
-        this.serverPersistentPublicKey = bytesToPublicKey(serverPersistentPublicKeyData)
+        this.serverPersistentPublicKey = PublicKey.P256KeyAgreement(serverPersistentPublicKeyData)
+        this.clientEphemeralKeyPair = keychain.generateEphemeralKeypair(KeyType.P256KeyAgreement)
 
-        // generate an ephemeral keypair
-        this.clientEphemeralKeyPair = generateECKeys()
+        val clientEphemeralPrivateKey = this.clientEphemeralKeyPair?.privateKey
+        val clientEphemeralPublicKey = clientEphemeralKeyPair?.publicKey
 
-        // get the client private and public key
-        var clientEphemeralPrivateKey: PrivateKey? = null
-        var clientEphemeralPublicKey: PublicKey? = null
 
-        if (this.clientEphemeralKeyPair != null)
-        {
-            clientEphemeralPrivateKey = this.clientEphemeralKeyPair!!.private
-            clientEphemeralPublicKey = this.clientEphemeralKeyPair!!.public
-        }
 
         // convert the ephemeral public key into data and save it to the handshakeData array.
-        val clientEphemeralPublicKeyData = publicKeyToBytes(clientEphemeralPublicKey)
-        var handshakeData = clientEphemeralPublicKeyData
+        val clientEphemeralPublicKeyData = clientEphemeralPublicKey!!.data
+        var handshakeData = clientEphemeralPublicKeyData!!
 
         // Generate client confirmation code
         val clientConfirmationCode = generateClientConfirmationCode(
@@ -83,10 +61,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
     }
 
     @Throws(
-        InvalidKeySpecException::class,
-        NoSuchAlgorithmException::class,
         UnknownHostException::class,
-        InvalidKeyException::class
     )
     fun makeCipher(isClientToServer: Boolean, handshakeBytes: ByteArray): ShadowCipher
     {
@@ -95,7 +70,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         splitHandshake(handshakeBytes, serverEphemeralPublicKeyData, serverConfirmationCode)
 
         // turn the server's public key data back to a public key type
-        val serverEphemeralPublicKey = bytesToPublicKey(serverEphemeralPublicKeyData)
+        val serverEphemeralPublicKey = PublicKey.P256KeyAgreement(serverEphemeralPublicKeyData)
 
         // derive shared keys
         val sharedKey = generateSharedKey(
@@ -120,8 +95,8 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         val clientCopyServerConfirmationCode = generateServerConfirmationCode(
             host,
             port,
-            clientEphemeralKeyPair!!.public,
-            clientEphemeralKeyPair!!.private,
+            clientEphemeralKeyPair!!.publicKey,
+            clientEphemeralKeyPair!!.privateKey,
             serverPersistentPublicKey!!
         )
         if (!clientCopyServerConfirmationCode.contentEquals(serverConfirmationCode))
@@ -141,93 +116,33 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
 
     companion object
     {
+        var keychain = Keychain()
         private const val keySize = 32
         private var darkStarBytes = "DarkStar".toByteArray()
         private var clientStringBytes = "client".toByteArray()
         private var serverStringBytes = "server".toByteArray()
 
-        fun generateECKeys(): KeyPair?
-        {
-            return try
-            {
-                val parameterSpec = ECNamedCurveTable.getParameterSpec("secp256r1")
-                val keyPairGenerator = KeyPairGenerator.getInstance("EC", BouncyCastleProvider())
-                keyPairGenerator.initialize(parameterSpec)
-                keyPairGenerator.generateKeyPair()
-            }
-            catch (e: NoSuchAlgorithmException)
-            {
-                e.printStackTrace()
-                null
-            }
-            catch (e: InvalidAlgorithmParameterException)
-            {
-                e.printStackTrace()
-                null
-            }
-        }
-
-        fun loadECKeys(privateKeyString: String, publicKeyString: String): KeyPair? {
-            return try {
-                val keyFactory = KeyFactory.getInstance("EC", BouncyCastleProvider())
-                val privateKeyBytes = hexToBytes(privateKeyString)
-                val spec = PKCS8EncodedKeySpec(privateKeyBytes)
-                val privateKey = keyFactory.generatePrivate(spec)
-                val publicKeyBytes = hexToBytes(publicKeyString)
-                val publicKey = bytesToPublicKey(publicKeyBytes)
-                KeyPair(publicKey, privateKey)
-            } catch (e: NoSuchAlgorithmException) {
-                e.printStackTrace()
-                null
-            } catch (e: InvalidKeySpecException) {
-                e.printStackTrace()
-                null
-            }
-        }
-
-        private fun generateSharedSecret(privateKey: PrivateKey?, publicKey: PublicKey?): SecretKey?
-        {
-            return try
-            {
-                val keyAgreement =
-                    KeyAgreement.getInstance("ECDH", BouncyCastleProvider())
-                keyAgreement.init(privateKey)
-                keyAgreement.doPhase(publicKey, true)
-                keyAgreement.generateSecret("secp256r1")
-            }
-            catch (e: InvalidKeyException)
-            {
-                e.printStackTrace()
-                null
-            }
-            catch (e: NoSuchAlgorithmException)
-            {
-                e.printStackTrace()
-                null
-            }
-        }
-
         @Throws(UnknownHostException::class, NoSuchAlgorithmException::class)
-        fun generateSharedKey(isClientToServer: Boolean, host: String?, port: Int, clientEphemeral: KeyPair?, serverEphemeralPublicKey: PublicKey?, serverPersistentPublicKey: PublicKey?): SecretKey
+        fun generateSharedKey(isClientToServer: Boolean, host: String?, port: Int, clientEphemeral: KeyPair?, serverEphemeralPublicKey: PublicKey?, serverPersistentPublicKey: PublicKey?): SymmetricKey
         {
-            val ecdh1 = generateSharedSecret(clientEphemeral!!.private, serverEphemeralPublicKey)
-            val ecdh2 = generateSharedSecret(clientEphemeral.private, serverPersistentPublicKey)
+            val ecdh1 = keychain.ecdh(clientEphemeral!!.privateKey, serverEphemeralPublicKey)
+            val ecdh2 = keychain.ecdh(clientEphemeral.privateKey, serverPersistentPublicKey)
             val serverIdentifier = makeServerIdentifier(host, port)
             val digest = MessageDigest.getInstance("SHA-256")
 
             if (ecdh1 != null)
             {
-                digest.update(ecdh1.encoded)
+                digest.update(ecdh1.data)
             }
 
             if (ecdh2 != null)
             {
-                digest.update(ecdh2.encoded)
+                digest.update(ecdh2.data)
             }
 
             digest.update(serverIdentifier)
-            digest.update(publicKeyToBytes(clientEphemeral.public))
-            digest.update(publicKeyToBytes(serverEphemeralPublicKey))
+            digest.update(clientEphemeral.publicKey.data)
+            digest.update(serverEphemeralPublicKey!!.data)
             digest.update(darkStarBytes)
 
             if (isClientToServer)
@@ -241,7 +156,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
 
             val result = digest.digest()
 
-            return SecretKeySpec(result, 0, result.size, "AES")
+            return SymmetricKey(result)
         }
 
         @Throws(UnknownHostException::class)
@@ -260,14 +175,14 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         fun generateServerConfirmationCode(host: String?, port: Int, clientEphemeralPublicKey: PublicKey, clientEphemeralPrivateKey: PrivateKey, serverPersistentPublicKey: PublicKey): ByteArray
         {
             val serverIdentifier = makeServerIdentifier(host, port)
-            val serverPersistentPublicKeyData = publicKeyToBytes(serverPersistentPublicKey)
-            val clientEphemeralPublicKeyData = publicKeyToBytes(clientEphemeralPublicKey)
-            val sharedSecret = generateSharedSecret(clientEphemeralPrivateKey, serverPersistentPublicKey)
+            val serverPersistentPublicKeyData = serverPersistentPublicKey.data
+            val clientEphemeralPublicKeyData = clientEphemeralPublicKey.data
+            val sharedSecret = keychain.ecdh(clientEphemeralPrivateKey, serverPersistentPublicKey)
             val digest = MessageDigest.getInstance("SHA-256")
 
             if (sharedSecret != null)
             {
-                digest.update(sharedSecret.encoded)
+                digest.update(sharedSecret.data)
             }
 
             digest.update(serverIdentifier)
@@ -289,15 +204,15 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         ): ByteArray
         {
             val sharedSecret =
-                generateSharedSecret(clientEphemeralPrivateKey, serverPersistentPublicKey)
+                keychain.ecdh(clientEphemeralPrivateKey, serverPersistentPublicKey)
             val serverIdentifier = makeServerIdentifier(host, port)
-            val serverPersistentPublicKeyData = publicKeyToBytes(serverPersistentPublicKey)
-            val clientEphemeralPublicKeyData = publicKeyToBytes(clientEphemeralPublicKey)
+            val serverPersistentPublicKeyData = serverPersistentPublicKey!!.data
+            val clientEphemeralPublicKeyData = clientEphemeralPublicKey!!.data
             val digest = MessageDigest.getInstance("SHA-256")
 
             if (sharedSecret != null)
             {
-                digest.update(sharedSecret.encoded)
+                digest.update(sharedSecret.data)
             }
 
             digest.update(serverIdentifier)
@@ -307,35 +222,6 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             digest.update(clientStringBytes)
 
             return digest.digest()
-        }
-
-        fun publicKeyToBytes(pubKey: PublicKey?): ByteArray {
-            val bcecPublicKey = pubKey as BCECPublicKey
-            val point = bcecPublicKey.q
-            val encodedPoint = point.getEncoded(true)
-            val result = ByteArray(keySize)
-            System.arraycopy(encodedPoint, 1, result, 0, keySize)
-
-            return result
-        }
-
-        @Throws(NoSuchAlgorithmException::class, InvalidKeySpecException::class)
-        fun bytesToPublicKey(bytes: ByteArray): PublicKey
-        {
-            if (bytes.size != keySize)
-            {
-                throw InvalidKeySpecException()
-            }
-
-            val keyFactory = KeyFactory.getInstance("EC", BouncyCastleProvider())
-            val ecSpec: ECParameterSpec = ECNamedCurveTable.getParameterSpec("secp256r1")
-            val encodedPoint = ByteArray(33)
-            System.arraycopy(bytes, 0, encodedPoint, 1, keySize)
-            encodedPoint[0] = 3
-            val point = ecSpec.curve.decodePoint(encodedPoint)
-            val pubSpec = ECPublicKeySpec(point, ecSpec)
-
-            return keyFactory.generatePublic(pubSpec)
         }
     }
 }

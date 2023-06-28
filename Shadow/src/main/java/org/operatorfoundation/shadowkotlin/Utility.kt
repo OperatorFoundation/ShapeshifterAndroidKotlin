@@ -4,9 +4,6 @@ import android.util.Log
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.lang.Exception
-import java.nio.ByteBuffer
-import java.nio.channels.SocketChannel
 
 //@kotlin.ExperimentalUnsignedTypes
 // Reads up to a specific number of bytes in a byte array.
@@ -39,23 +36,6 @@ fun readNBytes(input: InputStream, numBytes: Int): ByteArray?
 
 }
 
-// Reads up to a specific number of bytes in a byte buffer.
-fun readNBytes(input: SocketChannel, numBytes: Int): ByteBuffer
-{
-    val buffer = ByteBuffer.allocate(numBytes)
-    val bufferArray = arrayOf((buffer))
-    var offset = input.read(buffer)
-    while (offset != numBytes) {
-        val bytesRead = input.read(bufferArray, offset, numBytes - offset).toInt()
-        offset += bytesRead
-    }
-    return buffer
-}
-
-fun ByteArray.toHexString() = asUByteArray().joinToString("") {
-    it.toString(16).padStart(2, '0')
-}
-
 fun min(firstNumber: Int, secondNumber: Int): Int
 {
     return if (firstNumber < secondNumber)
@@ -66,42 +46,6 @@ fun min(firstNumber: Int, secondNumber: Int): Int
     {
         secondNumber
     }
-}
-
-fun bytesToHex(data: ByteArray): String
-{
-    val hexArray = "0123456789ABCDEF".toCharArray()
-
-    val hexChars = CharArray(data.size * 2)
-    for (j in data.indices) {
-        val v = data[j].toInt() and 0xFF
-
-        hexChars[j * 2] = hexArray[v ushr 4]
-        hexChars[j * 2 + 1] = hexArray[v and 0x0F]
-    }
-    return String(hexChars)
-}
-
-fun hexToBytes(string: String): ByteArray
-{
-    val length = string.length
-    val data = ByteArray(length / 2)
-    var i = 0
-    while (i < length) {
-        data[i / 2] = ((Character.digit(string[i], 16) shl 4) + Character
-            .digit(string[i + 1], 16)).toByte()
-        i += 2
-    }
-    return data
-}
-
-// generate a random number between the two numbers
-fun betweenRNG(maxNumber: Int, minNumber: Int): Int
-{
-    // if we want maxNumber to be inclusive, add one
-    // minNumber is inclusive
-    val r = java.security.SecureRandom()
-    return r.nextInt(maxNumber - minNumber) + minNumber
 }
 
 // changes data (bigEData) from BigEndian representation to an int

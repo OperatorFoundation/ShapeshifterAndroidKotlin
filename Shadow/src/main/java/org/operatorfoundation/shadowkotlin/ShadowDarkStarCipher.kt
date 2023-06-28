@@ -1,20 +1,22 @@
 package org.operatorfoundation.shadowkotlin
 
 import android.os.Build
-import org.bouncycastle.jcajce.spec.AEADParameterSpec
 import org.bouncycastle.jce.provider.BouncyCastleProvider
+
+import org.operatorfoundation.keychainandroid.Keychain
+import org.operatorfoundation.keychainandroid.SealedBox
+import org.operatorfoundation.keychainandroid.SealedBoxType
+import org.operatorfoundation.keychainandroid.SymmetricKey
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.InvalidAlgorithmParameterException
 import java.security.InvalidKeyException
-import java.security.NoSuchAlgorithmException
-import java.security.spec.AlgorithmParameterSpec
 import javax.crypto.*
-import javax.crypto.spec.GCMParameterSpec
 
-class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher()
+class ShadowDarkStarCipher(override var key: SymmetricKey?) : ShadowCipher()
 {
     var longCounter: ULong = 0u
+    val keychain = Keychain()
 
     // [encrypted payload length][length tag] + [encrypted payload][payload tag]
     // Pack takes the data above and packs them into a singular byte array.
@@ -55,18 +57,9 @@ class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher()
         CounterOverFlowException::class
     )
     override fun encrypt(plaintext: ByteArray): ByteArray {
-        val ivSpec: AlgorithmParameterSpec
         val nonce = nonce()
 
-        ivSpec = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-            AEADParameterSpec(nonce, tagSizeBits)
-        } else {
-            GCMParameterSpec(tagSizeBits, nonce)
-        }
-
-        cipher.init(Cipher.ENCRYPT_MODE, key, ivSpec)
-
-        return cipher.doFinal(plaintext)
+        return SealedBox.seal(SealedBoxType.AESGCM, key!!, nonce!!, plaintext)
     }
 
     // Decrypts data and increments the nonce counter.
@@ -78,21 +71,9 @@ class ShadowDarkStarCipher(override var key: SecretKey?) : ShadowCipher()
         CounterOverFlowException::class
     )
     override fun decrypt(encrypted: ByteArray): ByteArray {
-        val ivSpec: AlgorithmParameterSpec
         val nonce = nonce()
 
-        ivSpec = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P)
-        {
-            AEADParameterSpec(nonce, tagSizeBits)
-        }
-        else
-        {
-            GCMParameterSpec(tagSizeBits, nonce)
-        }
-
-        cipher.init(Cipher.DECRYPT_MODE, key, ivSpec)
-
-        return cipher.doFinal(encrypted)
+        return SealedBox.AESGCM.open(nonce!!, key!!, encrypted)
     }
 
     // Create a nonce using our counter.

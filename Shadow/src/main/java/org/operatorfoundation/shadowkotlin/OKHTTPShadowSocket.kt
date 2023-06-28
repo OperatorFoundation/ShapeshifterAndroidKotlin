@@ -1,7 +1,5 @@
 package org.operatorfoundation.shadowkotlin
 
-import org.operatorfoundation.shadowkotlin.ShadowConfig
-import org.operatorfoundation.shadowkotlin.ShadowSocket
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.SocketAddress

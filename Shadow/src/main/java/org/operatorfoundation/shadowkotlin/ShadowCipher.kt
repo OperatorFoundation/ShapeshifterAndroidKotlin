@@ -24,12 +24,12 @@
 
 package org.operatorfoundation.shadowkotlin
 
+import org.operatorfoundation.keychainandroid.SymmetricKey
 import java.security.InvalidAlgorithmParameterException
 import java.security.InvalidKeyException
 import javax.crypto.BadPaddingException
 import javax.crypto.Cipher
 import javax.crypto.IllegalBlockSizeException
-import javax.crypto.SecretKey
 
 // ShadowCipher contains the encryption and decryption methods.
 abstract class ShadowCipher
@@ -37,7 +37,7 @@ abstract class ShadowCipher
     lateinit var config: ShadowConfig
     lateinit var cipher: Cipher
 
-    open var key: SecretKey? = null
+    open var key: SymmetricKey? = null
 
     companion object
     {

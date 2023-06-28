@@ -26,11 +26,9 @@ package org.operatorfoundation.shadowkotlin
 
 import android.util.Log
 import org.operatorfoundation.shadowkotlin.ShadowCipher.Companion.handshakeSize
-import org.operatorfoundation.shadowkotlin.readNBytes
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.lang.Exception
 import java.net.*
 import java.nio.channels.SocketChannel
 
