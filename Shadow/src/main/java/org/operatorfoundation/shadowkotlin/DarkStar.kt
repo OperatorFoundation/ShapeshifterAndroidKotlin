@@ -117,7 +117,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
     companion object
     {
         var keychain = Keychain()
-        private const val keySize = 32
+        private const val keySize = 33
         private var darkStarBytes = "DarkStar".toByteArray()
         private var clientStringBytes = "client".toByteArray()
         private var serverStringBytes = "server".toByteArray()
@@ -141,8 +141,8 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             }
 
             digest.update(serverIdentifier)
-            digest.update(clientEphemeral.publicKey.data)
-            digest.update(serverEphemeralPublicKey!!.data)
+            digest.update(clientEphemeral.publicKey.data!!)
+            digest.update(serverEphemeralPublicKey!!.data!!)
             digest.update(darkStarBytes)
 
             if (isClientToServer)
@@ -186,8 +186,8 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             }
 
             digest.update(serverIdentifier)
-            digest.update(serverPersistentPublicKeyData)
-            digest.update(clientEphemeralPublicKeyData)
+            digest.update(serverPersistentPublicKeyData!!)
+            digest.update(clientEphemeralPublicKeyData!!)
             digest.update(darkStarBytes)
             digest.update(serverStringBytes)
 
@@ -216,8 +216,8 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             }
 
             digest.update(serverIdentifier)
-            digest.update(serverPersistentPublicKeyData)
-            digest.update(clientEphemeralPublicKeyData)
+            digest.update(serverPersistentPublicKeyData!!)
+            digest.update(clientEphemeralPublicKeyData!!)
             digest.update(darkStarBytes)
             digest.update(clientStringBytes)
 
