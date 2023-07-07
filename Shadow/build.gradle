@@ -3,7 +3,6 @@ plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
     id 'org.jetbrains.kotlin.plugin.serialization'
-    id 'maven-publish'
 }
 
 android {
@@ -13,15 +12,10 @@ android {
     defaultConfig {
         minSdkVersion 17
         targetSdkVersion 33
-        versionCode = 1
 
         multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
-
-        aarMetadata {
-            minCompileSdk = 17
-        }
     }
 
     buildTypes {
@@ -38,15 +32,6 @@ android {
 
     kotlinOptions {
         jvmTarget = '17'
-    }
-
-
-    testOptions {
-        unitTests.returnDefaultValues = true
-    }
-
-    testFixtures {
-        enable = true
     }
 }
 
