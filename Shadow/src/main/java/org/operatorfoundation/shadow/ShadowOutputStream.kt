@@ -22,7 +22,7 @@
 	SOFTWARE.
 */
 
-package org.operatorfoundation.shadowkotlin
+package org.operatorfoundation.shadow
 
 import android.os.Build
 import android.util.Log
@@ -82,7 +82,7 @@ class ShadowOutputStream(
             }
             else
             {
-                org.operatorfoundation.shadowkotlin.min(ShadowCipher.maxPayloadSize, buffer.size)
+                org.operatorfoundation.shadow.min(ShadowCipher.maxPayloadSize, buffer.size)
             }
 
             // copy the first numBytesToSend bytes into a new byte array.

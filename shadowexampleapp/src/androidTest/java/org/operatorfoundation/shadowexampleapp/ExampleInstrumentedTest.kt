@@ -11,6 +11,10 @@ import org.junit.runner.RunWith
 import org.junit.Assert.*
 import org.junit.internal.runners.statements.Fail
 import org.operatorfoundation.locketkotlin.LocketFactory
+import org.operatorfoundation.shadow.OKHTTPShadowSocket
+import org.operatorfoundation.shadow.OKHTTPShadowSocketFactory
+import org.operatorfoundation.shadow.ShadowConfig
+import org.operatorfoundation.shadow.ShadowSocket
 import org.operatorfoundation.shadowkotlin.*
 import java.io.IOException
 import java.net.*

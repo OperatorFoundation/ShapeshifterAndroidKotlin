@@ -1,4 +1,4 @@
-package org.operatorfoundation.shadowkotlin
+package org.operatorfoundation.shadow
 
 import android.content.Context
 import org.operatorfoundation.locketkotlin.LocketConnection

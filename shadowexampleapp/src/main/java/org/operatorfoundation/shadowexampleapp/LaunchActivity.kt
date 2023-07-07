@@ -5,11 +5,11 @@ import android.os.Bundle
 import android.widget.TextView
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.operatorfoundation.shadow.CipherMode
 import org.operatorfoundation.shadowexampleapp.databinding.ActivityLaunchBinding
-import org.operatorfoundation.shadowkotlin.CipherMode
-import org.operatorfoundation.shadowkotlin.OKHTTPShadowSocketFactory
-import org.operatorfoundation.shadowkotlin.ShadowConfig
-import org.operatorfoundation.shadowkotlin.ShadowSocket
+import org.operatorfoundation.shadow.OKHTTPShadowSocketFactory
+import org.operatorfoundation.shadow.ShadowConfig
+import org.operatorfoundation.shadow.ShadowSocket
 import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread

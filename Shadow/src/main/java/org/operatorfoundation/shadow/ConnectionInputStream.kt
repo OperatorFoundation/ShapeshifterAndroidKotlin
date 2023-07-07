@@ -1,4 +1,4 @@
-package org.operatorfoundation.shadowkotlin
+package org.operatorfoundation.shadow
 
 import org.operatorfoundation.transmission.Connection
 import java.io.InputStream

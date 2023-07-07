@@ -1,4 +1,4 @@
-package org.operatorfoundation.shadowkotlin
+package org.operatorfoundation.shadow
 
 import android.util.Base64
 import android.util.Log

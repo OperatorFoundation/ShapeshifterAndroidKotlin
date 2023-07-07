@@ -1,4 +1,4 @@
-package org.operatorfoundation.shadowkotlin
+package org.operatorfoundation.shadow
 
 import com.google.common.hash.Funnels
 import com.google.common.hash.BloomFilter

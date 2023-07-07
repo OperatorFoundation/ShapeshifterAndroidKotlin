@@ -1,4 +1,4 @@
-package org.operatorfoundation.shadowkotlin
+package org.operatorfoundation.shadow
 
 import java.net.InetSocketAddress
 import java.net.Socket

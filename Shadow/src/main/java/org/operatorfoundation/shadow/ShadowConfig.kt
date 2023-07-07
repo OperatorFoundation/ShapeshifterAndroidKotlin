@@ -22,7 +22,7 @@
 	SOFTWARE.
 */
 
-package org.operatorfoundation.shadowkotlin
+package org.operatorfoundation.shadow
 
 import kotlinx.serialization.Serializable
 import android.util.Log

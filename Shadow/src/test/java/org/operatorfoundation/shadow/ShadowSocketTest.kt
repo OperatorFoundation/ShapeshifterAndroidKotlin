@@ -1,4 +1,4 @@
-package org.operatorfoundation.shadowkotlin
+package org.operatorfoundation.shadow
 
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -7,13 +7,11 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.junit.Assert.assertNotNull
 import org.junit.Test
-import org.operatorfoundation.locketkotlin.LocketFactory
 import java.io.IOException
 import java.net.ServerSocket
 import java.net.URL
 import java.security.spec.InvalidKeySpecException
 import java.util.*
-import kotlin.concurrent.thread
 
 internal class ShadowSocketTest
 {

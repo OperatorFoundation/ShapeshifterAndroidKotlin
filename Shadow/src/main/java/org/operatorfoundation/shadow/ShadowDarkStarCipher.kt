@@ -1,4 +1,4 @@
-package org.operatorfoundation.shadowkotlin
+package org.operatorfoundation.shadow
 
 import android.os.Build
 import org.bouncycastle.jce.provider.BouncyCastleProvider

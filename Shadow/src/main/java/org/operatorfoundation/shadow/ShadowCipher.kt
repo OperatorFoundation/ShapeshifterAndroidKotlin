@@ -22,9 +22,10 @@
 	SOFTWARE.
 */
 
-package org.operatorfoundation.shadowkotlin
+package org.operatorfoundation.shadow
 
 import org.operatorfoundation.keychainandroid.SymmetricKey
+import org.operatorfoundation.shadow.ShadowConfig
 import java.security.InvalidAlgorithmParameterException
 import java.security.InvalidKeyException
 import javax.crypto.BadPaddingException

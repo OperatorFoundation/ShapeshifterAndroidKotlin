@@ -22,14 +22,11 @@
 	SOFTWARE.
 */
 
-package org.operatorfoundation.shadowkotlin
+package org.operatorfoundation.shadow
 
 import android.util.Log
-import org.operatorfoundation.shadowkotlin.ShadowCipher.Companion.handshakeSize
-import org.operatorfoundation.transmission.Connection
-import org.operatorfoundation.transmission.ConnectionType
-import org.operatorfoundation.transmission.Transmission
-import org.operatorfoundation.transmission.TransmissionConnection
+import org.operatorfoundation.shadow.ShadowCipher.Companion.handshakeSize
+import org.operatorfoundation.transmission.*
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
