@@ -47,7 +47,7 @@ class ShadowConfig(val password: String, val cipherName: String, val serverIP: S
         {
             maybeMode = when (cipherName)
             {
-                "DarkStar" -> CipherMode.DarkStar
+                "DarkStar".lowercase() -> CipherMode.DarkStar
                 else -> null
             }
         }
