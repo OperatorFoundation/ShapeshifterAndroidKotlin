@@ -19,18 +19,35 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
 
     @Throws(
         UnknownHostException::class,
+        Exception::class,
     )
     fun createHandshake(): ByteArray
     {
         // take ServerPersistentPublicKey out of password string
-        val serverPersistentPublicKeyData = Base64.decode(config.password, Base64.DEFAULT)
+        var serverPersistentPublicKeyData = Base64.decode(config.password, Base64.DEFAULT)
+
+        if (serverPersistentPublicKeyData.size != 33)
+        {
+            throw Exception("Invalid key size")
+        }
+
+        val keyType = KeyType.fromInt(serverPersistentPublicKeyData[0].toInt())
+
+        when (keyType)
+        {
+            KeyType.P256KeyAgreement ->
+            {
+                println("P256 Key Type found")
+                serverPersistentPublicKeyData = serverPersistentPublicKeyData.sliceArray(1 until serverPersistentPublicKeyData.size)
+            }
+            else -> throw Exception("Unsupported KeyType found ${keyType.name}")
+        }
+
         this.serverPersistentPublicKey = PublicKey.P256KeyAgreement(serverPersistentPublicKeyData)
         this.clientEphemeralKeyPair = keychain.generateEphemeralKeypair(KeyType.P256KeyAgreement)
 
         val clientEphemeralPrivateKey = this.clientEphemeralKeyPair?.privateKey
         val clientEphemeralPublicKey = clientEphemeralKeyPair?.publicKey
-
-
 
         // convert the ephemeral public key into data and save it to the handshakeData array.
         val clientEphemeralPublicKeyData = clientEphemeralPublicKey!!.data
