@@ -49,7 +49,7 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
 
     // Fields:
     private var socket: Socket = Socket()
-    private lateinit var handshakeBytes: ByteArray
+    private var handshakeBytes: ByteArray = byteArrayOf()
     private lateinit var encryptionCipher: ShadowCipher
     private var decryptionCipher: ShadowCipher? = null
     private var connectionStatus: Boolean = false
@@ -80,7 +80,7 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         }
         catch (handshakeError: Exception)
         {
-            Log.e("ShadowSocket.init", "Handshake failed.")
+            Log.e("ShadowSocket.init", "ShadowSocket constructor: Handshake failed.")
             println(handshakeError.message)
             connectionStatus = false
 

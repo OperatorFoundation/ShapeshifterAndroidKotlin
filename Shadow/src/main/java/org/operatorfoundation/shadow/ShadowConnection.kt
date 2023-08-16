@@ -50,7 +50,7 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
     // Fields:
     private lateinit var inputStream: InputStream
     private lateinit var outputStream: OutputStream
-    private lateinit var handshakeBytes: ByteArray
+    private var handshakeBytes: ByteArray = byteArrayOf()
     private lateinit var encryptionCipher: ShadowCipher
     private var decryptionCipher: ShadowCipher? = null
     private var connectionStatus: Boolean = false
@@ -81,7 +81,9 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
         try
         {
             this.darkStar = DarkStar(config, host, port)
+            println("Creating handshake bytes")
             this.handshakeBytes = darkStar!!.createHandshake()
+            println("Attempting handshake with handshake size: ${handshakeBytes.count()}")
             handshake()
             connectionStatus = true
             println("handshake was successful")
@@ -90,7 +92,7 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
         }
         catch (handshakeError: Exception)
         {
-            Log.e("ShadowSocket.init", "Handshake failed.")
+            Log.e("ShadowSocket.init", "ShadowConnection constructor: Handshake failed.")
             println(handshakeError.message)
             connectionStatus = false
 
@@ -130,7 +132,7 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
         }
         catch (handshakeError: Exception)
         {
-            Log.e("ShadowSocket.init", "Handshake failed.")
+            Log.e("ShadowSocket.init", "ShadowConnection constructor with logger: Handshake failed.")
             println(handshakeError.message)
             connectionStatus = false
 
