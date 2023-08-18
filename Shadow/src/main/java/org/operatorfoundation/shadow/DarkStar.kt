@@ -38,7 +38,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             KeyType.P256KeyAgreement ->
             {
                 println("P256 Key Type found")
-                serverPersistentPublicKeyData = serverPersistentPublicKeyData.sliceArray(1 until serverPersistentPublicKeyData.size)
+                // serverPersistentPublicKeyData = serverPersistentPublicKeyData.sliceArray(1 until serverPersistentPublicKeyData.size)
             }
             else -> throw Exception("Unsupported KeyType found ${keyType.name}")
         }
