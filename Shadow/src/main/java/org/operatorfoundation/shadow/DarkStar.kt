@@ -46,12 +46,22 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         this.serverPersistentPublicKey = PublicKey.P256KeyAgreement(serverPersistentPublicKeyData)
         this.clientEphemeralKeyPair = keychain.generateEphemeralKeypair(KeyType.P256KeyAgreement)
 
-        val clientEphemeralPrivateKey = this.clientEphemeralKeyPair?.privateKey
-        val clientEphemeralPublicKey = clientEphemeralKeyPair?.publicKey
+        val clientEphemeralKeyPair = this.clientEphemeralKeyPair
+        if (clientEphemeralKeyPair == null) {
+            throw java.lang.Exception("could not find clientEphemeralKeyPair")
+        }
+
+        val clientEphemeralPrivateKey = clientEphemeralKeyPair.privateKey
+        val clientEphemeralPublicKey = clientEphemeralKeyPair.publicKey
 
         // convert the ephemeral public key into data and save it to the handshakeData array.
-        val clientEphemeralPublicKeyData = clientEphemeralPublicKey!!.data
+        val clientEphemeralPublicKeyData = PublicKey.publicKeyToBytesDarkstarFormat(clientEphemeralPublicKey)
         var handshakeData = clientEphemeralPublicKeyData!!
+        val serverPersistentPublicKey = this.serverPersistentPublicKey
+
+        if (serverPersistentPublicKey == null) {
+            throw java.lang.Exception("could't find serverPersistentPublicKey")
+        }
 
         // Generate client confirmation code
         val clientConfirmationCode = generateClientConfirmationCode(
@@ -158,8 +168,8 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             }
 
             digest.update(serverIdentifier)
-            digest.update(clientEphemeral.publicKey.data!!)
-            digest.update(serverEphemeralPublicKey!!.data!!)
+            digest.update(PublicKey.publicKeyToBytesDarkstarFormat(clientEphemeral.publicKey))
+            digest.update(PublicKey.publicKeyToBytesDarkstarFormat(serverEphemeralPublicKey!!))
             digest.update(darkStarBytes)
 
             if (isClientToServer)
@@ -192,8 +202,8 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         fun generateServerConfirmationCode(host: String?, port: Int, clientEphemeralPublicKey: PublicKey, clientEphemeralPrivateKey: PrivateKey, serverPersistentPublicKey: PublicKey): ByteArray
         {
             val serverIdentifier = makeServerIdentifier(host, port)
-            val serverPersistentPublicKeyData = serverPersistentPublicKey.data
-            val clientEphemeralPublicKeyData = clientEphemeralPublicKey.data
+            val serverPersistentPublicKeyData = PublicKey.publicKeyToBytesDarkstarFormat(serverPersistentPublicKey)
+            val clientEphemeralPublicKeyData = PublicKey.publicKeyToBytesDarkstarFormat(clientEphemeralPublicKey)
             val sharedSecret = keychain.ecdh(clientEphemeralPrivateKey, serverPersistentPublicKey)
             val digest = MessageDigest.getInstance("SHA-256")
 
@@ -203,8 +213,8 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             }
 
             digest.update(serverIdentifier)
-            digest.update(serverPersistentPublicKeyData!!)
-            digest.update(clientEphemeralPublicKeyData!!)
+            digest.update(serverPersistentPublicKeyData)
+            digest.update(clientEphemeralPublicKeyData)
             digest.update(darkStarBytes)
             digest.update(serverStringBytes)
 
@@ -215,16 +225,16 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         fun generateClientConfirmationCode(
             host: String?,
             port: Int,
-            serverPersistentPublicKey: PublicKey?,
-            clientEphemeralPublicKey: PublicKey?,
+            serverPersistentPublicKey: PublicKey,
+            clientEphemeralPublicKey: PublicKey,
             clientEphemeralPrivateKey: PrivateKey?
         ): ByteArray
         {
             val sharedSecret =
                 keychain.ecdh(clientEphemeralPrivateKey, serverPersistentPublicKey)
             val serverIdentifier = makeServerIdentifier(host, port)
-            val serverPersistentPublicKeyData = serverPersistentPublicKey!!.data
-            val clientEphemeralPublicKeyData = clientEphemeralPublicKey!!.data
+            val serverPersistentPublicKeyData = PublicKey.publicKeyToBytesDarkstarFormat(serverPersistentPublicKey)
+            val clientEphemeralPublicKeyData = PublicKey.publicKeyToBytesDarkstarFormat(clientEphemeralPublicKey)
             val digest = MessageDigest.getInstance("SHA-256")
 
             if (sharedSecret != null)
@@ -233,8 +243,8 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             }
 
             digest.update(serverIdentifier)
-            digest.update(serverPersistentPublicKeyData!!)
-            digest.update(clientEphemeralPublicKeyData!!)
+            digest.update(serverPersistentPublicKeyData)
+            digest.update(clientEphemeralPublicKeyData)
             digest.update(darkStarBytes)
             digest.update(clientStringBytes)
 
