@@ -84,7 +84,9 @@ class ExampleInstrumentedTest {
                     for ((name, value) in response.headers) {
                         println("okHttpClient request $name: $value")
                     }
-                    val body = response.body!!.string().trim()
+
+                    val responseBody = response.body ?: throw Exception("response body was null")
+                    val body = responseBody.string().trim()
                     println(body)
                 }
             }
@@ -133,7 +135,7 @@ class ExampleInstrumentedTest {
 //                for ((name, value) in response.headers) {
 //                    println("$name: $value")
 //                }
-//                val body = response.body!!.string().trim()
+//                val body = response.body.string().trim()
 //                println(body)
 //            }
 //        }

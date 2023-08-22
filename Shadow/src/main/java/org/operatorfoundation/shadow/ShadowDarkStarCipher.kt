@@ -57,9 +57,9 @@ class ShadowDarkStarCipher(override var key: SymmetricKey?) : ShadowCipher()
         CounterOverFlowException::class
     )
     override fun encrypt(plaintext: ByteArray): ByteArray {
-        val nonce = nonce()
-
-        return SealedBox.seal(SealedBoxType.AESGCM, key!!, nonce!!, plaintext)
+        val nonce = nonce() ?: throw Exception("failed to create nonce")
+        val symmetricKey = key ?: throw Exception("symmetric key was not saved")
+        return SealedBox.seal(SealedBoxType.AESGCM, symmetricKey, nonce, plaintext)
     }
 
     // Decrypts data and increments the nonce counter.
@@ -71,9 +71,10 @@ class ShadowDarkStarCipher(override var key: SymmetricKey?) : ShadowCipher()
         CounterOverFlowException::class
     )
     override fun decrypt(encrypted: ByteArray): ByteArray {
-        val nonce = nonce()
+        val nonce = nonce() ?: throw Exception("failed to create nonce")
+        val symmetricKey = key ?: throw Exception("symmetric key was not saved")
 
-        return SealedBox.AESGCM.open(nonce!!, key!!, encrypted)
+        return SealedBox.AESGCM.open(nonce, symmetricKey, encrypted)
     }
 
     // Create a nonce using our counter.

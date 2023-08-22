@@ -178,7 +178,8 @@ class LaunchActivity : AppCompatActivity()
                 for ((name, value) in response.headers) {
                     println("okHttpClient request $name: $value")
                 }
-                val body = response.body!!.string().trim()
+                val responseBody = response.body ?: throw Exception("response body was null")
+                val body = responseBody.string().trim()
                 println(body)
             }
         }

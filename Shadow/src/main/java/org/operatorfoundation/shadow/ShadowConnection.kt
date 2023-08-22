@@ -66,23 +66,18 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
     constructor(connection: Connection, config: ShadowConfig, logger: Logger?): this(config) {
         this.connection = connection
         this.logger = logger
-        val host = config.serverIP
-        if (host == null) {
-            throw Exception("no host found")
-        }
+        val host = config.serverIP ?: throw Exception("no host found")
 
-        val port = config.port
-        if (port == null) {
-            throw Exception("no port found")
-        }
+        val port = config.port ?: throw Exception("no port found")
 
         this.host = host
         this.port = port
         try
         {
             this.darkStar = DarkStar(config, host, port)
+            val darkStarInstance = this.darkStar ?: throw Exception("failed to initialize DarkStar")
             println("Creating handshake bytes")
-            this.handshakeBytes = darkStar!!.createHandshake()
+            this.handshakeBytes = darkStarInstance.createHandshake()
             println("Attempting handshake with handshake size: ${handshakeBytes.count()}")
             handshake()
             connectionStatus = true
@@ -105,15 +100,9 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
     //@ExperimentalUnsignedTypes
     constructor(config: ShadowConfig, logger: Logger?) : this(config)
     {
-        val host = config.serverIP
-        if (host == null) {
-            throw Exception("no host found")
-        }
+        val host = config.serverIP ?: throw Exception("no host found")
 
-        val port = config.port
-        if (port == null) {
-            throw Exception("no port found")
-        }
+        val port = config.port ?: throw Exception("no port found")
 
         this.host = host
         this.port = port
@@ -123,7 +112,8 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
         try
         {
             this.darkStar = DarkStar(config, host, port)
-            this.handshakeBytes = darkStar!!.createHandshake()
+            val darkStarInstance = this.darkStar ?: throw Exception("failed to initialize DarkStar")
+            this.handshakeBytes = darkStarInstance.createHandshake()
             handshake()
             connectionStatus = true
             println("handshake was successful")
@@ -250,8 +240,9 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
                 throw IOException()
             }
 
-            decryptionCipher = darkStar!!.makeCipher(false, result)
-            encryptionCipher = darkStar!!.makeCipher(true, result)
+            val darkStarInstance = this.darkStar ?: throw Exception("failed to initialize DarkStar")
+            decryptionCipher = darkStarInstance.makeCipher(false, result)
+            encryptionCipher = darkStarInstance.makeCipher(true, result)
         }
         else
         {
@@ -292,8 +283,8 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
 //
 //            if (host != null && port != null)
 //            {
-//                val socketAddress = InetSocketAddress(host, port!!)
-//                socket = Socket(host, port!!)
+//                val socketAddress = InetSocketAddress(host, port)
+//                socket = Socket(host, port)
 //                connect(socketAddress)
 //            }
 //            else

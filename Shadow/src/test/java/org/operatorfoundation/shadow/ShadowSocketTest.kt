@@ -1,6 +1,5 @@
 package org.operatorfoundation.shadow
 
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
@@ -36,7 +35,9 @@ internal class ShadowSocketTest
                 for ((name, value) in response.headers) {
                     println("$name: $value")
                 }
-                val body = response.body!!.string().trim()
+
+                val responseBody = response.body ?: throw Exception("response body was null")
+                val body = responseBody.string().trim()
                 println(body)
             }
         }
@@ -67,7 +68,7 @@ internal class ShadowSocketTest
 //            for ((name, value) in response.headers) {
 //                println("$name: $value")
 //            }
-//            val body = response.body!!.string().trim()
+//            val body = response.body.string().trim()
 //            println(body)
 //        }
 //    }

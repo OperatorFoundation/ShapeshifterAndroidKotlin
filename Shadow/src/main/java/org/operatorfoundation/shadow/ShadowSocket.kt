@@ -73,7 +73,8 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         try
         {
             this.darkStar = DarkStar(config, host, port)
-            this.handshakeBytes = darkStar!!.createHandshake()
+            val darkStarInstance = this.darkStar ?: throw Exception("failed to initialize DarkStar")
+            this.handshakeBytes = darkStarInstance.createHandshake()
             handshake()
             connectionStatus = true
             println("handshake was successful")
@@ -419,8 +420,9 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
                 throw IOException()
             }
 
-            decryptionCipher = darkStar!!.makeCipher(false, result)
-            encryptionCipher = darkStar!!.makeCipher(true, result)
+            val darkStarInstance = this.darkStar ?: throw Exception("failed to initialize DarkStar")
+            decryptionCipher = darkStarInstance.makeCipher(false, result)
+            encryptionCipher = darkStarInstance.makeCipher(true, result)
         }
         else
         {
@@ -443,8 +445,9 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
 
             if (host != null && port != null)
             {
-                val socketAddress = InetSocketAddress(host, port!!)
-                socket = Socket(host, port!!)
+                val portInstance = port ?: throw Exception("port value was null")
+                val socketAddress = InetSocketAddress(host, portInstance)
+                socket = Socket(host, portInstance)
                 connect(socketAddress)
             }
             else
