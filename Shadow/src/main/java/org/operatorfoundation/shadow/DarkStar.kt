@@ -26,6 +26,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
     {
         // take ServerPersistentPublicKey out of password string
         val serverPersistentPublicKeyData = Base64.decode(config.password, Base64.DEFAULT)
+        println("SPPubKeyData pre storage: ${serverPersistentPublicKeyData.toHexString()}")
 
         if (serverPersistentPublicKeyData.size != 33)
         {
@@ -43,6 +44,8 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         }
 
         this.serverPersistentPublicKey = PublicKey.new(serverPersistentPublicKeyData)
+        val spPubKeyBytesPostStorage = PublicKey.publicKeyToBytesDarkstarFormat(this.serverPersistentPublicKey!!)
+        println("SPPubKeyBytesPostStorage: ${spPubKeyBytesPostStorage.toHexString()}")
         this.clientEphemeralKeyPair = keychain.generateEphemeralKeypair(KeyType.P256KeyAgreement)
 
         val clientEphemeralKeyPair = this.clientEphemeralKeyPair
@@ -246,7 +249,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
 
             println("serverIdentifier (${serverIdentifier.size} bytes): ${serverIdentifier.toHexString()}")
             println("serverPersistentPublicKeyData (${serverPersistentPublicKeyData.size} count): ${serverPersistentPublicKeyData.toHexString()}")
-            println("clientEphemeralPublicKeyData ($clientEphemeralPublicKeyData.size count): ${clientEphemeralPublicKeyData.toHexString()}")
+            println("clientEphemeralPublicKeyData (${clientEphemeralPublicKeyData.size} count): ${clientEphemeralPublicKeyData.toHexString()}")
 
             digest.update(serverIdentifier)
             digest.update(serverPersistentPublicKeyData)
