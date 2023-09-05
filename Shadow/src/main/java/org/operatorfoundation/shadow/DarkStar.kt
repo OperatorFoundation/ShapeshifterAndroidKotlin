@@ -43,7 +43,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             else -> throw Exception("Unsupported KeyType found ${keyType.name}")
         }
 
-        this.serverPersistentPublicKey = PublicKey.new(serverPersistentPublicKeyData)
+        this.serverPersistentPublicKey = PublicKey.newDarkStarFormat(serverPersistentPublicKeyData)
         val spPubKeyBytesPostStorage = PublicKey.publicKeyToBytesDarkstarFormat(this.serverPersistentPublicKey!!)
         println("SPPubKeyBytesPostStorage: ${spPubKeyBytesPostStorage.toHexString()}")
         this.clientEphemeralKeyPair = keychain.generateEphemeralKeypair(KeyType.P256KeyAgreement)
