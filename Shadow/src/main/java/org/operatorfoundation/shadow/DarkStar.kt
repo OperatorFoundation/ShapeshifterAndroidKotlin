@@ -3,6 +3,7 @@ package org.operatorfoundation.shadow
 import android.util.Base64
 import android.util.Log
 import org.operatorfoundation.keychainandroid.*
+import org.operatorfoundation.locketkotlin.toHexString
 import java.net.InetAddress
 import java.net.UnknownHostException
 import java.nio.ByteBuffer
@@ -238,7 +239,14 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             if (sharedSecret != null)
             {
                 digest.update(sharedSecret.data)
+
+                var sharedSecretKeyHex = sharedSecret.data.toHexString()
+                println("ecdh data (${sharedSecret.data.size} count): $sharedSecretKeyHex")
             }
+
+            println("serverIdentifier (${serverIdentifier.size} bytes): ${serverIdentifier.toHexString()}")
+            println("serverPersistentPublicKeyData (${serverPersistentPublicKeyData.size} count): ${serverPersistentPublicKeyData.toHexString()}")
+            println("clientEphemeralPublicKeyData ($clientEphemeralPublicKeyData.size count): ${clientEphemeralPublicKeyData.toHexString()}")
 
             digest.update(serverIdentifier)
             digest.update(serverPersistentPublicKeyData)
