@@ -1,9 +1,12 @@
 package org.operatorfoundation.shadow
 
 import android.util.Log
+import org.operatorfoundation.keychainandroid.KeyType
+import org.operatorfoundation.keychainandroid.PublicKey
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.security.spec.InvalidKeySpecException
 
 //@kotlin.ExperimentalUnsignedTypes
 // Reads up to a specific number of bytes in a byte array.
@@ -80,4 +83,29 @@ fun InputStream.transferTo(out: OutputStream): Long {
             return bytesRead
         }
     }
+}
+
+fun darkstarBytesToKeychainPublicKey(bytes: ByteArray): org.operatorfoundation.keychainandroid.PublicKey {
+    if (bytes.size != 32)
+    {
+        throw InvalidKeySpecException()
+    }
+
+    val buffer = ByteArray(33)
+    System.arraycopy(bytes, 0, buffer, 1, 32)
+    buffer[0] = KeyType.P256KeyAgreement.value.toByte()
+
+    return PublicKey.new(buffer)
+}
+
+fun keychainPublicKeyToDarkstarBytes(pubKey: org.operatorfoundation.keychainandroid.PublicKey): ByteArray {
+    val keyBytes = pubKey.data
+    if (keyBytes == null) {
+        throw java.lang.Exception("wrong key type.  Expected P256KeyAgreement")
+    }
+
+    val result = ByteArray(32)
+    System.arraycopy(keyBytes, 1, result, 0, 32)
+
+    return result
 }
