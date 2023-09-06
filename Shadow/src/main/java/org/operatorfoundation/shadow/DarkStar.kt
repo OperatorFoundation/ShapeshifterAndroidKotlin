@@ -91,7 +91,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         splitHandshake(handshakeBytes, serverEphemeralPublicKeyData, serverConfirmationCode)
 
         // turn the server's public key data back to a public key type
-        val serverEphemeralPublicKey = PublicKey.P256KeyAgreement(serverEphemeralPublicKeyData)
+        val serverEphemeralPublicKey = darkstarBytesToKeychainPublicKey(serverEphemeralPublicKeyData)
         val clientEphemeral = this.clientEphemeralKeyPair
             ?: throw java.lang.Exception("could not find clientEphemeralKeyPair")
 
