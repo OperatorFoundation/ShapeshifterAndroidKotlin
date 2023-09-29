@@ -28,7 +28,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         val serverPersistentPublicKeyData = Base64.decode(config.password, Base64.DEFAULT)
         println("SPPubKeyData pre storage: ${serverPersistentPublicKeyData.toHexString()}")
 
-        if (serverPersistentPublicKeyData.size != 33)
+        if (serverPersistentPublicKeyData.size != 66)
         {
             throw Exception("Invalid key size")
         }
@@ -43,31 +43,37 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             else -> throw Exception("Unsupported KeyType found ${keyType.name}")
         }
 
-        this.serverPersistentPublicKey = PublicKey.new(serverPersistentPublicKeyData)
-        this.clientEphemeralKeyPair = keychain.generateEphemeralKeypair(KeyType.P256KeyAgreement)
+        while (true) {
+            this.serverPersistentPublicKey = PublicKey.new(serverPersistentPublicKeyData)
+            this.clientEphemeralKeyPair =
+                keychain.generateEphemeralKeypair(KeyType.P256KeyAgreement)
 
-        val clientEphemeralKeyPair = this.clientEphemeralKeyPair
-            ?: throw java.lang.Exception("could not find clientEphemeralKeyPair")
+            val clientEphemeralKeyPair = this.clientEphemeralKeyPair
+                ?: throw java.lang.Exception("could not find clientEphemeralKeyPair")
 
-        val clientEphemeralPrivateKey = clientEphemeralKeyPair.privateKey
-        val clientEphemeralPublicKey = clientEphemeralKeyPair.publicKey
+            val clientEphemeralPrivateKey = clientEphemeralKeyPair.privateKey
+            val clientEphemeralPublicKey = clientEphemeralKeyPair.publicKey
 
-        // convert the ephemeral public key into data and save it to the handshakeData array.
-        val clientEphemeralPublicKeyData = keychainPublicKeyToDarkstarBytes(clientEphemeralPublicKey)
-        val serverPersistentPublicKey = this.serverPersistentPublicKey
-            ?: throw java.lang.Exception("could't find serverPersistentPublicKey")
+            // convert the ephemeral public key into data and save it to the handshakeData array.
+            val clientEphemeralPublicKeyData =
+                keychainPublicKeyToDarkstarBytes(clientEphemeralPublicKey)
+            if (clientEphemeralPublicKeyData[0] == 2.toByte()) {
+                val serverPersistentPublicKey = this.serverPersistentPublicKey
+                    ?: throw java.lang.Exception("could't find serverPersistentPublicKey")
 
-        // Generate client confirmation code
-        val clientConfirmationCode = generateClientConfirmationCode(
-            host,
-            port,
-            serverPersistentPublicKey,
-            clientEphemeralPublicKey,
-            clientEphemeralPrivateKey
-        )
-        val handshakeData = clientEphemeralPublicKeyData + clientConfirmationCode
+                // Generate client confirmation code
+                val clientConfirmationCode = generateClientConfirmationCode(
+                    host,
+                    port,
+                    serverPersistentPublicKey,
+                    clientEphemeralPublicKey,
+                    clientEphemeralPrivateKey
+                )
+                val handshakeData = clientEphemeralPublicKeyData + clientConfirmationCode
 
-        return handshakeData
+                return handshakeData
+            }
+        }
     }
 
     private fun splitHandshake(handshakeData: ByteArray, ephemeralPublicKeyBuf: ByteArray, confirmationCodeBuf: ByteArray)
