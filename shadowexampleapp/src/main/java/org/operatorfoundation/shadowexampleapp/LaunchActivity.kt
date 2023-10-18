@@ -48,7 +48,9 @@ class LaunchActivity : AppCompatActivity()
             // TODO: Make sure password matches the servers public key.
             val config = ShadowConfig(
                 "",
-                "DarkStar"
+                "DarkStar",
+                "",
+                1234
             )
             
             try
@@ -142,7 +144,7 @@ class LaunchActivity : AppCompatActivity()
 
     fun restCall()
     {
-        val sConfig = ShadowConfig("", CipherMode.DarkStar.toString())
+        val sConfig = ShadowConfig("", CipherMode.DarkStar.toString(), "", 0)
         println("config created")
         val client: OkHttpClient.Builder = OkHttpClient
             .Builder()

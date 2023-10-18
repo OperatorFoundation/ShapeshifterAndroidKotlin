@@ -25,7 +25,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
     fun createHandshake(): ByteArray
     {
         // take ServerPersistentPublicKey out of password string
-        val serverPersistentPublicKeyData = Base64.decode(config.password, Base64.DEFAULT)
+        val serverPersistentPublicKeyData = Base64.decode(config.serverPublicKey, Base64.DEFAULT)
         println("SPPubKeyData pre storage: ${serverPersistentPublicKeyData.toHexString()}")
 
         if (serverPersistentPublicKeyData.size != 66)

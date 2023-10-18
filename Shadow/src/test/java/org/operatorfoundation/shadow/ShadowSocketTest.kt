@@ -18,7 +18,7 @@ internal class ShadowSocketTest
     fun okhttpTest()
     {
         try {
-            val config = ShadowConfig("+vsJrpo0GPcVdpquE4hwz2tPrr4itCzzXiGNaU0Iw1I=", "DarkStar")
+            val config = ShadowConfig("+vsJrpo0GPcVdpquE4hwz2tPrr4itCzzXiGNaU0Iw1I=", "DarkStar", "127.0.0.1", 1234)
             val client: OkHttpClient.Builder = OkHttpClient.Builder()
                 .connectTimeout(15000, java.util.concurrent.TimeUnit.MILLISECONDS)
                 .readTimeout(15000, java.util.concurrent.TimeUnit.MILLISECONDS)
@@ -89,7 +89,7 @@ internal class ShadowSocketTest
     fun checkBadCipher()
     {
         val password = "1234"
-        ShadowConfig(password, "cipherNoCiphing")
+        ShadowConfig(password, "cipherNoCiphing", "127.0.0.1", 1234)
     }
 
     @ExperimentalUnsignedTypes
@@ -97,7 +97,7 @@ internal class ShadowSocketTest
     fun badKeySize()
     {
         val password = "1234"
-        val config = ShadowConfig(password, "DarkStar")
+        val config = ShadowConfig(password, "DarkStar", "127.0.0.1", 1234)
         val darkStar = DarkStar(config, "127.0.0.1", 2222)
         darkStar.createHandshake()
     }
@@ -144,13 +144,13 @@ internal class ShadowSocketTest
     @Test
     fun configSerializationNoHost()
     {
-        val config = ShadowConfig("password", "DarkStar")
+        val config = ShadowConfig("password", "DarkStar", "127.0.0.1", 1234)
         val configString = Json.encodeToString(config)
 
         println("\n--> Shadow Config as Json: \n$configString")
 
         val decodedConfig: ShadowConfig = Json.decodeFromString(configString)
-        assert(config.password == decodedConfig.password)
+        assert(config.serverPublicKey == decodedConfig.serverPublicKey)
     }
 
     @Test
@@ -162,7 +162,7 @@ internal class ShadowSocketTest
         println("\n--> Shadow Config as Json: \n$configString")
 
         val decodedConfig: ShadowConfig = Json.decodeFromString(configString)
-        assert(config.password == decodedConfig.password)
+        assert(config.serverPublicKey == decodedConfig.serverPublicKey)
     }
 
 //    @Test

@@ -63,9 +63,10 @@ class ShadowSocketFactory(
             val jsonConfig = gson.fromJson(jsonText, JsonConfig.ShadowJsonConfig::class.java)
             val serverConfig = jsonConfig.servers.first { UUID.fromString(it.id) == uuid }
 
-            val shadowConfig = ShadowConfig(serverConfig.password, serverConfig.method)
             val host = serverConfig.server
             val port = serverConfig.server_port
+            val shadowConfig = ShadowConfig(serverConfig.password, serverConfig.method, host, port)
+
 
             return ShadowSocketFactory(shadowConfig, host, port)
         }
