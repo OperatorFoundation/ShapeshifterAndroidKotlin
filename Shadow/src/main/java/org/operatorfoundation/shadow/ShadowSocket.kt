@@ -34,12 +34,22 @@ import java.nio.channels.SocketChannel
 
 // This class implements client sockets (also called just "sockets").
 // A socket is an endpoint for communication between two machines.
-open class ShadowSocket(val config: ShadowConfig) : Socket() {
+open class ShadowSocket(val config: ShadowConfig, val shouldConnect: Boolean = true, private val socket: Socket = Socket()) : Socket()
+{
+    private var handshakeBytes: ByteArray = byteArrayOf()
+    private lateinit var encryptionCipher: ShadowCipher
+    private var decryptionCipher: ShadowCipher? = null
+    private var connectionStatus: Boolean = false
+    private var darkStar: DarkStar? = null
+    private var host: String
+    private var port: Int
+    private var decryptFailed: Boolean = false
+
     companion object {
         private val bloom = Bloom()
 
         fun saveBloom(fileName: String) {
-           bloom.save(fileName)
+            bloom.save(fileName)
         }
 
         fun loadBloom(fileName: String) {
@@ -47,120 +57,43 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
         }
     }
 
-    // Fields:
-    private var socket: Socket = Socket()
-    private var handshakeBytes: ByteArray = byteArrayOf()
-    private lateinit var encryptionCipher: ShadowCipher
-    private var decryptionCipher: ShadowCipher? = null
-    private var connectionStatus: Boolean = false
-    private var darkStar: DarkStar? = null
-    private var host: String? = null
-    private var port: Int? = null
-    private var decryptFailed: Boolean = false
-
-    // Constructors:
-
-    // Creates a stream socket and connects it to the specified port number on the named host.
-    //@ExperimentalUnsignedTypes
-    constructor(config: ShadowConfig, host: String, port: Int) : this(config)
-    {
-        val socketAddress = InetSocketAddress(host, port)
-        this.host = host
-        this.port = port
-        this.socket = Socket()
-        this.socket.connect(socketAddress)
-
-        try
-        {
-            this.darkStar = DarkStar(config, host, port)
-            val darkStarInstance = this.darkStar ?: throw Exception("failed to initialize DarkStar")
-            this.handshakeBytes = darkStarInstance.createHandshake()
-            handshake()
-            connectionStatus = true
-            println("handshake was successful")
-        }
-        catch (handshakeError: Exception)
-        {
-            Log.e("ShadowSocket.init", "ShadowSocket constructor: Handshake failed.")
-            println(handshakeError.message)
-            connectionStatus = false
-
-            throw handshakeError
-        }
-    }
 
     // Creates a socket and connects it to the specified remote host on the specified remote port.
-    @ExperimentalUnsignedTypes
-    constructor(config: ShadowConfig, host: String, port: Int, localAddr: InetAddress, localPort: Int) : this(config)
-    {
-        socket = Socket(host, port, localAddr, localPort)
+    // The Socket will also bind() to the to the local address and port supplied
+    constructor(config: ShadowConfig, localAddr: InetAddress, localPort: Int) : this(config, socket = Socket(config.serverIP, config.port, localAddr, localPort))
 
-        try
-        {
-            handshake()
-            connectionStatus = true
-        }
-        catch(error: Exception)
-        {
-            Log.e("ShadowSocket.init", "Handshake failed.")
-            socket.close()
-            connectionStatus = false
-            throw error
-        }
-    }
-
-    // Creates a stream socket and connects it to the specified port number at the specified IP address.
-    @ExperimentalUnsignedTypes
-    constructor(config: ShadowConfig, address: InetAddress, port: Int) : this(config)
-    {
-        socket = Socket(address, port)
-
-        try
-        {
-            handshake()
-            connectionStatus = true
-        }
-        catch(error: IOException)
-        {
-            Log.e("ShadowSocket.init", "Handshake failed, closing connection.")
-            socket.close()
-            connectionStatus = false
-            throw error
-        }
-    }
-
-    // Creates a socket and connects it to the specified remote address on the specified remote port.
-    @ExperimentalUnsignedTypes
-    constructor(
-        config: ShadowConfig,
-        address: InetAddress,
-        port: Int,
-        localAddr: InetAddress,
-        localPort: Int
-    ) : this(
-        config
-    )
-    {
-        socket = Socket(address, port, localAddr, localPort)
-
-        try
-        {
-            handshake()
-            connectionStatus = true
-        }
-        catch(error: Exception)
-        {
-            Log.e("ShadowSocket.init", "Handshake failed, closing connection.")
-            socket.close()
-            connectionStatus = false
-            throw error
-        }
-    }
 
     // Creates an unconnected socket, specifying the type of proxy, if any, that should be used regardless of any other settings.
-    @ExperimentalUnsignedTypes
-    constructor(config: ShadowConfig, proxy: Proxy) : this(config) {
-        socket = Socket(proxy)
+    constructor(config: ShadowConfig, proxy: Proxy) : this(config, shouldConnect = false, socket = Socket(proxy))
+
+    init
+    {
+        this.host = config.serverIP
+        this.port = config.port
+
+        if (shouldConnect)
+        {
+            val socketAddress = InetSocketAddress(host, port)
+            this.socket.connect(socketAddress)
+
+            try
+            {
+                this.darkStar = DarkStar(config, host, port)
+                val darkStarInstance = this.darkStar ?: throw Exception("failed to initialize DarkStar")
+                this.handshakeBytes = darkStarInstance.createHandshake()
+                handshake()
+                connectionStatus = true
+                println("handshake was successful")
+            }
+            catch (handshakeError: Exception)
+            {
+                Log.e("ShadowSocket.init", "Handshake failed.")
+                println(handshakeError.message)
+                connectionStatus = false
+
+                throw handshakeError
+            }
+        }
     }
 
     // Public functions:
@@ -176,7 +109,6 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     }
 
     // Connects this socket to the server and initiates the handshake.
-    //@ExperimentalUnsignedTypes
     override fun connect(endpoint: SocketAddress?)
     {
         socket.connect(endpoint)
@@ -195,7 +127,6 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     }
 
     // Connects this socket to the server with a specified timeout value and initiates the handshake.
-    //@ExperimentalUnsignedTypes
     override fun connect(endpoint: SocketAddress?, timeout: Int)
     {
         socket.connect(endpoint, timeout)
@@ -392,7 +323,6 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
 
     // Private functions:
     // Exchanges the salt.
-    //@ExperimentalUnsignedTypes
     private fun handshake() {
         sendHandshake()
         print("cryptographic handshake sent")
@@ -406,7 +336,6 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
     }
 
     // Receives the salt through the input stream.
-    //@ExperimentalUnsignedTypes
     private fun receiveHandshake()
     {
         val handshakeSize = handshakeSize
@@ -443,18 +372,8 @@ open class ShadowSocket(val config: ShadowConfig) : Socket() {
             decryptFailed = true
             close()
 
-            if (host != null && port != null)
-            {
-                val portInstance = port ?: throw Exception("port value was null")
-                val socketAddress = InetSocketAddress(host, portInstance)
-                socket = Socket(host, portInstance)
-                connect(socketAddress)
-            }
-            else
-            {
-                Log.e("ShadowSocket.redial", "host and port not found")
-                throw IOException()
-            }
+            val socketAddress = InetSocketAddress(host, port)
+            connect(socketAddress)
         }
     }
 }

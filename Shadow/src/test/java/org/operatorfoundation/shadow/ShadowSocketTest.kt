@@ -23,7 +23,7 @@ internal class ShadowSocketTest
                 .connectTimeout(15000, java.util.concurrent.TimeUnit.MILLISECONDS)
                 .readTimeout(15000, java.util.concurrent.TimeUnit.MILLISECONDS)
                 .writeTimeout(15000, java.util.concurrent.TimeUnit.MILLISECONDS)
-            val okHttpClient = client.socketFactory(ShadowSocketFactory(config, "127.0.0.1", 1234)).build()
+            val okHttpClient = client.socketFactory(ShadowSocketFactory(config)).build()
 
             val request = Request.Builder()
                 .url("https://www.google.com")

@@ -30,7 +30,7 @@ import kotlinx.serialization.Required
 import kotlinx.serialization.Transient
 import java.lang.IllegalArgumentException
 
-// ShadowConfig is a class that implements the arguments necessary for a Shadowsocks connection.
+// ShadowConfig is a class that implements the arguments necessary for a Shadow connection.
 @Serializable
 class ShadowConfig(val serverPublicKey: String, val cipherName: String, val serverAddress: String)
 {
@@ -41,7 +41,8 @@ class ShadowConfig(val serverPublicKey: String, val cipherName: String, val serv
     val port: Int
         get() = serverAddress.substringAfter(':').toInt()
 
-    @Transient lateinit var cipherMode: CipherMode
+    @Transient
+    var cipherMode: CipherMode = CipherMode.DarkStar // Darkstar is the default value, but the config overrides this during init
 
     constructor(serverPublicKey: String, cipherName: String, serverIP: String, port: Int) : this(
         serverPublicKey = serverPublicKey,

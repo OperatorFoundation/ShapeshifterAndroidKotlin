@@ -56,7 +56,7 @@ class LaunchActivity : AppCompatActivity()
             try
             {
                 // TODO: Use a valid server IP address.
-                val shadowSocket = ShadowSocket(config, "", 1234)
+                val shadowSocket = ShadowSocket(config)
                 val httpRequest = "GET / HTTP/1.0\r\nConnection: close\r\n\r\n"
                 val textBytes = httpRequest.toByteArray()
 
@@ -152,10 +152,7 @@ class LaunchActivity : AppCompatActivity()
             .readTimeout(30000, TimeUnit.MILLISECONDS)
             .writeTimeout(30000, TimeUnit.MILLISECONDS)
         println("builder created")
-        val okhttpShadowSocketFactory = OKHTTPShadowSocketFactory(
-            sConfig,
-            "",
-            0)
+        val okhttpShadowSocketFactory = OKHTTPShadowSocketFactory(sConfig)
         println("factory created")
         val okHttpClient = client.socketFactory(
             okhttpShadowSocketFactory
