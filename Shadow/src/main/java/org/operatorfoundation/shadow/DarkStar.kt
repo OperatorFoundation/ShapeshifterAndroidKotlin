@@ -44,6 +44,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
         }
 
         while (true) {
+            println("Entering Darkstar handshake while loop...")
             this.serverPersistentPublicKey = PublicKey.new(serverPersistentPublicKeyData)
             this.clientEphemeralKeyPair =
                 keychain.generateEphemeralKeypair(KeyType.P256KeyAgreement)
@@ -70,6 +71,8 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
                     clientEphemeralPrivateKey
                 )
                 val handshakeData = clientEphemeralPublicKeyData + clientConfirmationCode
+
+                println("Exiting Darkstar handshake loop")
 
                 return handshakeData
             }
