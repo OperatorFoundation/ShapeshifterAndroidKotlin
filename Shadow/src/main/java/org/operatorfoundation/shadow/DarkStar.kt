@@ -75,6 +75,8 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
                 println("Exiting Darkstar handshake loop")
 
                 return handshakeData
+            } else {
+                println("expected first byte: ${2.toByte()} | got: ${clientEphemeralPublicKeyData[0]}")
             }
         }
     }
