@@ -1,8 +1,10 @@
 package org.operatorfoundation.shadow
 
 import android.util.Log
+import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey
 import org.operatorfoundation.keychainandroid.KeyType
 import org.operatorfoundation.keychainandroid.PublicKey
+import org.operatorfoundation.keychainandroid.toHex
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -99,13 +101,9 @@ fun darkstarBytesToKeychainPublicKey(bytes: ByteArray): org.operatorfoundation.k
 }
 
 fun keychainPublicKeyToDarkstarBytes(pubKey: org.operatorfoundation.keychainandroid.PublicKey): ByteArray {
-    val keyBytes = pubKey.data
-    if (keyBytes == null) {
-        throw java.lang.Exception("wrong key type.  Expected P256KeyAgreement")
-    }
+    val bcecPublicKey = pubKey as BCECPublicKey
+    val point = bcecPublicKey.q
+    val encodedPoint = point.getEncoded(true)
 
-    val result = ByteArray(32)
-    System.arraycopy(keyBytes, 1, result, 0, 32)
-
-    return result
+    return encodedPoint
 }
