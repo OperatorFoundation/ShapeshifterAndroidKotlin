@@ -101,7 +101,12 @@ fun darkstarBytesToKeychainPublicKey(bytes: ByteArray): org.operatorfoundation.k
 }
 
 fun keychainPublicKeyToDarkstarBytes(pubKey: org.operatorfoundation.keychainandroid.PublicKey): ByteArray {
-    val bcecPublicKey = pubKey as BCECPublicKey
+    val javaPublicKey = when(pubKey) {
+        is PublicKey.P256KeyAgreement -> pubKey.javaPublicKey
+        else -> null
+    }
+    
+    val bcecPublicKey = javaPublicKey as BCECPublicKey
     val point = bcecPublicKey.q
     val encodedPoint = point.getEncoded(true)
 
