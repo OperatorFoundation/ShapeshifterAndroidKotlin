@@ -2,10 +2,13 @@ package org.operatorfoundation.shadow
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.junit.Assert.assertNotNull
 import org.junit.Test
+import java.io.File
 import java.io.IOException
 import java.net.ServerSocket
 import java.net.URL
@@ -14,6 +17,28 @@ import java.util.*
 
 internal class ShadowSocketTest
 {
+    @Test
+    fun testShadowConnection() {
+        val configFile = File("/path/ShadowClientConfig.json")
+        val configText = configFile.readText(Charsets.UTF_8)
+
+        val customJson = Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+            prettyPrint = true
+            allowStructuredMapKeys = true
+            encodeDefaults = true
+        }
+
+        val shadowConfig = customJson.decodeFromString<ShadowConfig>(configText)
+        val shadowConnection = ShadowConnection(shadowConfig, logger = null)
+        val success = shadowConnection.write("pass")
+        assert(success)
+        val serverBytes = shadowConnection.read(7)
+        println("server bytes: ${serverBytes}")
+    }
+
+
     @Test
     fun okhttpTest()
     {

@@ -2,6 +2,7 @@ package org.operatorfoundation.shadow
 
 import android.util.Base64
 import android.util.Log
+import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey
 import org.operatorfoundation.keychainandroid.*
 import org.operatorfoundation.locketkotlin.toHexString
 import java.net.InetAddress
@@ -55,10 +56,21 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             val clientEphemeralPrivateKey = clientEphemeralKeyPair.privateKey
             val clientEphemeralPublicKey = clientEphemeralKeyPair.publicKey
 
+            // check for even byte
+            val javaPublicKey = when(clientEphemeralPublicKey) {
+                is PublicKey.P256KeyAgreement -> clientEphemeralPublicKey.javaPublicKey
+                else -> null
+            }
+
+            val bcecPublicKey = javaPublicKey as BCECPublicKey
+            val point = bcecPublicKey.q
+            val encodedPoint = point.getEncoded(true)
+
+            if (encodedPoint[0] == 2.toByte()) {
             // convert the ephemeral public key into data and save it to the handshakeData array.
             val clientEphemeralPublicKeyData =
                 keychainPublicKeyToDarkstarBytes(clientEphemeralPublicKey)
-            if (clientEphemeralPublicKeyData[0] == 2.toByte()) {
+
                 val serverPersistentPublicKey = this.serverPersistentPublicKey
                     ?: throw java.lang.Exception("could't find serverPersistentPublicKey")
 
@@ -76,7 +88,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
 
                 return handshakeData
             } else {
-                println("expected first byte: ${2.toByte()} | got: ${clientEphemeralPublicKeyData[0]}")
+                println("expected first byte: ${2.toByte()} | got: ${encodedPoint[0]}")
             }
         }
     }

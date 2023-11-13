@@ -2,12 +2,17 @@ package org.operatorfoundation.shadow
 
 import android.util.Log
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey
+import org.bouncycastle.jce.ECNamedCurveTable
+import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.bouncycastle.jce.spec.ECParameterSpec
+import org.bouncycastle.jce.spec.ECPublicKeySpec
 import org.operatorfoundation.keychainandroid.KeyType
 import org.operatorfoundation.keychainandroid.PublicKey
 import org.operatorfoundation.keychainandroid.toHex
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.security.KeyFactory
 import java.security.spec.InvalidKeySpecException
 
 //@kotlin.ExperimentalUnsignedTypes
@@ -95,9 +100,15 @@ fun darkstarBytesToKeychainPublicKey(bytes: ByteArray): org.operatorfoundation.k
 
     val buffer = ByteArray(33)
     System.arraycopy(bytes, 0, buffer, 1, 32)
-    buffer[0] = KeyType.P256KeyAgreement.value.toByte()
+    buffer[0] = 2.toByte()
 
-    return PublicKey.new(buffer)
+    val keyFactory = KeyFactory.getInstance("EC", BouncyCastleProvider())
+    val ecSpec: ECParameterSpec = ECNamedCurveTable.getParameterSpec("secp256r1")
+    val point = ecSpec.curve.decodePoint(buffer)
+    val pubSpec = ECPublicKeySpec(point, ecSpec)
+    val publicKey = keyFactory.generatePublic(pubSpec)
+
+    return PublicKey.P256KeyAgreement(publicKey)
 }
 
 fun keychainPublicKeyToDarkstarBytes(pubKey: org.operatorfoundation.keychainandroid.PublicKey): ByteArray {
@@ -110,5 +121,5 @@ fun keychainPublicKeyToDarkstarBytes(pubKey: org.operatorfoundation.keychainandr
     val point = bcecPublicKey.q
     val encodedPoint = point.getEncoded(true)
 
-    return encodedPoint
+    return encodedPoint.sliceArray(1 until 32 + 1)
 }
