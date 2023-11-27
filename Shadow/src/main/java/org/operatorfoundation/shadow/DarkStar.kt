@@ -31,7 +31,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
 
         if (serverPersistentPublicKeyData.size != 66)
         {
-            throw Exception("Invalid key size")
+            throw Exception("Invalid key size: ${serverPersistentPublicKeyData.size} | needed: 66")
         }
 
         when (val keyType = KeyType.fromInt(serverPersistentPublicKeyData[0].toInt()))
@@ -148,6 +148,10 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             clientEphemeral.privateKey,
             serverPersistentPublic
         )
+
+        println("client copy: ${clientCopyServerConfirmationCode.toHexString()}")
+        println("server copy: ${serverConfirmationCode.toHexString()}")
+
         if (!clientCopyServerConfirmationCode.contentEquals(serverConfirmationCode))
         {
             throw InvalidKeyException()
@@ -267,9 +271,10 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
                 println("ecdh data (${sharedSecret.data.size} count): $sharedSecretKeyHex")
             }
 
-            println("serverIdentifier (${serverIdentifier.size} bytes): ${serverIdentifier.toHexString()}")
-            println("serverPersistentPublicKeyData (${serverPersistentPublicKeyData.size} count): ${serverPersistentPublicKeyData.toHexString()}")
-            println("clientEphemeralPublicKeyData (${clientEphemeralPublicKeyData.size} count): ${clientEphemeralPublicKeyData.toHexString()}")
+            println("ecdhSecret: ${sharedSecret!!.data.toHexString()}")
+            println("serverIdentifier: ${serverIdentifier.toHexString()}")
+            println("serverPersistentPublicKey: ${serverPersistentPublicKeyData.toHexString()}")
+            println("clientEphemeralPublicKeyData: ${clientEphemeralPublicKeyData.toHexString()}")
 
             digest.update(serverIdentifier)
             digest.update(serverPersistentPublicKeyData)
