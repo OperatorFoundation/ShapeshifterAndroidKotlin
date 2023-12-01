@@ -37,7 +37,7 @@ android {
 
 dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.core:core-ktx:1.10.1'
     implementation 'androidx.test.ext:junit-ktx:1.1.5'
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'com.google.guava:guava:31.0.1-android'
@@ -45,9 +45,9 @@ dependencies {
     implementation 'org.bouncycastle:bcpkix-jdk15on:1.70'
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0'
 
-    implementation 'com.github.operatorfoundation:keychainandroid:3.0.0'
+    implementation 'com.github.operatorfoundation:keychainandroid:3.0.1'
     implementation 'com.github.operatorfoundation:locketkotlin:1.0.20'
-    implementation 'com.github.operatorfoundation:transmissionandroid:1.2.8'
+    implementation 'com.github.operatorfoundation:transmissionandroid:1.2.9'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'org.bouncycastle:bcpkix-jdk15on:1.70'
