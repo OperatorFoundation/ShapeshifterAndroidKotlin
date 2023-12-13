@@ -4,7 +4,7 @@ import android.util.Base64
 import android.util.Log
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPublicKey
 import org.operatorfoundation.keychainandroid.*
-import org.operatorfoundation.locketkotlin.toHexString
+import org.operatorfoundation.transmission.Transmission.Companion.toHexString
 import java.net.InetAddress
 import java.net.UnknownHostException
 import java.nio.ByteBuffer
@@ -149,8 +149,8 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             serverPersistentPublic
         )
 
-        println("client copy: ${clientCopyServerConfirmationCode.toHexString()}")
-        println("server copy: ${serverConfirmationCode.toHexString()}")
+        println("clientCopyServerConfirmationCode: ${clientCopyServerConfirmationCode.toHexString()}")
+        println("serverConfirmationCode: ${serverConfirmationCode.toHexString()}")
 
         if (!clientCopyServerConfirmationCode.contentEquals(serverConfirmationCode))
         {
@@ -244,6 +244,11 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
             digest.update(darkStarBytes)
             digest.update(serverStringBytes)
 
+            println("\n~~> generateServerConfirmationCode <~~")
+            println("clientEphemeralPublicKey (${clientEphemeralPublicKeyData.size} bytes): ${clientEphemeralPublicKeyData.toHexString()}")
+            println("serverPersistentPublicKeyData (${serverPersistentPublicKeyData.size} bytes): ${serverPersistentPublicKeyData.toHexString()}")
+            println("~~> end generateServerConfirmationCode <~~\n")
+
             return digest.digest()
         }
 
@@ -271,6 +276,7 @@ class DarkStar(var config: ShadowConfig, private var host: String, private var p
                 println("ecdh data (${sharedSecret.data.size} count): $sharedSecretKeyHex")
             }
 
+            println("~~> generateClientConfirmationCode <~~")
             println("ecdhSecret: ${sharedSecret!!.data.toHexString()}")
             println("serverIdentifier: ${serverIdentifier.toHexString()}")
             println("serverPersistentPublicKey: ${serverPersistentPublicKeyData.toHexString()}")
