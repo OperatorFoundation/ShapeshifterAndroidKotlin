@@ -30,6 +30,8 @@ import org.operatorfoundation.transmission.*
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.ByteBuffer
+import java.util.logging.Level
 import java.util.logging.Logger
 
 // This class implements client sockets (also called just "sockets").
@@ -189,8 +191,40 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
         }
     }
 
-    @Synchronized override fun writeWithLengthPrefix(data: ByteArray, prefixSizeInBits: Int): Boolean {
-        return Transmission.writeWithLengthPrefix(this, data, prefixSizeInBits, null)
+    @Synchronized override fun writeWithLengthPrefix(data: ByteArray, prefixSizeInBits: Int): Boolean
+    {
+//        return Transmission.writeWithLengthPrefix(this, data, prefixSizeInBits, null)
+
+        val messageSize = data.size
+        val messageSizeBytes: ByteBuffer
+
+        when (prefixSizeInBits) {
+            8 -> {
+                messageSizeBytes = ByteBuffer.allocate(1)
+                messageSizeBytes.put(messageSize.toByte())
+            }
+            16 -> {
+                messageSizeBytes = ByteBuffer.allocate(2)
+                messageSizeBytes.putShort(messageSize.toShort())
+            }
+            32 -> {
+                messageSizeBytes = ByteBuffer.allocate(4)
+                messageSizeBytes.putInt(messageSize)
+            }
+            64 -> {
+                messageSizeBytes = ByteBuffer.allocate(8)
+                messageSizeBytes.putLong(messageSize.toLong())
+            }
+            else ->
+            {
+                logger?.log(Level.SEVERE, "Transmission: Unable to complete a write request, the size in bits of the requested length prefix is invalid. Requested size in bits: $prefixSizeInBits")
+                return false
+            }
+        }
+
+        val atomicData = messageSizeBytes.array() + data
+
+        return this.write(atomicData)
     }
 
     // Private functions:
