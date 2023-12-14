@@ -133,12 +133,12 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
     }
 
     // Public functions:
-    @Synchronized override fun close() {
+    override fun close() {
         Log.i("ShadowConnection", "Connection closed.")
         this.connection.close()
     }
 
-    @Synchronized override fun read(size: Int): ByteArray? {
+    override fun read(size: Int): ByteArray? {
         val readBuffer = ByteArray(size)
         var totalBytesRead = 0
         while (totalBytesRead < size) {
@@ -150,14 +150,14 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
     }
 
     // like read, but doesn't mind a short read
-    @Synchronized override fun readMaxSize(maxSize: Int): ByteArray? {
+    override fun readMaxSize(maxSize: Int): ByteArray? {
         val readBuffer = ByteArray(maxSize)
         val bytesRead = this.inputStream.read(readBuffer)
         return readBuffer.sliceArray(0 until bytesRead)
     }
 
     // determines length by first reading the length prefix
-    @Synchronized override fun readWithLengthPrefix(prefixSizeInBits: Int): ByteArray? {
+    override fun readWithLengthPrefix(prefixSizeInBits: Int): ByteArray? {
         return Transmission.readWithLengthPrefix(this, prefixSizeInBits, null)
     }
 
@@ -172,7 +172,7 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
         return readBuffer
     }
 
-    @Synchronized override fun write(data: ByteArray): Boolean {
+    override fun write(data: ByteArray): Boolean {
         return try {
             this.outputStream.write(data)
             true
@@ -181,7 +181,7 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
         }
     }
 
-    @Synchronized override fun write(string: String): Boolean {
+    override fun write(string: String): Boolean {
         return try {
             val bytes = string.toByteArray()
             write(bytes)
@@ -191,7 +191,7 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
         }
     }
 
-    @Synchronized override fun writeWithLengthPrefix(data: ByteArray, prefixSizeInBits: Int): Boolean
+    override fun writeWithLengthPrefix(data: ByteArray, prefixSizeInBits: Int): Boolean
     {
 //        return Transmission.writeWithLengthPrefix(this, data, prefixSizeInBits, null)
 
@@ -259,7 +259,6 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
     }
 
     // Receives the salt through the input stream.
-    //@ExperimentalUnsignedTypes
     private fun receiveHandshake()
     {
         val handshakeSize = handshakeSize
