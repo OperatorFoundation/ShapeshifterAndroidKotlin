@@ -10,4 +10,16 @@ class ConnectionOutputStream(val connection: Connection): OutputStream() {
         val byteArray = byteArrayOf(byte)
         connection.write(byteArray)
     }
+
+    override fun write(b: ByteArray) {
+        connection.write(b)
+    }
+
+    override fun write(b: ByteArray?, off: Int, len: Int) {
+        // if b is null, nothing will happen and that's okay.
+        b?.let {
+            val buffer = b.sliceArray(off until len)
+            write(buffer)
+        }
+    }
 }
