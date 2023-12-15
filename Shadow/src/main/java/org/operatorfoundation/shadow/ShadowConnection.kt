@@ -180,16 +180,29 @@ open class ShadowConnection(val config: ShadowConfig) : Connection
         finally { r.unlock(); }
     }
 
-    override fun unsafeRead(size: Int): ByteArray? {
-//        val readBuffer = ByteArray(size)
-//        var totalBytesRead = 0
-//        while (totalBytesRead < size) {
-//            val bytesRead = this.inputStream.read(readBuffer, totalBytesRead, size - totalBytesRead)
-//            totalBytesRead += bytesRead
-//        }
-//
-//        return readBuffer
-        return byteArrayOf(0, 0, 0, 4)
+    override fun unsafeRead(size: Int): ByteArray?
+    {
+        val readBuffer = ByteArray(size)
+        var totalBytesRead = 0
+        while (totalBytesRead < size)
+        {
+            // FIXME: Currently debugging read issues here
+            val bytesRead = this.inputStream.read(readBuffer, totalBytesRead, size - totalBytesRead)
+
+            if (bytesRead == -1)
+            {
+                println("input stream read returned an error, returning null")
+                return null
+            }
+            else if (bytesRead == 0)
+            {
+                println("input stream read returned a 0, continuing...")
+            }
+
+            totalBytesRead += bytesRead
+        }
+
+        return readBuffer
     }
 
     override fun write(data: ByteArray): Boolean {
