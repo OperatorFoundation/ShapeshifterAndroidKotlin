@@ -196,7 +196,7 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
     }
 
     override fun write(data: ByteArray): Boolean {
-        r.lock();
+        w.lock();
         try
         {
             return try {
@@ -206,7 +206,7 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
                 false
             }
         }
-        finally { r.unlock(); }
+        finally { w.unlock(); }
     }
 
     override fun write(string: String): Boolean {
