@@ -175,7 +175,8 @@ open class ShadowConnection(val config: ShadowConfig) : Connection
         r.lock();
         try
         {
-            return Transmission.readWithLengthPrefix(this, prefixSizeInBits, null)
+            return byteArrayOf(0)
+//            return Transmission.readWithLengthPrefix(this, prefixSizeInBits, null)
         }
         finally { r.unlock(); }
     }
