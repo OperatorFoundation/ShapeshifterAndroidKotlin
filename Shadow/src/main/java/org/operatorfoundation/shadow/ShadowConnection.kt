@@ -42,7 +42,8 @@ import java.util.logging.Logger
 
 // This class implements client sockets (also called just "sockets").
 // A socket is an endpoint for communication between two machines.
-open class ShadowConnection(val config: ShadowConfig) : Connection {
+open class ShadowConnection(val config: ShadowConfig) : Connection
+{
     companion object {
         private val bloom = Bloom()
 
@@ -55,7 +56,6 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
         }
     }
 
-    // Fields:
     private lateinit var inputStream: InputStream
     private lateinit var outputStream: OutputStream
     private var handshakeBytes: ByteArray = byteArrayOf()
@@ -65,20 +65,17 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
     private var darkStar: DarkStar? = null
     private var host: String? = null
     private var port: Int? = null
-    private var decryptFailed: Boolean = false
     private lateinit var connection: Connection
     private var logger: Logger? = null
     private val rwl = ReentrantReadWriteLock()
     private val r: Lock = rwl.readLock()
     private val w: Lock = rwl.writeLock()
-    // Constructors:
 
     constructor(connection: Connection, config: ShadowConfig, logger: Logger?): this(config) {
         this.connection = connection
         this.logger = logger
-        val host = config.serverIP ?: throw Exception("no host found")
-
-        val port = config.port ?: throw Exception("no port found")
+        val host = config.serverIP
+        val port = config.port
 
         this.host = host
         this.port = port
@@ -261,7 +258,7 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
         val connectionInputStream = ConnectionInputStream(this.connection)
         val cipher = decryptionCipher
         cipher?.let {
-            return ShadowConnectionInputStream(connectionInputStream, cipher)
+            return ShadowConnectionInputStream(this.connection, cipher)
         }
         Log.e("getInputStream", "Decryption cipher was not created.")
         throw IOException()

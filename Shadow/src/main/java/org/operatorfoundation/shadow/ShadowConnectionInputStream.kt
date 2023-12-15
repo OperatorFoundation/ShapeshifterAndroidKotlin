@@ -25,12 +25,13 @@
 package org.operatorfoundation.shadow
 
 import android.util.Log
+import org.operatorfoundation.transmission.Connection
 import java.io.IOException
 import java.io.InputStream
 
 // This abstract class is the superclass of all classes representing an input stream of bytes.
 class ShadowConnectionInputStream(
-    private val networkInputStream: InputStream,
+    private val connection: Connection,
     private val decryptionCipher: ShadowCipher
 ) :
     InputStream() {
@@ -40,21 +41,13 @@ class ShadowConnectionInputStream(
 
     // Closes this input stream and releases any system resources associated with the stream.
     override fun close() {
-        networkInputStream.close()
+        connection.close()
     }
 
     // Reads some number of bytes from the input stream and stores them into the buffer array b.
     // Returns a -1 if we are at end of stream
-    //@ExperimentalUnsignedTypes
     override fun read(outputBuffer: ByteArray): Int
     {
-//        if (decryptionFailed)
-//        {
-//            Log.e("ShapeshifterKotlin", "ShadowInputStream Decryption failed on read.")
-//            shadowSocket.close()
-//            throw IOException()
-//        }
-
         if (outputBuffer.isEmpty())
         {
             Log.e("ShapeshifterKotlin", "ShadowInputStream read was given an empty byte array.")
@@ -90,7 +83,7 @@ class ShadowConnectionInputStream(
             val lengthDataSize = ShadowCipher.lengthWithTagSize
 
             // read bytes up to size of encrypted lengthSize into a byte buffer
-            val encryptedLengthData = readNBytes(networkInputStream, lengthDataSize)
+            val encryptedLengthData = connection.read(lengthDataSize)
             if (encryptedLengthData == null)
             {
                 Log.e("ShapeshifterKotlin", "ShadowInputStream could not read length data.")
@@ -105,7 +98,7 @@ class ShadowConnectionInputStream(
 
             // read and decrypt payload with the resulting length
             val encryptedPayload =
-                readNBytes(networkInputStream, payloadLength + ShadowCipher.tagSize)
+                connection.read(payloadLength + ShadowCipher.tagSize)
             if (encryptedPayload == null)
             {
                 Log.e("ShapeshifterKotlin", "ShadowInputStream could not read encrypted length data.")
