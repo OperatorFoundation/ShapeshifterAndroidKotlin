@@ -30,11 +30,8 @@ import java.io.IOException
 import java.io.InputStream
 
 // This abstract class is the superclass of all classes representing an input stream of bytes.
-class ShadowConnectionInputStream(
-    private val connection: Connection,
-    private val decryptionCipher: ShadowCipher
-) :
-    InputStream() {
+class ShadowConnectionInputStream(private val connection: Connection, private val decryptionCipher: ShadowCipher) : InputStream()
+{
 
     private var buffer: ByteArray = byteArrayOf()
     //private var decryptionFailed = false

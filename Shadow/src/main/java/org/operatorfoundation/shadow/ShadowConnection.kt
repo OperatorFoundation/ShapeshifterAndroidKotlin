@@ -107,9 +107,8 @@ open class ShadowConnection(val config: ShadowConfig) : Connection
     //@ExperimentalUnsignedTypes
     constructor(config: ShadowConfig, logger: Logger?) : this(config)
     {
-        val host = config.serverIP ?: throw Exception("no host found")
-
-        val port = config.port ?: throw Exception("no port found")
+        val host = config.serverIP
+        val port = config.port
 
         this.host = host
         this.port = port
@@ -267,7 +266,7 @@ open class ShadowConnection(val config: ShadowConfig) : Connection
     // Returns an output stream and the encryption cipher for this socket.
     fun getOutputStream(): OutputStream {
         val connectionOutputStream = ConnectionOutputStream(this.connection)
-        return ShadowOutputStream(connectionOutputStream, encryptionCipher)
+        return ShadowConnectionOutputStream(this.connection, encryptionCipher)
     }
 
     // Exchanges the salt.
