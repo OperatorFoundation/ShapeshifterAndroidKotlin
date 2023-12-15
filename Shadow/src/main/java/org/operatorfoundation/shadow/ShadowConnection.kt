@@ -175,21 +175,22 @@ open class ShadowConnection(val config: ShadowConfig) : Connection
         r.lock();
         try
         {
-            return byteArrayOf(0)
-//            return Transmission.readWithLengthPrefix(this, prefixSizeInBits, null)
+            return Transmission.readWithLengthPrefix(this, prefixSizeInBits, null)
         }
         finally { r.unlock(); }
     }
 
     override fun unsafeRead(size: Int): ByteArray? {
-        val readBuffer = ByteArray(size)
-        var totalBytesRead = 0
-        while (totalBytesRead < size) {
-            val bytesRead = this.inputStream.read(readBuffer, totalBytesRead, size - totalBytesRead)
-            totalBytesRead += bytesRead
-        }
-
-        return readBuffer
+//        val readBuffer = ByteArray(size)
+//        var totalBytesRead = 0
+//        while (totalBytesRead < size) {
+//            val bytesRead = this.inputStream.read(readBuffer, totalBytesRead, size - totalBytesRead)
+//            totalBytesRead += bytesRead
+//        }
+//
+//        return readBuffer
+        
+        return byteArrayOf(0)
     }
 
     override fun write(data: ByteArray): Boolean {
