@@ -290,8 +290,11 @@ open class ShadowConnection(val config: ShadowConfig) : Connection {
     private fun receiveHandshake()
     {
         val handshakeSize = handshakeSize
+
+
         val connectionInputStream = ConnectionInputStream(this.connection)
-        val result = readNBytes(connectionInputStream, handshakeSize)
+        val result = connectionInputStream.readNBytes(handshakeSize)
+//        val result = readNBytes(connectionInputStream, handshakeSize)
 
         if (result != null && result.size == handshakeBytes.size)
         {
