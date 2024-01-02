@@ -26,23 +26,17 @@ package org.operatorfoundation.shadow
 
 import android.util.Log
 import org.operatorfoundation.shadow.ShadowCipher.Companion.handshakeSize
+import org.operatorfoundation.transmission.BaseConnection
 import org.operatorfoundation.transmission.Connection
 import org.operatorfoundation.transmission.ConnectionType
-import org.operatorfoundation.transmission.Transmission
 import org.operatorfoundation.transmission.TransmissionConnection
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.nio.ByteBuffer
-import java.util.concurrent.locks.Lock
-import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.logging.Level
 import java.util.logging.Logger
 
-
-// This class implements client sockets (also called just "sockets").
-// A socket is an endpoint for communication between two machines.
-open class ShadowConnection(val config: ShadowConfig) : Connection
+class ShadowConnection(config: ShadowConfig, logger: Logger? = null, connection: Connection? = null) : BaseConnection(logger)
 {
     companion object {
         private val bloom = Bloom()
@@ -56,11 +50,8 @@ open class ShadowConnection(val config: ShadowConfig) : Connection
         }
     }
 
-    private val readLock = Object()
-    private val writeLock = Object()
-
-    private lateinit var inputStream: InputStream
-    private lateinit var outputStream: OutputStream
+    private var inputStream: InputStream
+    private var outputStream: OutputStream
     private var handshakeBytes: ByteArray = byteArrayOf()
     private lateinit var encryptionCipher: ShadowCipher
     private var decryptionCipher: ShadowCipher? = null
@@ -68,55 +59,26 @@ open class ShadowConnection(val config: ShadowConfig) : Connection
     private var darkStar: DarkStar? = null
     private var host: String? = null
     private var port: Int? = null
-    private lateinit var connection: Connection
-    private var logger: Logger? = null
+    private var connection: Connection
 
-    constructor(connection: Connection, config: ShadowConfig, logger: Logger?): this(config) {
-        this.connection = connection
-        this.logger = logger
-        val host = config.serverIP
-        val port = config.port
-
-        this.host = host
-        this.port = port
-        try
-        {
-            this.darkStar = DarkStar(config, host, port)
-            val darkStarInstance = this.darkStar ?: throw Exception("failed to initialize DarkStar")
-            println("Creating handshake bytes")
-            this.handshakeBytes = darkStarInstance.createHandshake()
-            println("Attempting handshake with handshake size: ${handshakeBytes.count()}")
-            handshake()
-            connectionStatus = true
-            println("handshake was successful")
-            this.inputStream = getInputStream()
-            this.outputStream = getOutputStream()
-        }
-        catch (handshakeError: Exception)
-        {
-            Log.e("ShadowSocket.init", "ShadowConnection constructor: Handshake failed.")
-            println(handshakeError.message)
-            connectionStatus = false
-
-            throw handshakeError
-        }
-
-    }
-
-    // Creates a stream socket and connects it to the specified port number on the named host.
-    constructor(config: ShadowConfig, logger: Logger?) : this(config)
+    init
     {
-        val host = config.serverIP
-        val port = config.port
-
-        this.host = host
-        this.port = port
-
-        this.connection = TransmissionConnection(host, port, ConnectionType.TCP, logger)
+        this.host = config.serverIP
+        this.port = config.port
         this.logger = logger
+
+        if (connection == null)
+        {
+            this.connection = TransmissionConnection(config.serverIP, config.port, ConnectionType.TCP, logger)
+        }
+        else
+        {
+            this.connection = connection
+        }
+
         try
         {
-            this.darkStar = DarkStar(config, host, port)
+            this.darkStar = DarkStar(config, config.serverIP, config.port)
             val darkStarInstance = this.darkStar ?: throw Exception("failed to initialize DarkStar")
             this.handshakeBytes = darkStarInstance.createHandshake()
             handshake()
@@ -135,163 +97,59 @@ open class ShadowConnection(val config: ShadowConfig) : Connection
         }
     }
 
-    // Public functions:
-    override fun close() {
-        Log.i("ShadowConnection", "Connection closed.")
-        this.connection.close()
-    }
-
-    override fun read(size: Int): ByteArray? {
-        synchronized(readLock)
-        {
-            try
-            {
-                val readBuffer = ByteArray(size)
-                var totalBytesRead = 0
-                while (totalBytesRead < size) {
-                    val bytesRead = this.inputStream.read(readBuffer, totalBytesRead, size - totalBytesRead)
-                    totalBytesRead += bytesRead
-                }
-
-                return readBuffer
-            }
-            catch (error: Exception)
-            {
-                logger?.log(Level.WARNING, "ShadowConnection.read: InputStream.read failed: $error")
-                return null
-            }
-        }
-
-    }
-
-    // like read, but doesn't mind a short read
-    override fun readMaxSize(maxSize: Int): ByteArray? {
-        synchronized(readLock)
-        {
-            try
-            {
-                val readBuffer = ByteArray(maxSize)
-                val bytesRead = this.inputStream.read(readBuffer)
-                return readBuffer.sliceArray(0 until bytesRead)
-            }
-            catch (error: Exception)
-            {
-                logger?.log(Level.WARNING, "ShadowConnection.readMaxSize: InputStream.read failed: $error")
-                return null
-            }
-        }
-    }
-
-    // determines length by first reading the length prefix
-    override fun readWithLengthPrefix(prefixSizeInBits: Int): ByteArray? {
-        synchronized(readLock)
-        {
-            try
-            {
-                return Transmission.readWithLengthPrefix(this, prefixSizeInBits, null)
-            }
-            catch (error: Exception)
-            {
-                logger?.log(Level.WARNING, "ShadowConnection.readWithLengthPrefix: InputStream.read failed: $error")
-                return null
-            }
-        }
-    }
-
-    override fun unsafeRead(size: Int): ByteArray?
+    override fun networkRead(size: Int): ByteArray?
     {
-        val readBuffer = ByteArray(size)
-        var totalBytesRead = 0
-        while (totalBytesRead < size)
-        {
-            // FIXME: Currently debugging read issues here
-            val bytesRead = this.inputStream.read(readBuffer, totalBytesRead, size - totalBytesRead)
+        logger?.log(Level.FINE, "Network Read: (size: $size)")
+        val networkBuffer = ByteArray(size)
+        var bytesRead = 0
 
-            if (bytesRead == -1)
-            {
-                println("input stream read returned an error, returning null")
-                return null
-            }
-            else if (bytesRead == 0)
-            {
-                println("input stream read returned a 0, continuing...")
-            }
-
-            totalBytesRead += bytesRead
-        }
-
-        return readBuffer
-    }
-
-    override fun write(data: ByteArray): Boolean {
-        synchronized(writeLock)
+        while (bytesRead < size)
         {
             try
             {
-                return try {
-                    this.outputStream.write(data)
-                    true
-                } catch(error: Exception) {
-                    false
+                val readResult = inputStream.read(networkBuffer, bytesRead, size - bytesRead)
+
+                if (readResult > 0)
+                {
+                    bytesRead += readResult
+                }
+                else
+                {
+                    close()
+                    return null
                 }
             }
-            catch (error: Exception)
+            catch (readError: java.lang.Exception)
             {
-                logger?.log(Level.WARNING, "ShadowConnection.write: outputStream.write failed: $error")
-                return false
+                logger?.log(Level.WARNING, "ShadowConnection: Connection inputStream encountered an error while trying to read a specific size: $readError")
+                readError.printStackTrace()
+                close()
+                return null
             }
         }
 
+        return networkBuffer
     }
 
-    override fun write(string: String): Boolean {
-        return try {
-            val bytes = string.toByteArray()
-            write(bytes)
-            true
-        } catch(error: Exception) {
-            false
-        }
-    }
-
-    override fun writeWithLengthPrefix(data: ByteArray, prefixSizeInBits: Int): Boolean
+    override fun networkWrite(data: ByteArray): Boolean
     {
-        val messageSize = data.size
-        val messageSizeBytes: ByteBuffer
-
-        when (prefixSizeInBits) {
-            8 -> {
-                messageSizeBytes = ByteBuffer.allocate(1)
-                messageSizeBytes.put(messageSize.toByte())
-            }
-            16 -> {
-                messageSizeBytes = ByteBuffer.allocate(2)
-                messageSizeBytes.putShort(messageSize.toShort())
-            }
-            32 -> {
-                messageSizeBytes = ByteBuffer.allocate(4)
-                messageSizeBytes.putInt(messageSize)
-            }
-            64 -> {
-                messageSizeBytes = ByteBuffer.allocate(8)
-                messageSizeBytes.putLong(messageSize.toLong())
-            }
-            else ->
-            {
-                logger?.log(Level.SEVERE, "Transmission: Unable to complete a write request, the size in bits of the requested length prefix is invalid. Requested size in bits: $prefixSizeInBits")
-                return false
-            }
+        try
+        {
+            outputStream.write(data)
+            outputStream.flush()
+            return true
         }
-
-        val atomicData = messageSizeBytes.array() + data
-
-        return this.write(atomicData)
+        catch (writeError: java.lang.Exception)
+        {
+            logger?.log(Level.SEVERE, "ShadowConnection: Error while attempting to write data to the network: $writeError")
+            close()
+            return false
+        }
     }
 
-    // Private functions:
     // Returns an input stream and the decryption cipher for this socket.
-    fun getInputStream(): InputStream {
-        val connectionInputStream = ConnectionInputStream(this.connection)
+    fun getInputStream(): InputStream
+    {
         val cipher = decryptionCipher
         cipher?.let {
             return ShadowConnectionInputStream(this.connection, cipher)
@@ -301,8 +159,8 @@ open class ShadowConnection(val config: ShadowConfig) : Connection
     }
 
     // Returns an output stream and the encryption cipher for this socket.
-    fun getOutputStream(): OutputStream {
-        val connectionOutputStream = ConnectionOutputStream(this.connection)
+    fun getOutputStream(): OutputStream
+    {
         return ShadowConnectionOutputStream(this.connection, encryptionCipher)
     }
 
@@ -387,4 +245,9 @@ open class ShadowConnection(val config: ShadowConfig) : Connection
 //            }
 //        }
 //    }
+
+    override fun networkClose() {
+        Log.i("ShadowConnection", "Connection closed.")
+        this.connection.close()
+    }
 }
