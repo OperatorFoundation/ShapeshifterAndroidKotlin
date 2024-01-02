@@ -56,6 +56,9 @@ open class ShadowConnection(val config: ShadowConfig) : Connection
         }
     }
 
+    private val readLock = Object()
+    private val writeLock = Object()
+
     private lateinit var inputStream: InputStream
     private lateinit var outputStream: OutputStream
     private var handshakeBytes: ByteArray = byteArrayOf()
@@ -67,9 +70,6 @@ open class ShadowConnection(val config: ShadowConfig) : Connection
     private var port: Int? = null
     private lateinit var connection: Connection
     private var logger: Logger? = null
-    private val rwl = ReentrantReadWriteLock()
-    private val r: Lock = rwl.readLock()
-    private val w: Lock = rwl.writeLock()
 
     constructor(connection: Connection, config: ShadowConfig, logger: Logger?): this(config) {
         this.connection = connection
@@ -104,7 +104,6 @@ open class ShadowConnection(val config: ShadowConfig) : Connection
     }
 
     // Creates a stream socket and connects it to the specified port number on the named host.
-    //@ExperimentalUnsignedTypes
     constructor(config: ShadowConfig, logger: Logger?) : this(config)
     {
         val host = config.serverIP
@@ -143,41 +142,60 @@ open class ShadowConnection(val config: ShadowConfig) : Connection
     }
 
     override fun read(size: Int): ByteArray? {
-        r.lock();
-        try
+        synchronized(readLock)
         {
-            val readBuffer = ByteArray(size)
-            var totalBytesRead = 0
-            while (totalBytesRead < size) {
-                val bytesRead = this.inputStream.read(readBuffer, totalBytesRead, size - totalBytesRead)
-                totalBytesRead += bytesRead
-            }
+            try
+            {
+                val readBuffer = ByteArray(size)
+                var totalBytesRead = 0
+                while (totalBytesRead < size) {
+                    val bytesRead = this.inputStream.read(readBuffer, totalBytesRead, size - totalBytesRead)
+                    totalBytesRead += bytesRead
+                }
 
-            return readBuffer
+                return readBuffer
+            }
+            catch (error: Exception)
+            {
+                logger?.log(Level.WARNING, "ShadowConnection.read: InputStream.read failed: $error")
+                return null
+            }
         }
-        finally { r.unlock(); }
+
     }
 
     // like read, but doesn't mind a short read
     override fun readMaxSize(maxSize: Int): ByteArray? {
-        r.lock();
-        try
+        synchronized(readLock)
         {
-            val readBuffer = ByteArray(maxSize)
-            val bytesRead = this.inputStream.read(readBuffer)
-            return readBuffer.sliceArray(0 until bytesRead)
+            try
+            {
+                val readBuffer = ByteArray(maxSize)
+                val bytesRead = this.inputStream.read(readBuffer)
+                return readBuffer.sliceArray(0 until bytesRead)
+            }
+            catch (error: Exception)
+            {
+                logger?.log(Level.WARNING, "ShadowConnection.readMaxSize: InputStream.read failed: $error")
+                return null
+            }
         }
-        finally { r.unlock(); }
     }
 
     // determines length by first reading the length prefix
     override fun readWithLengthPrefix(prefixSizeInBits: Int): ByteArray? {
-        r.lock();
-        try
+        synchronized(readLock)
         {
-            return Transmission.readWithLengthPrefix(this, prefixSizeInBits, null)
+            try
+            {
+                return Transmission.readWithLengthPrefix(this, prefixSizeInBits, null)
+            }
+            catch (error: Exception)
+            {
+                logger?.log(Level.WARNING, "ShadowConnection.readWithLengthPrefix: InputStream.read failed: $error")
+                return null
+            }
         }
-        finally { r.unlock(); }
     }
 
     override fun unsafeRead(size: Int): ByteArray?
@@ -206,17 +224,24 @@ open class ShadowConnection(val config: ShadowConfig) : Connection
     }
 
     override fun write(data: ByteArray): Boolean {
-        w.lock();
-        try
+        synchronized(writeLock)
         {
-            return try {
-                this.outputStream.write(data)
-                true
-            } catch(error: Exception) {
-                false
+            try
+            {
+                return try {
+                    this.outputStream.write(data)
+                    true
+                } catch(error: Exception) {
+                    false
+                }
+            }
+            catch (error: Exception)
+            {
+                logger?.log(Level.WARNING, "ShadowConnection.write: outputStream.write failed: $error")
+                return false
             }
         }
-        finally { w.unlock(); }
+
     }
 
     override fun write(string: String): Boolean {
@@ -231,8 +256,6 @@ open class ShadowConnection(val config: ShadowConfig) : Connection
 
     override fun writeWithLengthPrefix(data: ByteArray, prefixSizeInBits: Int): Boolean
     {
-//        return Transmission.writeWithLengthPrefix(this, data, prefixSizeInBits, null)
-
         val messageSize = data.size
         val messageSizeBytes: ByteBuffer
 
@@ -300,9 +323,6 @@ open class ShadowConnection(val config: ShadowConfig) : Connection
     private fun receiveHandshake()
     {
         val handshakeSize = handshakeSize
-//        val connectionInputStream = ConnectionInputStream(this.connection)
-//        val result = connectionInputStream.readNBytes(handshakeSize)
-
         val result = this.connection.read(handshakeSize)
 
         if (result != null && result.size == handshakeBytes.size)

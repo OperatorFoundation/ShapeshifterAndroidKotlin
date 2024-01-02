@@ -32,9 +32,7 @@ import java.io.InputStream
 // This abstract class is the superclass of all classes representing an input stream of bytes.
 class ShadowConnectionInputStream(private val connection: Connection, private val decryptionCipher: ShadowCipher) : InputStream()
 {
-
     private var buffer: ByteArray = byteArrayOf()
-    //private var decryptionFailed = false
 
     // Closes this input stream and releases any system resources associated with the stream.
     override fun close() {
@@ -136,9 +134,8 @@ class ShadowConnectionInputStream(private val connection: Connection, private va
         }
     }
 
-    override fun read(b: ByteArray?, off: Int, len: Int): Int {
-
-        // FIXME: DEBUGGING START HERE
+    override fun read(b: ByteArray?, off: Int, len: Int): Int
+    {
         b?.let {
             val readbuf = ByteArray(len)
             val buflen = read(readbuf)
