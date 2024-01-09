@@ -46,7 +46,7 @@ class ExampleInstrumentedTest {
     @Test
     fun restCall()
     {
-        val sConfig = ShadowConfig("", CipherMode.DarkStar.toString())
+        val sConfig = ShadowConfig("", CipherMode.DarkStar.toString(), "")
 
         val client: OkHttpClient.Builder = OkHttpClient
             .Builder()
@@ -54,10 +54,8 @@ class ExampleInstrumentedTest {
             .readTimeout(30000, TimeUnit.MILLISECONDS)
             .writeTimeout(30000, TimeUnit.MILLISECONDS)
 
-        val okhttpShadowSocketFactory = OKHTTPShadowSocketFactory(
-            sConfig,
-            "",
-            0)
+        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
+        val okhttpShadowSocketFactory = OKHTTPShadowSocketFactory(sConfig, appContext)
 
         val okHttpClient = client.socketFactory(
             okhttpShadowSocketFactory
@@ -101,8 +99,8 @@ class ExampleInstrumentedTest {
 
     @Test
     fun basicTest() {
-        val shadowConfig = ShadowConfig("", CipherMode.DarkStar.toString())
-        val shadowSocket = ShadowSocket(shadowConfig, "", 0)
+        val shadowConfig = ShadowConfig("", CipherMode.DarkStar.toString(), "")
+        val shadowSocket = ShadowSocket(shadowConfig)
         shadowSocket.outputStream.write("GET / HTTP/1.0\\r\\nConnection: close\\r\\n\\r\\n".toByteArray())
         val readBuffer = ByteArray(10)
         shadowSocket.inputStream.read(readBuffer)
@@ -151,8 +149,8 @@ class ExampleInstrumentedTest {
         try
         {
             val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-            val shadowConfig = ShadowConfig("", "DarkStar")
-            val okhhtpSocketFactory = OKHTTPShadowSocketFactory(shadowConfig, "", 7070, appContext, null, "okhhtpClient")
+            val shadowConfig = ShadowConfig("", "DarkStar", "")
+            val okhhtpSocketFactory = OKHTTPShadowSocketFactory(shadowConfig, appContext, null, "okhhtpClient")
             val socket = okhhtpSocketFactory.createSocket()
             val serverBytes = ByteArray(4)
             socket.getInputStream().read(serverBytes)

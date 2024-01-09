@@ -5,7 +5,6 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider
 
 import org.operatorfoundation.keychainandroid.Keychain
 import org.operatorfoundation.keychainandroid.SealedBox
-import org.operatorfoundation.keychainandroid.SealedBoxType
 import org.operatorfoundation.keychainandroid.SymmetricKey
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -15,8 +14,11 @@ import javax.crypto.*
 
 class ShadowDarkStarCipher(override var key: SymmetricKey?) : ShadowCipher()
 {
-    var longCounter: ULong = 0u
     val keychain = Keychain()
+    val encryptionCipher = SealedBox.AESGCM()
+    val decryptionCipher = SealedBox.AESGCM()
+
+    var longCounter: ULong = 0u
 
     // [encrypted payload length][length tag] + [encrypted payload][payload tag]
     // Pack takes the data above and packs them into a singular byte array.
@@ -59,7 +61,7 @@ class ShadowDarkStarCipher(override var key: SymmetricKey?) : ShadowCipher()
     override fun encrypt(plaintext: ByteArray): ByteArray {
         val nonce = nonce() ?: throw Exception("failed to create nonce")
         val symmetricKey = key ?: throw Exception("symmetric key was not saved")
-        return SealedBox.seal(SealedBoxType.AESGCM, symmetricKey, nonce, plaintext)
+        return encryptionCipher.seal(nonce, symmetricKey, plaintext)
     }
 
     // Decrypts data and increments the nonce counter.
@@ -74,7 +76,7 @@ class ShadowDarkStarCipher(override var key: SymmetricKey?) : ShadowCipher()
         val nonce = nonce() ?: throw Exception("failed to create nonce")
         val symmetricKey = key ?: throw Exception("symmetric key was not saved")
 
-        return SealedBox.AESGCM.open(nonce, symmetricKey, encrypted)
+        return decryptionCipher.open(nonce, symmetricKey, encrypted)
     }
 
     // Create a nonce using our counter.
