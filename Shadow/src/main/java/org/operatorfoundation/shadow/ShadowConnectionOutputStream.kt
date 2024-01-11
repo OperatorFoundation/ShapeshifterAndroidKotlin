@@ -61,7 +61,6 @@ class ShadowConnectionOutputStream(private val connection: Connection, private v
 
             val cipherText = encryptionCipher.pack(bytesToSend)
 
-            println("ShadowConnectionOutputStream wrote ${cipherText.size} bytes.")
             connection.write(cipherText)
         }
     }
