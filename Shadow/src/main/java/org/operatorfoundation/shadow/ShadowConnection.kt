@@ -83,7 +83,7 @@ class ShadowConnection(config: ShadowConfig, logger: Logger? = null, connection:
             this.handshakeBytes = darkStarInstance.createHandshake()
             handshake()
             connectionStatus = true
-            println("handshake was successful")
+            Log.d("ShadowSocket.init","handshake was successful")
             this.inputStream = getInputStream()
             this.outputStream = getOutputStream()
         }
