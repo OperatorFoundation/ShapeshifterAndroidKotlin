@@ -10,3 +10,4 @@ github.properties
 .cxx
 app/build/*
 .idea/*
+.idea/deploymentTargetDropDown.xml
