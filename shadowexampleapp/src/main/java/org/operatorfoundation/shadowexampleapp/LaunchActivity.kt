@@ -1,8 +1,10 @@
 package org.operatorfoundation.shadowexampleapp
 
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.operatorfoundation.shadow.CipherMode
@@ -56,7 +58,7 @@ class LaunchActivity : AppCompatActivity()
             try
             {
                 // TODO: Use a valid server IP address.
-                val shadowSocket = ShadowSocket(config)
+                val shadowSocket = ShadowSocket(config, this.applicationContext)
                 val httpRequest = "GET / HTTP/1.0\r\nConnection: close\r\n\r\n"
                 val textBytes = httpRequest.toByteArray()
 
@@ -142,6 +144,7 @@ class LaunchActivity : AppCompatActivity()
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     fun restCall()
     {
         val sConfig = ShadowConfig("", CipherMode.DarkStar.toString(), "", 0)
@@ -152,7 +155,7 @@ class LaunchActivity : AppCompatActivity()
             .readTimeout(30000, TimeUnit.MILLISECONDS)
             .writeTimeout(30000, TimeUnit.MILLISECONDS)
         println("builder created")
-        val okhttpShadowSocketFactory = OKHTTPShadowSocketFactory(sConfig)
+        val okhttpShadowSocketFactory = OKHTTPShadowSocketFactory(sConfig, this.applicationContext)
         println("factory created")
         val okHttpClient = client.socketFactory(
             okhttpShadowSocketFactory

@@ -22,6 +22,9 @@ import kotlin.concurrent.thread
  */
 @RunWith(AndroidJUnit4::class)
 class ExampleInstrumentedTest {
+
+    val appContext = InstrumentationRegistry.getInstrumentation().targetContext
+
     @Test
     fun useAppContext() {
         // Context of the app under test.
@@ -100,7 +103,7 @@ class ExampleInstrumentedTest {
     @Test
     fun basicTest() {
         val shadowConfig = ShadowConfig("", CipherMode.DarkStar.toString(), "")
-        val shadowSocket = ShadowSocket(shadowConfig)
+        val shadowSocket = ShadowSocket(shadowConfig, appContext)
         shadowSocket.outputStream.write("GET / HTTP/1.0\\r\\nConnection: close\\r\\n\\r\\n".toByteArray())
         val readBuffer = ByteArray(10)
         shadowSocket.inputStream.read(readBuffer)

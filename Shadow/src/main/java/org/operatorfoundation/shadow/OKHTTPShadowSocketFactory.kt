@@ -14,13 +14,13 @@ import kotlin.concurrent.thread
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 class OKHTTPShadowSocketFactory(
     private val shadowConfig: ShadowConfig,
-    private val context: Context? = null,
+    private val context: Context,
     private val nonAppDirectory: String? = null,
     private val logFileName: String? = null
     ): SocketFactory() {
 
     private fun connect(): Socket {
-        val shadowSocket = ShadowSocket(shadowConfig)
+        val shadowSocket = ShadowSocket(shadowConfig, context)
         var remoteSocket: Socket = shadowSocket
         if (logFileName != null) {
             try {

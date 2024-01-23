@@ -24,6 +24,7 @@
 
 package org.operatorfoundation.shadow
 
+import android.content.Context
 import android.util.Log
 import org.operatorfoundation.shadow.ShadowCipher.Companion.handshakeSize
 import java.io.IOException
@@ -34,7 +35,7 @@ import java.nio.channels.SocketChannel
 
 // This class implements client sockets (also called just "sockets").
 // A socket is an endpoint for communication between two machines.
-open class ShadowSocket(val config: ShadowConfig, val shouldConnect: Boolean = true, private val socket: Socket = Socket()) : Socket()
+open class ShadowSocket(val config: ShadowConfig, val context: Context, val shouldConnect: Boolean = true, private val socket: Socket = Socket()) : Socket()
 {
     private var handshakeBytes: ByteArray = byteArrayOf()
     private lateinit var encryptionCipher: ShadowCipher
@@ -60,11 +61,11 @@ open class ShadowSocket(val config: ShadowConfig, val shouldConnect: Boolean = t
 
     // Creates a socket and connects it to the specified remote host on the specified remote port.
     // The Socket will also bind() to the to the local address and port supplied
-    constructor(config: ShadowConfig, localAddr: InetAddress, localPort: Int) : this(config, socket = Socket(config.serverIP, config.port, localAddr, localPort))
+    constructor(config: ShadowConfig, localAddr: InetAddress, localPort: Int, context: Context) : this(config, context, socket = Socket(config.serverIP, config.port, localAddr, localPort))
 
 
     // Creates an unconnected socket, specifying the type of proxy, if any, that should be used regardless of any other settings.
-    constructor(config: ShadowConfig, proxy: Proxy) : this(config, shouldConnect = false, socket = Socket(proxy))
+    constructor(config: ShadowConfig, proxy: Proxy, context: Context) : this(config, context, shouldConnect = false, socket = Socket(proxy))
 
     init
     {
@@ -78,7 +79,7 @@ open class ShadowSocket(val config: ShadowConfig, val shouldConnect: Boolean = t
 
             try
             {
-                this.darkStar = DarkStar(config, host, port)
+                this.darkStar = DarkStar(config, host, port, context)
                 val darkStarInstance = this.darkStar ?: throw Exception("failed to initialize DarkStar")
                 this.handshakeBytes = darkStarInstance.createHandshake()
                 handshake()

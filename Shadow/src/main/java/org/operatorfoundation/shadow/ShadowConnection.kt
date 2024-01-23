@@ -24,6 +24,7 @@
 
 package org.operatorfoundation.shadow
 
+import android.content.Context
 import android.util.Log
 import org.operatorfoundation.shadow.ShadowCipher.Companion.handshakeSize
 import org.operatorfoundation.transmission.BaseConnection
@@ -36,7 +37,7 @@ import java.io.OutputStream
 import java.util.logging.Level
 import java.util.logging.Logger
 
-class ShadowConnection(config: ShadowConfig, logger: Logger? = null, connection: Connection? = null) : BaseConnection(logger)
+class ShadowConnection(config: ShadowConfig, val context: Context, logger: Logger? = null, connection: Connection? = null) : BaseConnection(logger)
 {
     companion object {
         private val bloom = Bloom()
@@ -78,7 +79,7 @@ class ShadowConnection(config: ShadowConfig, logger: Logger? = null, connection:
 
         try
         {
-            this.darkStar = DarkStar(config, config.serverIP, config.port)
+            this.darkStar = DarkStar(config, config.serverIP, config.port, context)
             val darkStarInstance = this.darkStar ?: throw Exception("failed to initialize DarkStar")
             this.handshakeBytes = darkStarInstance.createHandshake()
             handshake()

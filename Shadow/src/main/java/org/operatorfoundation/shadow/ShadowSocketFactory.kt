@@ -24,6 +24,7 @@
 
 package org.operatorfoundation.shadow
 
+import android.content.Context
 import com.google.gson.Gson
 import java.net.InetAddress
 import java.net.Socket
@@ -47,11 +48,11 @@ class JsonConfig {
 }
 
 /** A built-in SocketFactory to make it easy for developers to plug this into existing HTTP libraries, such as OkHTTP **/
-class ShadowSocketFactory(private val shadowConfig: ShadowConfig) : SocketFactory()
+class ShadowSocketFactory(private val shadowConfig: ShadowConfig, val context: Context) : SocketFactory()
 {
     companion object
     {
-        fun factoryFromUrl(url: URL, uuid: UUID): ShadowSocketFactory {
+        fun factoryFromUrl(url: URL, uuid: UUID, context: Context): ShadowSocketFactory {
             require (url.protocol == "https") {
                 "protocol must be https"
             }
@@ -65,30 +66,30 @@ class ShadowSocketFactory(private val shadowConfig: ShadowConfig) : SocketFactor
             val port = serverConfig.server_port
             val shadowConfig = ShadowConfig(serverConfig.password, serverConfig.method, host, port)
 
-            return ShadowSocketFactory(shadowConfig)
+            return ShadowSocketFactory(shadowConfig, context)
         }
     }
 
     override fun createSocket(remoteHost: String?, remotePort: Int): Socket {
-        return ShadowSocket(shadowConfig)
+        return ShadowSocket(shadowConfig, context)
     }
 
     override fun createSocket(p0: String?, p1: Int, p2: InetAddress?, p3: Int): Socket {
-        return ShadowSocket(shadowConfig)
+        return ShadowSocket(shadowConfig, context)
 
     }
 
     override fun createSocket(p0: InetAddress?, p1: Int): Socket {
-        return ShadowSocket(shadowConfig)
+        return ShadowSocket(shadowConfig, context)
 
     }
 
     override fun createSocket(p0: InetAddress?, p1: Int, p2: InetAddress?, p3: Int): Socket {
-        return ShadowSocket(shadowConfig)
+        return ShadowSocket(shadowConfig, context)
 
     }
 
     override fun createSocket(): Socket {
-        return ShadowSocket(shadowConfig)
+        return ShadowSocket(shadowConfig, context)
     }
 }

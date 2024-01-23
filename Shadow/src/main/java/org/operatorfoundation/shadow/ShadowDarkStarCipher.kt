@@ -1,5 +1,6 @@
 package org.operatorfoundation.shadow
 
+import android.content.Context
 import android.os.Build
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 
@@ -12,9 +13,9 @@ import java.security.InvalidAlgorithmParameterException
 import java.security.InvalidKeyException
 import javax.crypto.*
 
-class ShadowDarkStarCipher(override var key: SymmetricKey?) : ShadowCipher()
+class ShadowDarkStarCipher(override var key: SymmetricKey?, context: Context) : ShadowCipher()
 {
-    val keychain = Keychain()
+    val keychain = Keychain(context)
     val encryptionCipher = SealedBox.AESGCM()
     val decryptionCipher = SealedBox.AESGCM()
 
