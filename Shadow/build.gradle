@@ -44,7 +44,7 @@ dependencies {
     implementation 'org.bouncycastle:bcpkix-jdk15on:1.70'
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0'
 
-    implementation 'com.github.operatorfoundation:keychainandroid:5.0.1'
+    implementation 'com.github.operatorfoundation:keychainandroid:5.0.9'
     implementation 'com.github.operatorfoundation:locketkotlin:1.0.21'
     implementation 'com.github.OperatorFoundation:TransmissionAndroid:1.3.3'
 
