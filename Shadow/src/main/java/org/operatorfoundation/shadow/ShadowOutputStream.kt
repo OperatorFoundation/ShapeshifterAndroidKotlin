@@ -73,25 +73,17 @@ class ShadowOutputStream(
         while (buffer.isNotEmpty())
         {
             // Don't send more than max payload size.
-            val numBytesToSend: Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-            {
-                min(ShadowCipher.maxPayloadSize, buffer.size)
-            }
-            else
-            {
-                org.operatorfoundation.shadow.min(ShadowCipher.maxPayloadSize, buffer.size)
-            }
+            val numBytesToSend: Int = min(ShadowCipher.maxPayloadSize, buffer.size)
 
             // copy the first numBytesToSend bytes into a new byte array.
             val bytesToSend = buffer.copyOfRange(0, numBytesToSend)
+            val cipherText = encryptionCipher.pack(bytesToSend)
+
+            outputStream.write(cipherText)
+            println("ShadowOutputStream wrote ${cipherText.size} bytes.")
 
             // remove the first numBytesToSend bytes from the buffer.
             buffer = buffer.sliceArray(numBytesToSend until buffer.size)
-
-            val cipherText = encryptionCipher.pack(bytesToSend)
-
-            println("ShadowOutputStream wrote ${cipherText.size} bytes.")
-            outputStream.write(cipherText)
         }
     }
 
