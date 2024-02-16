@@ -129,7 +129,7 @@ class ShadowInputStream(
         }
 
         // Copy into the output buffer from our class buffer up to the full capacity of output buffer
-        buffer.copyInto(outputBuffer, outputBuffer.size)
+        buffer.copyInto(outputBuffer, 0, 0, outputBuffer.size)
 
         // take bytes out of buffer
         buffer = buffer.sliceArray(outputBuffer.size until buffer.size)
