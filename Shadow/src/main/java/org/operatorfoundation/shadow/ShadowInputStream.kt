@@ -33,11 +33,9 @@ class ShadowInputStream(
     private val networkInputStream: InputStream,
     private val decryptionCipher: ShadowCipher,
     private val shadowSocket: ShadowSocket
-) :
-    InputStream() {
-
+) : InputStream()
+{
     private var buffer: ByteArray = byteArrayOf()
-    //private var decryptionFailed = false
 
     // Closes this input stream and releases any system resources associated with the stream.
     override fun close() {
@@ -48,101 +46,95 @@ class ShadowInputStream(
     // Returns a -1 if we are at end of stream
     override fun read(outputBuffer: ByteArray): Int
     {
-//        if (decryptionFailed)
-//        {
-//            Log.e("ShapeshifterKotlin", "ShadowInputStream Decryption failed on read.")
-//            shadowSocket.close()
-//            throw IOException()
-//        }
-
         if (outputBuffer.isEmpty())
         {
             Log.e("ShapeshifterKotlin", "ShadowInputStream read was given an empty byte array.")
             return 0
         }
 
-        val returnSize = outputBuffer.size
-        val bufferSize = buffer.size
-
-        // if the class buffer already has data, put it in the output buffer
-        if (returnSize <= bufferSize)
+        while (buffer.size < outputBuffer.size)
         {
-            buffer.copyInto(outputBuffer, 0, 0, returnSize)
-            buffer = buffer.sliceArray(returnSize until bufferSize)
+            try
+            {
+                // get encrypted length
+                val lengthDataSize = ShadowCipher.lengthWithTagSize
 
-            return outputBuffer.size
+                // read bytes up to size of encrypted lengthSize into a byte buffer
+                val encryptedLengthData = readNBytes(networkInputStream, lengthDataSize)
+                if (encryptedLengthData == null)
+                {
+                    Log.e("ShapeshifterKotlin", "ShadowInputStream could not read length data.")
+                    return if (buffer.isEmpty()) {
+                        -1
+                    } else {
+                        // Copy into the output buffer from our class buffer everything we have since we will not be able to do anymore reads
+                        buffer.copyInto(outputBuffer, buffer.size)
+                        // We've sent them all of the data, fresh array
+                        buffer = byteArrayOf()
+                        buffer.size
+                    }
+                }
+
+                // decrypt encrypted length to find out payload length
+                val lengthData = decryptionCipher.decrypt(encryptedLengthData)
+
+                // change lengthData from BigEndian representation to int length
+                val payloadLength = getIntFromBigEndian(lengthData)
+
+                // read and decrypt payload with the resulting length
+                val encryptedPayload =
+                    readNBytes(networkInputStream, payloadLength + ShadowCipher.tagSize)
+                if (encryptedPayload == null)
+                {
+                    Log.e("ShapeshifterKotlin", "ShadowInputStream could not read encrypted length data.")
+                    return if (buffer.isEmpty()) {
+                        -1
+                    } else {
+                        // Copy into the output buffer from our class buffer everything we have since we will not be able to do anymore reads
+                        buffer.copyInto(outputBuffer, buffer.size)
+                        // We've sent them all of the data, fresh array
+                        buffer = byteArrayOf()
+                        buffer.size
+                    }
+                }
+
+                // put payload into the class buffer
+                val payload = decryptionCipher.decrypt(encryptedPayload)
+                buffer += payload
+            }
+            catch (e: Exception)
+            {
+                if (e is IOException) // readNBytes failed
+                {
+                    Log.e("ShadowInputStream.read", "Received an IOException")
+                }
+                else // Decrypt Failed
+                {
+                    Log.e("ShadowInputStream.read", "Decryption failure.")
+                    shadowSocket.redial() // Currently redial sets a decryptionFailed bool on the socket itself
+                }
+
+//                e.printStackTrace()
+
+                return if (buffer.isEmpty()) {
+                    -1
+                } else {
+                    // Copy into the output buffer from our class buffer everything we have since we will not be able to do anymore reads
+                    buffer.copyInto(outputBuffer, buffer.size)
+                    // We've sent them all of the data, fresh array
+                    buffer = byteArrayOf()
+                    buffer.size
+                }
+            }
         }
-        else if (!buffer.isEmpty())
-        {
-            // we were passed an array that is bigger than what we already stored in the buffer
-            // but the buffer isn't empty, so lets pass what's in our buffer back to the caller
-            buffer.copyInto(outputBuffer, 0, 0, bufferSize)
 
-            // Empty our buffer now that we've handed off all of the data in it
-            buffer = byteArrayOf()
+        // Copy into the output buffer from our class buffer up to the full capacity of output buffer
+        buffer.copyInto(outputBuffer, outputBuffer.size)
 
-            return outputBuffer.size
-        }
+        // take bytes out of buffer
+        buffer = buffer.sliceArray(outputBuffer.size until buffer.size)
 
-        try
-        {
-            // get encrypted length
-            val lengthDataSize = ShadowCipher.lengthWithTagSize
-
-            // read bytes up to size of encrypted lengthSize into a byte buffer
-            val encryptedLengthData = readNBytes(networkInputStream, lengthDataSize)
-            if (encryptedLengthData == null)
-            {
-                Log.e("ShapeshifterKotlin", "ShadowInputStream could not read length data.")
-                return -1
-            }
-
-            // decrypt encrypted length to find out payload length
-            val lengthData = decryptionCipher.decrypt(encryptedLengthData)
-
-            // change lengthData from BigEndian representation to int length
-            val payloadLength = getIntFromBigEndian(lengthData)
-
-            // read and decrypt payload with the resulting length
-            val encryptedPayload =
-                readNBytes(networkInputStream, payloadLength + ShadowCipher.tagSize)
-            if (encryptedPayload == null)
-            {
-                Log.e("ShapeshifterKotlin", "ShadowInputStream could not read encrypted length data.")
-                return -1
-            }
-
-            // put payload into the class buffer
-            val payload = decryptionCipher.decrypt(encryptedPayload)
-            buffer += payload
-            var outputBufferSize = outputBuffer.size
-
-            if (buffer.size < outputBufferSize)
-            {
-                outputBufferSize = buffer.size
-            }
-            buffer.copyInto(outputBuffer, 0, 0, outputBufferSize)
-
-            // take bytes out of buffer
-            buffer = buffer.sliceArray(outputBufferSize until buffer.size)
-
-            return outputBufferSize
-        }
-        catch (e: Exception)
-        {
-            if (e is IOException) // readNBytes failed
-            {
-                Log.e("ShadowInputStream.read", "Received an IOException")
-            }
-            else // Decrypt Failed
-            {
-                Log.e("ShadowInputStream.read", "Decryption failure.")
-                shadowSocket.redial() // Currently redial sets a decryptionFailed bool on the socket itself
-            }
-
-            e.printStackTrace()
-            throw IOException()
-        }
+        return outputBuffer.size
     }
 
     //@ExperimentalUnsignedTypes

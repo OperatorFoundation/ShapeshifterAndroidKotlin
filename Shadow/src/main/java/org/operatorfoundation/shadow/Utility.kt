@@ -98,10 +98,7 @@ fun darkstarBytesToKeychainPublicKey(bytes: ByteArray): org.operatorfoundation.k
         throw InvalidKeySpecException()
     }
 
-    val buffer = ByteArray(33)
-    System.arraycopy(bytes, 0, buffer, 1, 32)
-    buffer[0] = 2.toByte()
-
+    val buffer = byteArrayOf(2) + bytes
     val keyFactory = KeyFactory.getInstance("EC", BouncyCastleProvider())
     val ecSpec: ECParameterSpec = ECNamedCurveTable.getParameterSpec("secp256r1")
     val point = ecSpec.curve.decodePoint(buffer)
