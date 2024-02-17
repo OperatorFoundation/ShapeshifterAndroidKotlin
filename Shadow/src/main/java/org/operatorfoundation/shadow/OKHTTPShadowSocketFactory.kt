@@ -3,8 +3,6 @@ package org.operatorfoundation.shadow
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
-import org.operatorfoundation.locketkotlin.LocketConnection
-import java.lang.IllegalArgumentException
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
@@ -14,22 +12,12 @@ import kotlin.concurrent.thread
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 class OKHTTPShadowSocketFactory(
     private val shadowConfig: ShadowConfig,
-    private val context: Context,
-    private val nonAppDirectory: String? = null,
-    private val logFileName: String? = null
+    private val context: Context
     ): SocketFactory() {
 
     private fun connect(): Socket {
         val shadowSocket = ShadowSocket(shadowConfig, context)
-        var remoteSocket: Socket = shadowSocket
-        if (logFileName != null) {
-            try {
-                remoteSocket = LocketConnection(context, nonAppDirectory, remoteSocket, logFileName)
-            } catch (exception: IllegalArgumentException) {
-                // if LocketConnection fails, do not override remoteSocket, use shadowSocket instead
-            }
-        }
-
+        val remoteSocket: Socket = shadowSocket
         val serverSocket = ServerSocket(0)
 
         thread {

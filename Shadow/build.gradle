@@ -45,7 +45,6 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0'
 
     implementation 'com.github.operatorfoundation:keychainandroid:5.0.9'
-    implementation 'com.github.operatorfoundation:locketkotlin:1.0.21'
     implementation 'com.github.OperatorFoundation:TransmissionAndroid:main-SNAPSHOT'
 
     testImplementation 'junit:junit:4.13.2'
