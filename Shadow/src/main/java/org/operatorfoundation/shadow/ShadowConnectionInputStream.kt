@@ -49,89 +49,72 @@ class ShadowConnectionInputStream(private val connection: Connection, private va
             return 0
         }
 
-        val returnSize = outputBuffer.size
-        val bufferSize = buffer.size
+        while (buffer.size < outputBuffer.size) {
+            try {
+                // get encrypted length
+                val lengthDataSize = ShadowCipher.lengthWithTagSize
 
-        // if the class buffer already has data, put it in the output buffer
-        if (returnSize <= bufferSize)
-        {
-            buffer.copyInto(outputBuffer, 0, 0, returnSize)
-            buffer = buffer.sliceArray(returnSize until bufferSize)
+                // read bytes up to size of encrypted lengthSize into a byte buffer
+                val encryptedLengthData = connection.read(lengthDataSize)
+                if (encryptedLengthData == null) {
+                    Log.e("ShapeshifterKotlin", "ShadowInputStream could not read length data.")
 
-            return outputBuffer.size
+                    if (buffer.isEmpty()) {
+                        return -1
+                    } else {
+                        buffer.copyInto(outputBuffer, 0, 0, buffer.size)
+                        buffer = byteArrayOf()
+                        return buffer.size
+                    }
+                }
+
+                // decrypt encrypted length to find out payload length
+                val lengthData = decryptionCipher.decrypt(encryptedLengthData)
+
+                // change lengthData from BigEndian representation to int length
+                val payloadLength = getIntFromBigEndian(lengthData)
+
+                // read and decrypt payload with the resulting length
+                val encryptedPayload =
+                    connection.read(payloadLength + ShadowCipher.tagSize)
+                if (encryptedPayload == null) {
+                    Log.e(
+                        "ShapeshifterKotlin",
+                        "ShadowInputStream could not read encrypted length data."
+                    )
+
+                    if (buffer.isEmpty()) {
+                        return -1
+                    } else {
+                        buffer.copyInto(outputBuffer, 0, 0, buffer.size)
+                        buffer = byteArrayOf()
+                        return buffer.size
+                    }
+                }
+
+                // put payload into the class buffer
+                val payload = decryptionCipher.decrypt(encryptedPayload)
+                buffer += payload
+            } catch (e: Exception) {
+                if (e is IOException) // readNBytes failed
+                {
+                    Log.e("ShadowInputStream.read", "Received an IOException")
+                }
+                else // Decrypt Failed
+                {
+                    Log.e("ShadowInputStream.read", "Decryption failure.")
+                    // FIXME: redial will eventually be implemented on connection
+                    // shadowSocket.redial() // Currently redial sets a decryptionFailed bool on the socket itself
+                }
+
+                e.printStackTrace()
+                throw IOException()
+            }
         }
-        else if (!buffer.isEmpty())
-        {
-            // we were passed an array that is bigger than what we already stored in the buffer
-            // but the buffer isn't empty, so lets pass what's in our buffer back to the caller
-            buffer.copyInto(outputBuffer, 0, 0, bufferSize)
 
-            // Empty our buffer now that we've handed off all of the data in it
-            buffer = byteArrayOf()
-
-            return outputBuffer.size
-        }
-
-        try
-        {
-            // get encrypted length
-            val lengthDataSize = ShadowCipher.lengthWithTagSize
-
-            // read bytes up to size of encrypted lengthSize into a byte buffer
-            val encryptedLengthData = connection.read(lengthDataSize)
-            if (encryptedLengthData == null)
-            {
-                Log.e("ShapeshifterKotlin", "ShadowInputStream could not read length data.")
-                return -1
-            }
-
-            // decrypt encrypted length to find out payload length
-            val lengthData = decryptionCipher.decrypt(encryptedLengthData)
-
-            // change lengthData from BigEndian representation to int length
-            val payloadLength = getIntFromBigEndian(lengthData)
-
-            // read and decrypt payload with the resulting length
-            val encryptedPayload =
-                connection.read(payloadLength + ShadowCipher.tagSize)
-            if (encryptedPayload == null)
-            {
-                Log.e("ShapeshifterKotlin", "ShadowInputStream could not read encrypted length data.")
-                return -1
-            }
-
-            // put payload into the class buffer
-            val payload = decryptionCipher.decrypt(encryptedPayload)
-            buffer += payload
-            var outputBufferSize = outputBuffer.size
-
-            if (buffer.size < outputBufferSize)
-            {
-                outputBufferSize = buffer.size
-            }
-            buffer.copyInto(outputBuffer, 0, 0, outputBufferSize)
-
-            // take bytes out of buffer
-            buffer = buffer.sliceArray(outputBufferSize until buffer.size)
-
-            return outputBufferSize
-        }
-        catch (e: Exception)
-        {
-            if (e is IOException) // readNBytes failed
-            {
-                Log.e("ShadowInputStream.read", "Received an IOException")
-            }
-            else // Decrypt Failed
-            {
-                Log.e("ShadowInputStream.read", "Decryption failure.")
-                // FIXME: redial will eventually be implemented on connection
-                // shadowSocket.redial() // Currently redial sets a decryptionFailed bool on the socket itself
-            }
-
-            e.printStackTrace()
-            throw IOException()
-        }
+        buffer.copyInto(outputBuffer, 0, 0, outputBuffer.size)
+        buffer = buffer.sliceArray(outputBuffer.size until buffer.size)
+        return outputBuffer.size
     }
 
     override fun read(b: ByteArray?, off: Int, len: Int): Int
