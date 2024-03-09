@@ -4,15 +4,19 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okio.utf8Size
 
 import org.junit.Test
 import org.junit.runner.RunWith
 
 import org.junit.Assert.*
-import org.operatorfoundation.locketkotlin.*
+//import org.operatorfoundation.locketkotlin.*
 import org.operatorfoundation.shadow.*
+import org.operatorfoundation.transmission.ConnectionType
+import org.operatorfoundation.transmission.TransmissionConnection
 import java.net.*
 import java.util.concurrent.TimeUnit
+import java.util.logging.Logger
 import kotlin.concurrent.thread
 
 /**
@@ -24,6 +28,27 @@ import kotlin.concurrent.thread
 class ExampleInstrumentedTest {
 
     val appContext = InstrumentationRegistry.getInstrumentation().targetContext
+
+    @Test
+    fun connectShadowToEchoServer()
+    {
+        val logger = Logger.getLogger("ShadowToEchoTestLogger")
+        val serverAddress = "24.199.99.92:7193"
+        val serverPublicKey = "AgSVfOpvZxmYfYc3IQJ6Ag/XDBXzQ6OwBOdy9DvGRw8T2QWptPjfs0b3I7sdvMBZ7aeOFLUl1bWjS7nozxzduTDP"
+        val shadowConfig = ShadowConfig(serverPublicKey, "Darkstar", serverAddress)
+        val connection = TransmissionConnection(shadowConfig.serverIP, shadowConfig.port, ConnectionType.TCP, logger)
+        val shadowConnection = ShadowConnection(shadowConfig, appContext, logger, connection)
+
+        println("Successfully made a shadow connection")
+
+        val shadowWrite = shadowConnection.write("Hello")
+
+        println("Shadow wrote: ${shadowWrite}")
+
+        val shadowRead = shadowConnection.read(5)
+
+        println("Shadow read: $shadowRead")
+    }
 
     @Test
     fun useAppContext() {
@@ -153,7 +178,7 @@ class ExampleInstrumentedTest {
         {
             val appContext = InstrumentationRegistry.getInstrumentation().targetContext
             val shadowConfig = ShadowConfig("", "DarkStar", "")
-            val okhhtpSocketFactory = OKHTTPShadowSocketFactory(shadowConfig, appContext, null, "okhhtpClient")
+            val okhhtpSocketFactory = OKHTTPShadowSocketFactory(shadowConfig, appContext)
             val socket = okhhtpSocketFactory.createSocket()
             val serverBytes = ByteArray(4)
             socket.getInputStream().read(serverBytes)
