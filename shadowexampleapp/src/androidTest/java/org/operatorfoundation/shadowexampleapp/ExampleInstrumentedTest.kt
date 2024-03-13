@@ -33,8 +33,8 @@ class ExampleInstrumentedTest {
     fun connectShadowToEchoServer()
     {
         val logger = Logger.getLogger("ShadowToEchoTestLogger")
-        val serverAddress = "24.199.99.92:7193"
-        val serverPublicKey = "AgSVfOpvZxmYfYc3IQJ6Ag/XDBXzQ6OwBOdy9DvGRw8T2QWptPjfs0b3I7sdvMBZ7aeOFLUl1bWjS7nozxzduTDP"
+        val serverAddress = ""
+        val serverPublicKey = ""
         val shadowConfig = ShadowConfig(serverPublicKey, "Darkstar", serverAddress)
         val connection = TransmissionConnection(shadowConfig.serverIP, shadowConfig.port, ConnectionType.TCP, logger)
         val shadowConnection = ShadowConnection(shadowConfig, appContext, logger, connection)
