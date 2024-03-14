@@ -33,7 +33,7 @@ class ExampleInstrumentedTest {
     fun connectShadowToEchoServer()
     {
         val logger = Logger.getLogger("ShadowToEchoTestLogger")
-        val serverAddress = ""
+        val serverAddress = "0.0.0.0:1234"
         val serverPublicKey = ""
         val shadowConfig = ShadowConfig(serverPublicKey, "Darkstar", serverAddress)
         val connection = TransmissionConnection(shadowConfig.serverIP, shadowConfig.port, ConnectionType.TCP, logger)
@@ -41,13 +41,23 @@ class ExampleInstrumentedTest {
 
         println("Successfully made a shadow connection")
 
-        val shadowWrite = shadowConnection.write("Hello")
-
+        val successString = "pass"
+        val shadowWrite = shadowConnection.write(successString)
         println("Shadow wrote: ${shadowWrite}")
 
-        val shadowRead = shadowConnection.read(5)
+        val shadowRead = shadowConnection.read(successString.count())
 
-        println("Shadow read: $shadowRead")
+        if (shadowRead == null)
+        {
+            println("Tried to read but got no response.")
+        }
+        else
+        {
+            val readString = String(shadowRead)
+            println("Read from server.")
+
+            assert(successString == readString)
+        }
     }
 
     @Test
