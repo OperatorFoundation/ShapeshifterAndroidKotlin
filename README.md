@@ -1,8 +1,8 @@
-# The Operator Foundation
+### The Operator Foundation
 
 [Operator](https://operatorfoundation.org) makes usable tools to help people around the world with censorship, security, and privacy.
 
-## Shapeshifter
+### Shapeshifter
 
 The Shapeshifter project provides network protocol shapeshifting technology
 (also sometimes referred to as obfuscation). The purpose of this technology is
@@ -58,7 +58,8 @@ heavily throttled.
 
 # ShapeshifterAndroidKotlin
 
-Shadowsocks is a fast, free, and open-source encrypted proxy project, used to circumvent Internet censorship by utilizing a simple, but effective encryption and a shared password. ShadowSwift is a wrapper for Shadowsocks that makes it available as a Pluggable Transport. 
+ShapeshifterAndroidKotlin is a native Android library that contains an implementation of the Shadow transport. Shadow is a wrapper for Shadowsocks that makes it available as a Pluggable Transport. Shadowsocks is a fast, free, and open-source encrypted proxy project, used to circumvent Internet censorship by utilizing a simple, but effective encryption and a shared password. 
+ 
 
 ## Setting up dependencies
 
